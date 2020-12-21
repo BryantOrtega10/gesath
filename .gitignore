@@ -1,7 +1,8 @@
 .env
+.vscode/
 /bootstrap
 /database
 /storage
 /vendor
-.vscode/
-test/
+/test
+gesathWeb.zip
