@@ -1,0 +1,7 @@
+.env
+/bootstrap
+/database
+/storage
+/vendor
+.vscode/
+test/

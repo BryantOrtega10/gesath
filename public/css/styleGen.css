@@ -1,0 +1,1029 @@
+.menuLateral {
+    min-width: 108px;
+    background: #166F93;
+}
+
+section.contenido {
+    display: flex;
+    min-height: 100vh;
+}
+
+.menuLateral a {
+    display: block;
+    color: #166F93;
+    font-size: 20px;
+}
+
+.oculto {
+    display: none;
+}
+
+.activo {
+    display: block;
+}
+
+.elementoVariable {
+    display: none;
+}
+
+.elementoVariable.activo {
+    display: block;
+}
+
+.conceptoInicial,
+.grupoInicial,
+.multiplicadorInicial,
+.grupoFin1,
+.conceptoFin1,
+.valorFin1,
+.variableFin1,
+.multiplicadorFin1,
+.grupoFin2,
+.conceptoFin2,
+.valorFin2,
+.variableFin2,
+.multiplicadorFin2,
+.grupoFin3,
+.conceptoFin3,
+.valorFin3,
+.variableFin3,
+.multiplicadorFin3 {
+    padding-left: 30px;
+}
+
+.contFoto {
+    display: inline-flex;
+    width: 130px;
+    height: 160px;
+    border: 1px solid #cdcdcd;
+    position: relative;
+    text-align: center;
+    line-height: 56px;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 3px;
+}
+
+.contFoto input {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.contFoto img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+
+/*Inicio Sesion*/
+
+.inicioSesion {
+    width: 420px;
+    margin: auto;
+    text-align: left;
+    padding-top: 207px;
+}
+
+.inicioSesion .form-group {
+    text-align: left;
+    position: relative;
+    margin-top: 18px;
+    margin-bottom: 0;
+}
+
+.inicioSesion input[type="text"],
+.inicioSesion input[type="email"],
+.inicioSesion input[type="password"] {
+    width: 100%;
+    padding: 15px 20px;
+    border-radius: 4px;
+    border: 1px solid #979797;
+    height: 60px;
+    color: #000;
+    font-size: 21px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 89.64%, rgba(220, 220, 220, 0.04) 100%);
+    font-family: 'Roboto';
+    font-weight: 900;
+}
+
+.inicioSesion .form-group label {
+    position: absolute;
+    left: 18px;
+    font-size: 21px;
+    top: 50%;
+    margin: 0;
+    margin-top: -15px;
+    color: rgba(0, 0, 0, 0.46);
+    font-family: 'Roboto';
+    font-weight: 600;
+}
+
+.inicioSesion input[type="text"]:focus,
+.inicioSesion input[type="password"]:focus {
+    border: 2px solid #166F93;
+    box-shadow: 0px 2px 4px hsla(0, 0%, 42%, 0.43);
+}
+
+.inicioSesion img {
+    margin: auto;
+    margin-bottom: 70px;
+    display: block;
+}
+
+.inicioSesion input[type="submit"] {
+    background: #166F93;
+    border-radius: 6px;
+    border: 0;
+    width: 100%;
+    height: 61px;
+    font-size: 21px;
+    font-family: Helvetica;
+    font-style: normal;
+    font-weight: bold;
+    margin-top: 24px;
+    color: #FFF;
+    margin-bottom: 18px;
+}
+
+.contTerminos {
+    font-size: 17px;
+    color: #9F9F9F;
+    font-family: 'Roboto';
+    font-weight: 500;
+}
+
+.olvidePass {
+    color: #9F9F9F;
+    text-align: center;
+    font-family: 'Roboto';
+    font-weight: 500;
+    font-size: 17px;
+    margin-top: 40px;
+}
+
+.olvidePass a {
+    color: #166F93;
+}
+
+.contTerminos label {
+    margin: 0;
+}
+
+.menuLateral .perfilPersona {
+    display: none;
+}
+
+.openMenu {
+    background: url(../img/menu/menu.png);
+    width: 50px;
+    height: 50px;
+    display: block;
+    margin: auto;
+    margin-top: 50px;
+    cursor: pointer;
+    margin-bottom: 48px;
+}
+
+ul.itemsMenu {
+    padding: 0;
+    list-style: none;
+}
+
+ul.itemsMenu>li {
+    text-align: center;
+    padding: 12px 0;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.menuLateral ul.subMenu {
+    display: none;
+}
+
+span.textoMenu {
+    position: absolute;
+    left: 108px;
+    background: #1E8AB6;
+    font-size: 24px;
+    font-family: 'Roboto';
+    font-weight: bold;
+    color: #FFF;
+    white-space: nowrap;
+    height: 100%;
+    top: 0;
+    line-height: 65px;
+    padding: 0px 42px;
+    box-shadow: inset 4px 0px 4px rgba(0, 0, 0, 0.25);
+    width: 0;
+    padding: 0;
+    transition: all 0.2s;
+    display: block;
+    overflow: hidden;
+    z-index: 9;
+}
+
+ul.itemsMenu li.active,
+ul.itemsMenu li:hover {
+    background: #1E8AB6;
+}
+
+.itemsMenu li:hover span.textoMenu {
+    width: 310px;
+    padding: 0 42px;
+}
+
+.active.menuLateral {
+    min-width: 400px;
+    background: #FFF;
+    display: block;
+}
+
+.menuLateral.active .perfilPersona {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+    font-size: 28px;
+    font-family: 'Roboto';
+    color: #FFF;
+    width: calc(100% - 86px);
+}
+
+.closeMenu {
+    background: url(../img/menu/menuActivo.png);
+    width: 50px;
+    height: 50px;
+    margin-top: 50px;
+    cursor: pointer;
+    margin-bottom: 48px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 31px;
+}
+
+.headMenu {
+    background: #166F93;
+    user-select: none;
+}
+
+span.nombreUsuario {
+    width: calc(100% - 87px);
+    text-align: center;
+    display: inline-block;
+}
+
+.perfilPersona img {
+    border-radius: 50%;
+    border: 2px solid #FFF;
+    margin-right: 13px;
+}
+
+.menuLateral.active ul.subMenu {
+    display: block;
+    list-style: none;
+    padding: 0;
+    border-left: 4px solid #CBDFE8;
+    margin-top: 15px;
+}
+
+.active.menuLateral ul.itemsMenu li.active,
+.active.menuLateral ul.itemsMenu li:hover {
+    background: #fff;
+}
+
+.active.menuLateral ul.itemsMenu li img {
+    display: none;
+}
+
+.active.menuLateral span.textoMenu {
+    position: relative;
+    left: 0;
+    top: 0;
+    background: transparent;
+    color: #000;
+    box-shadow: none;
+    height: auto;
+    line-height: normal;
+    font-size: 24px;
+    color: #166F93;
+    /* display: block; */
+    margin-bottom: 24px;
+    width: auto;
+}
+
+.active.menuLateral ul.itemsMenu>li {
+    text-align: -webkit-auto;
+    padding-left: 20px;
+}
+
+.active.menuLateral .itemsMenu li:hover span.textoMenu {
+    width: auto;
+    padding: 0px;
+}
+
+.menuLateral a:hover {
+    text-decoration: none;
+}
+
+.active.menuLateral ul.subMenu>li {
+    padding: 5px 0;
+    padding-left: 5px;
+    font-size: 17px;
+    position: relative;
+}
+
+.active.menuLateral .subMenu span.textoMenu {
+    font-size: 17px;
+    color: #959595;
+    margin: 0;
+    width: auto;
+    background: none;
+    left: auto;
+    line-height: initial;
+    padding: 0px;
+}
+
+.active.menuLateral ul.subMenu>li:before {
+    content: "";
+    width: 4px;
+    background: transparent;
+    height: 30px;
+    position: absolute;
+    left: -4px;
+    top: 0px;
+    border-radius: 5px;
+    transition: all 0.2s;
+}
+
+.active.menuLateral ul.subMenu>li.active:before,
+.active.menuLateral ul.subMenu>li:hover:before {
+    content: "";
+    background: #166F93;
+}
+
+body {
+    background: #F2F2F2;
+}
+
+.active.menuLateral ul.subMenu>li>a {
+    padding-left: 13px;
+}
+
+.contenidoInterno {
+    padding: 24px 30px;
+    width: 100%;
+}
+
+.contenidoInterno h1,
+.contenidoInterno h2,
+.contenidoInterno h3 {
+    color: #848484;
+    font-family: Roboto;
+    font-weight: bold;
+    font-size: 24px;
+    text-align: left;
+}
+
+.cajaGeneral {
+    background: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    padding: 18px;
+    margin-top: 18px;
+    text-align: center;
+    display: block;
+    width: 100%;
+}
+
+.cajaGeneral input[type="text"],
+.cajaGeneral select {
+    width: 100%;
+    padding: 9px 13px; 
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    border: 1px solid #E7E7E7;
+    box-sizing: border-box;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    color: #A9A9A9;
+    outline: none;
+}
+
+.cajaGeneral input[type="text"]::placeholder {
+    color: #A9A9A9;
+}
+
+.cajaGeneral input[type="submit"] {
+    background: #166F93;
+    color: #FFF;
+    font-family: Roboto;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 11px 46px;
+    border: 0;
+    border-radius: 2px;
+    outline: none;
+}
+
+.cajaGeneral input[type="reset"] {
+    background: url(../img/empleado/refresh.png);
+    width: 45px;
+    height: 46px;
+    vertical-align: middle;
+    background-color: #A9A9A9;
+    border-radius: 2px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 0;
+    margin: 0;
+    outline: none;
+    margin-left: 15px;
+}
+
+a.btnGeneral {
+    display: block;
+    border: 1px solid #EDEDED;
+    box-sizing: border-box;
+    border-radius: 2px;
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 16px;
+    color: #A9A9A9;
+    padding: 8px 0;
+    margin-bottom: 18px;
+    transition: all 0.2s;
+}
+
+a.btnGeneral:hover {
+    color: #FFF;
+    background: #166F93;
+    border-radius: 2px;
+    text-decoration: none;
+}
+
+.estdoEmpenCreacion {
+    background: #ff0;
+    border-radius: 8.5px;
+    color: #000;
+    display: inline-block;
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 3px 10px;
+}
+
+.contenidoInterno h3 {
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+div.tabGeneral {
+    padding: 18px;
+    border: 1px solid #979797;
+    background: #FFF;
+    border-top: 0;
+}
+
+.navGeneral.nav-tabs .nav-item.show .nav-link,
+.navGeneral.nav-tabs .nav-link.active {
+    border-color: #979797 #979797 #fff;
+    color: #6B6B6B;
+}
+
+.nav-tabs.navGeneral {
+    border-bottom: 1px solid #999;
+}
+
+.subTitulo h2 {
+    background: #FFF;
+    display: inline-block;
+    z-index: 1;
+    position: relative;
+    padding-right: 25px;
+    text-align: left;
+}
+
+.subTitulo hr {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.subTitulo {
+    position: relative;
+    margin: 18px 0;
+    text-align: left;
+}
+
+.navGeneral.nav-tabs .nav-link:focus,
+.navGeneral.nav-tabs .nav-link:hover {
+    border-color: #979797 #979797 #fff;
+}
+
+form.formGeneral .form-group {
+    position: relative;
+}
+
+form.formGeneral .form-group label {
+    position: absolute;
+    top: 50%;
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    color: #A9A9A9;
+    left: 0;
+    margin: 0;
+    margin-top: -10px;
+    padding-left: 6px;
+    user-select: none;
+    transition: all 0.5s;
+    z-index: 1;
+}
+
+form.formGeneral .form-group.focusGroup label,
+form.formGeneral .form-group.hasText label {
+    top: 12px;
+    font-size: 10px;
+    left: 0;
+}
+
+form.formGeneral .form-group input {
+    border: 1px solid #E7E7E7;
+    box-sizing: border-box;
+    border-radius: 4px;
+    height: 42px;
+    font-family: Roboto;
+    font-weight: 500;
+    /* identical to box height */
+    padding: 6px;
+    font-size: 14px;
+    color: #FFF;
+    transition: all 0.5s;
+    z-index: 2;
+    position: relative;
+    background: transparent;
+}
+
+form.formGeneral .form-group.focusGroup input,
+form.formGeneral .form-group.hasText input {
+    border: 1px solid #E7E7E7;
+    box-sizing: border-box;
+    border-radius: 4px;
+    font-family: Roboto;
+    font-weight: 500;
+    font-size: 12px;
+    color: #737373;
+    padding: 6px;
+    padding-top: 19px;
+}
+
+form.formGeneral .form-group select {
+    padding-left: 0px;
+    border: 1px solid #E7E7E7;
+    box-sizing: border-box;
+    border-radius: 4px;
+    font-family: Roboto;
+    font-weight: 500;
+    font-size: 12px;
+    color: #737373;
+    padding: 0;
+    padding-top: 14px;
+    height: 42px;
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+
+form.formGeneral .form-group input[type="date"],
+form.formGeneral .form-group input[type="datetime-local"] {
+    z-index: 0;
+}
+
+.contenidoInterno h4 {
+    color: #848484;
+    font-family: Roboto;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.contMasMenos {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+}
+
+.contMasMenos .mas {
+    background: #166f93;
+    color: #FFF;
+    width: 24px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+a.quitarContactoEmergencia {
+    margin-bottom: 15px;
+}
+
+a.quitarPersonaVive {
+    margin-bottom: 15px;
+}
+
+.btnSubmitGen {
+    background: #166F93;
+    color: #FFF;
+    font-family: Roboto;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 11px 46px;
+    border: 0;
+    border-radius: 2px;
+    outline: none;
+}
+
+.navGeneral.nav-tabs .nav-link {
+    color: #166F93;
+    font-family: Roboto;
+    font-weight: 500;
+    font-size: 18px;
+}
+
+h1.ordenSuperior {
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 36px;
+    line-height: 42px;
+    letter-spacing: -1px;
+    color: #166F93;
+    margin-bottom: 40px;
+}
+
+form.formGeneral .form-group.campoObligatorio input,
+form.formGeneral .form-group.campoObligatorio select {
+    border-color: #bb0000;
+}
+
+form.formGeneral .form-group.campoObligatorio label {
+    color: #bb0000;
+}
+
+.tipoPagoTransferencia,
+.tipoPagoOtro,
+.porcentajeRetencion {
+    display: none;
+}
+
+.tipoPagoTransferencia.activoFlex,
+.tipoPagoOtro.activoFlex {
+    display: flex;
+}
+
+.porcentajeRetencion.activo {
+    display: block;
+}
+
+.estdoEmpactivo {
+    background: #00f33b;
+    border-radius: 8.5px;
+    color: #000;
+    display: inline-block;
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 3px 10px;
+}
+
+#resp_tipoReporte {
+    display: none;
+}
+
+#resp_tipoReporte.activo {
+    display: block;
+}
+
+div.busquedaPop {
+    background: url(../img/busqueda.png);
+    background-repeat: no-repeat;
+    background-position: center right 5px;
+    background-size: 20px;
+}
+
+form.formGeneral .form-group.busquedaPop input {
+    user-select: none;
+}
+
+#continuarIgual {
+    display: none;
+}
+
+#continuarIgual.activo {
+    display: inline-block;
+}
+
+.detalleBoucher {
+    padding: 20px 40px;
+    border-top: 1px solid #CCC;
+    display: none;
+    margin-top: 10px;
+}
+
+.detalleBoucher.activo {
+    display: block;
+}
+
+a.verDetalle {
+    padding: 0 20px;
+}
+
+.nuevoContrato {
+    display: none;
+}
+
+.nuevoContrato.activo {
+    display: block;
+}
+
+.estdoEmpincactivo {
+    background: #a22222;
+    color: #FFF;
+    border-radius: 5px;
+}
+
+ul.itemsMenu>li:hover>ul.subMenu {
+    display: block;
+    position: absolute;
+    left: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    margin-top: 12px;
+    max-height: 200px;
+    overflow-y: scroll;
+    z-index: 9;
+    border: 1px solid #CCC;
+}
+
+.active ul.itemsMenu>li:hover>ul.subMenu {
+    position: relative;
+    left: auto;
+    border: 0;
+    max-height: none;
+    overflow: visible;
+    margin: auto;
+    border-left: 4px solid #CBDFE8;
+    margin-top: 15px;
+}
+
+.itemsMenu ul.subMenu>li>a>span.textoMenu {
+    background: #f2f2f2;
+    position: relative;
+    text-align: left;
+    left: 0;
+    font-size: 14px;
+    line-height: 45px;
+    color: #000;
+    box-shadow: none;
+    padding: 0 10px;
+    width: 291px;
+}
+
+.itemsMenu ul.subMenu>li>a>span.textoMenu:hover {
+    background: #dadada;
+}
+
+.active .itemsMenu ul.subMenu>li>a>span.textoMenu:hover {
+    background: none;
+}
+
+.infoPersonaBeneficio2,
+.infoPersonaBeneficio1,
+.infoBeneficioSinPersona {
+    display: none;
+}
+
+.infoPersonaBeneficio2.activo,
+.infoPersonaBeneficio1.activo,
+.infoBeneficioSinPersona.activo {
+    display: block;
+}
+
+.boucher {
+    text-align: center;
+}
+
+a.btnSubmitGen {
+    text-decoration: none;
+    display: inline-block;
+}
+
+a.btnSubmitGen:hover {
+    color: #FFF;
+    text-decoration: none;
+}
+
+.cambioAfiliacion {
+    display: none;
+}
+
+.cambioAfiliacion.activoFlex {
+    display: flex;
+}
+
+.cambioConcepto {
+    display: none;
+}
+
+.cambioConcepto.activoFlex {
+    display: flex;
+}
+
+.fechaParaPrima,
+.porcentajeParaPrima,
+.valorFijoParaPrima {
+    display: none;
+}
+
+.fechaParaPrima.activo,
+.porcentajeParaPrima.activo,
+.valorFijoParaPrima.activo {
+    display: block;
+}
+
+.elementoVariable,
+.elementoTercero {
+    display: none;
+}
+
+.elementoVariable.activo,
+.elementoTercero.activo {
+    display: block;
+}
+
+.grupoAporteEmpleador,
+.grupoProvision,
+.grupoConceptoCuenta {
+    display: none;
+}
+
+.grupoAporteEmpleador.activo,
+.grupoProvision.activo,
+.grupoConceptoCuenta.activo {
+    display: block;
+}
+
+
+/* ESTILOS SEBASTIAN GOMEZ */
+
+.margenArriba_alerta {
+    margin-top: 6px;
+}
+
+label.error {
+    color: #721c24;
+}
+
+input.error {
+    border-color: #721c24;
+}
+
+select.error {
+    border-color: #721c24;
+}
+
+.dropdown-toggle::after {
+    content: none !important;
+}
+
+.color_rojo {
+    color: #721c24 !important;
+}
+
+.color_blanco {
+    color: #ffffff !important;
+}
+
+.ubicaciones {
+    margin-bottom: 10px;
+}
+
+.anchocompleto_flex {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.ubicaciones {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.cont_ub {
+    width: 94%;
+}
+
+.elim_ub {
+    width: 5%;
+}
+
+.generar_pass {
+    width: 100%;
+    padding: 3px;
+}
+
+.form_log::-webkit-input-placeholder {
+    font-size: 21px;
+    color: rgba(0, 0, 0, 0.46);
+    font-family: 'Roboto';
+    font-weight: 600;
+}
+
+.form_log:-moz-placeholder {
+    font-size: 21px;
+    color: rgba(0, 0, 0, 0.46);
+    font-family: 'Roboto';
+    font-weight: 600;
+}
+
+.puntero {
+    cursor: pointer;
+}
+
+.contConceptos {
+    max-height: 200px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+
+/* CSS PORTAL DE EMPLEADO */
+
+.boton_transparentico {
+    background-color: transparent !important;
+    border: none !important;
+    pointer-events: none;
+    color: transparent !important;
+}
+
+.alto_tarjeta {
+    height: 160px;
+    margin-bottom: 15px;
+}
+
+.tarjeta_hover {
+    border: 1px solid #166F93 !important;
+    color: #166F93 !important;
+}
+
+.tarjeta_hover:hover {
+    box-shadow: 0px 0px 10px #166F93 !important;
+    transform: scale(1.1) !important;
+    transition: 0.5s all !important;
+}
+
+.barra_nav {
+    background: #166F93 !important;
+}
+
+.btn_logout {
+    border: 1px solid #721c24 !important;
+    color: #721c24 !important;
+}
+
+.margen_izq_brand {
+    margin-left: 15px;
+}
+
+.caja_roja {
+    border-color: #bd2130 !important;
+    color: #bd2130 !important;
+}
+
+.caja_roja:hover {
+    box-shadow: 0px 0px 10px #bd2130 !important;
+}
+
+.foto_perfil_redonda {
+    max-width: 40px;
+    border-radius: 50%;
+    padding: 0;
+}
+
+
+/* FIN ESTILOS SEBASTIAN GOMEZ */

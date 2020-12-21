@@ -1,0 +1,1 @@
+<h2 style = "text-align: center;">No puedes acceder a esta parte del sistema.</h2>

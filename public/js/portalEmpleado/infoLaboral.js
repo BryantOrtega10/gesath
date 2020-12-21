@@ -1,0 +1,135 @@
+$(document).ready(() => {
+    $("body").on("click", ".info_laboral", (e) => {
+        const idUsu = $("#idUsu").val();
+        solicitudAjax(`/portal/infoLaboral/${idUsu}`, 'GET', null,
+            (data) => {
+                $(".respForm[data-para='portalEmple']").html(data);
+                $('#portalEmpleModal').modal('show');
+            }, (err) => {
+                console.log(err);
+            }
+        );
+    });
+
+    $("body").on("click", ".vacaciones_emple", (e) => {
+        const idUsu = $("#idUsu").val();
+        solicitudAjax(`/portal/diasVacacionesDisponibles/${idUsu}`, 'GET', null,
+            (data) => {
+                $(".respForm[data-para='portalEmple']").html(data);
+                $('#portalEmpleModal').modal('show');
+            }, (err) => {
+                console.log(err);
+            }
+        );
+    });
+
+    $("body").on("click", ".perfil_emple", (e) => {
+        const idUsu = $("#idUsu").val();
+        solicitudAjax(`/portal/datosEmple/${idUsu}`, 'GET', null,
+            (data) => {
+                $(".respForm[data-para='portalEmple']").html(data);
+                $('#portalEmpleModal').modal('show');
+            }, (err) => {
+                console.log(err);
+            }
+        );
+    });
+
+    $("body").on("submit", ".formPerfilEmple", (e) => {
+        e.preventDefault();
+        const idUsu = $("#idEmpleado").val();
+        const formData = new FormData($('.formPerfilEmple')[0]);
+        solicitudAjax(`/portal/ediDatosEmple/${idUsu}`, 'POST', formData,
+            (data) => {
+                if (data.success) {
+                    retornarAlerta(
+                        '¡Hecho!',
+                        data.mensaje,
+                        'success',
+                        'Aceptar'
+                    );
+                } else {
+                    retornarAlerta(
+                        '¡Error!',
+                        data.mensaje,
+                        'error',
+                        'Aceptar'
+                    );
+                }
+                $('#portalEmpleModal').modal('hide');
+            }, (err) => {
+                console.log(err);
+            }
+        );
+    });
+
+    $("body").on("click", ".cambiar_pass", (e) => {
+        e.preventDefault();
+        const idUsu = $("#idUsu").val();
+        solicitudAjax(`/portal/getVistaPass/${idUsu}`, 'GET', null,
+            (data) => {
+                $(".respForm[data-para='portalEmple']").html(data);
+                $('#portalEmpleModal').modal('show');
+            }, (err) => {
+                console.log("error");
+                console.log(err);
+            }
+        );
+    });
+
+    $("body").on("submit", ".formActPass", (e) => {
+        e.preventDefault();
+        const idEmple = $("#idEmple").val();
+        const formData = new FormData($(".formActPass")[0]);
+        solicitudAjax(`/portal/cambiarContrasenia/${idEmple}`, 'POST', formData,
+            (data) => {
+                if (data.success) {
+                    retornarAlerta(
+                        '¡Hecho!',
+                        data.mensaje,
+                        'success',
+                        'Aceptar'
+                    );
+                    $('#portalEmpleModal').modal('toggle');
+                } else {
+                    retornarAlerta(
+                        '¡Error!',
+                        data.mensaje,
+                        'error',
+                        'Aceptar'
+                    );
+                }
+            }, (err) => {
+                const error = err.responseJSON;
+                if (error.error_code === 'VALIDATION_ERROR') {
+                    mostrarErrores(error.errors);
+                } else {
+                    console.log("error");
+                }
+            }
+        );
+    });
+
+    $("body").on("change", "#pais", (e) => {
+        const idUbi = $("#pais option:selected").val();
+        traerUbicacionesFk('#deptos', idUbi);
+    });
+
+    $("body").on("change", "#deptos", (e) => {
+        const idUbi = $("#deptos option:selected").val();
+        traerUbicacionesFk('#fkUbicacion', idUbi);
+    });
+
+});
+
+function traerUbicacionesFk(domAppend, idUbi) {
+    solicitudAjax(`/ubicaciones/obtenerHijos/${idUbi}`, 'GET', null,
+        (data) => {
+            console.log(data);
+            $(domAppend).empty();
+            $(domAppend).append(data.opciones);
+        }, (err) => {
+            console.log(error);
+        }
+    );
+}
