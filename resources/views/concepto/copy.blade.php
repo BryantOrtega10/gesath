@@ -77,10 +77,27 @@
 			@endforeach
 		</select>
 	</div>
+	<input type="hidden"  id="numRetefuente" name="numRetefuente" value="{{$concepto->numRetefuente}}" />
 	<div class="form-group">
-		<label for="numRetefuente" class="control-label">Numero en retefuente *</label>
-		<input type="text" class="form-control" required id="numRetefuente" name="numRetefuente" value="{{$concepto->numRetefuente}}" />
-	</div>
+		<label>Grupo concepto</label>
+		<div class="checksCont">
+			@foreach ($gruposConcepto as $grupoConcepto)
+			<input type="hidden" value="@isset($grupoConcepto->relacion) 1 @else 0 @endisset" name="gruposConceptoRelacion[]"/>
+			<div class="row">
+				<div class="col-1 text-center">
+					<input type="checkbox" value="{{$grupoConcepto->idgrupoConcepto}}" 
+					@isset($grupoConcepto->relacion)
+						checked="checked"
+					@endisset
+					id="grupoConcepto_{{$grupoConcepto->idgrupoConcepto}}" name="gruposConcepto[]"/>
+				</div>
+				<div class="col-10">
+					<label for="grupoConcepto_{{$grupoConcepto->idgrupoConcepto}}">{{$grupoConcepto->nombre}}</label>
+				</div>				
+			</div>
+			@endforeach
+		</div>
+	</div>	
 	<div class="form-group">
 		<label for="generacionAutomatica" class="control-label">Generaci&oacute;n *</label>
 		<select class="form-control" id="generacionAutomatica" required name="generacionAutomatica">

@@ -36,7 +36,7 @@
         <div class="col-3 valorFijoParaPrima ">
             <div class="form-group">
                 <label for="valorFijoPrima" class="control-label">Valor fijo prima:</label>
-                <input type="text" class="form-control" id="valorFijoPrima" name="valorFijoPrima"/>
+                <input type="text" class="form-control separadorMiles" id="valorFijoPrima" name="valorFijoPrima"/>
             </div>
         </div>
     </div>

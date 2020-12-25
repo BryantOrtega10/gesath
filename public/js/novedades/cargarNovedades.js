@@ -546,5 +546,12 @@ $(document).ready(function(){
             });	
         }
 		
-	});
+    });
+    
+
+    
+    $(".recargarPage").click(function(){
+        window.open("/novedades/listaNovedades/","_self");
+    });
+    
 });

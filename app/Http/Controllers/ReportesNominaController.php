@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ReportesNominaController extends Controller
 {
-    private $rutaBaseImagenes = "G:\\Trabajo\\Gesath\\web\\gesathWeb\\public\\";
-    
+    private $rutaBaseImagenes = "/home/xtspamqf/public_html/gesathWeb/public/"; 
+
     
 
     public function reporteNominaHorizontalIndex(){
@@ -90,7 +90,7 @@ class ReportesNominaController extends Controller
         foreach($matrizReporte as $matriz){ 
             foreach($matriz as $row => $datoInt){
                 
-                if(is_int($datoInt) && $datoInt > 0){
+                if(is_int($datoInt) && $datoInt > 0 && $row != "Salario" && $row != "Dias"){
                     
                     if(!in_array($row, $arrDefLinea1)){
                         array_push($arrDefLinea1, $row);
@@ -133,7 +133,7 @@ class ReportesNominaController extends Controller
                 $idDef = array_search($row, $arrDefLinea1);
         
 
-                if(is_int($datoInt) && $row != "Dias"){
+                if(is_int($datoInt) && $row != "Dias" && $row != "Salario"){
                     $arrFila[$idDefTotal] = (isset($arrFila[$idDefTotal]) ? $arrFila[$idDefTotal]+ $datoInt : $datoInt);    
                     
                 }
@@ -143,7 +143,7 @@ class ReportesNominaController extends Controller
                     $arrFila[$idDefDesc]= (isset($arrFila[$idDefDesc]) ? $arrFila[$idDefDesc] + ($datoInt*-1) : ($datoInt*-1)); 
                     $arrFila[$idDef] = $datoInt*-1;    
                 }
-                else if(is_int($datoInt) && $datoInt>0 && $row != "Dias"){
+                else if(is_int($datoInt) && $datoInt>0 && $row != "Dias" && $row != "Salario"){
                     $arrFila[$idDefPagos] = (isset($arrFila[$idDefPagos]) ? $arrFila[$idDefPagos] + $datoInt : $datoInt);
                     $arrFila[$idDef] = $datoInt;    
                 }
@@ -611,11 +611,19 @@ class ReportesNominaController extends Controller
 
 
 
-
+        $base64 = "";
+        if(is_file($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa)){
+            $imagedata = file_get_contents($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa);
+                     // alternatively specify an URL, if PHP settings allow
+            $base64 = base64_encode($imagedata);
+        }
+        
 
         $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
         $dompdf = new Dompdf();
+        $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
+        $dompdf->getOptions()->setIsPhpEnabled(true);
         $html='
         <html>
         <body>
@@ -661,6 +669,7 @@ class ReportesNominaController extends Controller
             if($empresayLiquidacion->fkTipoLiquidacion == "7"){
                 $html.='<div class="page liquida">
                 <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                    <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                     <b>'.$empresayLiquidacion->razonSocial.'</b>
                     <br>
                     <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -852,6 +861,7 @@ class ReportesNominaController extends Controller
                 $html.='                    
                 <div class="page liquida">
                     <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                        <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                         <b>'.$empresayLiquidacion->razonSocial.'</b>
                         <br>
                         <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -1158,6 +1168,13 @@ class ReportesNominaController extends Controller
             else{
                 $html.='<div class="page">
                     <div style="border: 2px solid #000; padding: 10px 20px;">
+                        ';
+                        
+                        
+                        
+                         $html.='
+                        
+                         <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                         <b>'.$empresayLiquidacion->razonSocial.'</b>
                         <br>
                         <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -1367,6 +1384,7 @@ class ReportesNominaController extends Controller
                 $html.='<div class="page_break"></div>
                     <div class="page">
                         <div style="border: 2px solid #000; padding: 10px 20px;">
+                            <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                             <b>'.$empresayLiquidacion->razonSocial.'</b>
                             <br>
                             <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -1502,7 +1520,7 @@ class ReportesNominaController extends Controller
             </body>
         </html>
         ';
-                        
+        
         $dompdf->loadHtml($html ,'UTF-8');
 
         // (Optional) Setup the paper size and orientation
@@ -1643,7 +1661,7 @@ class ReportesNominaController extends Controller
             $arrayFila = array();
             $arrayNuevoRegistro = array();
             $numeroEmpleados ++;
-            
+            $fechaFin = $fechaFinMesActual;
             $arrayFila[0] = $this->plantillaTxt("02",2,"","right");
             $arrayFila[1] = $this->plantillaTxt($contador,5,"0","right");
             $arrayFila[2] = $this->plantillaTxt($empleado->siglaPila,2," ","right");

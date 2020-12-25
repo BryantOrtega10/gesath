@@ -501,7 +501,7 @@ class EmpleadoController extends Controller
         $nivelesEstudios = DB::table("nivel_estudio")->get();
         $etnias = DB::table("etnia")->get();
 
-
+        $centrosTrabajo = DB::table("centrotrabajo")->get();
         return view('/empleado.editEmpleado', [
             'paises'=>$paises,
             'usuExiste' => $existe,
@@ -559,7 +559,8 @@ class EmpleadoController extends Controller
             'deptosUpc' => $deptosUpc,
             'ciudadesUpc' => $ciudadesUpc,
             'nivelesEstudios' => $nivelesEstudios,
-            'etnias' => $etnias
+            'etnias' => $etnias,
+            "centrosTrabajo" => $centrosTrabajo
         ]);
 
 
@@ -989,8 +990,8 @@ class EmpleadoController extends Controller
         $updateEmpleado = array("fkEmpresa" => $req->infoEmpresa, "fkNomina" => $req->infoNomina, "fechaIngreso" => $req->infoFechaIngreso,
             "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora, "sabadoLaborable" => $req->infoSabadoLabora,
             "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
-            "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,
-            "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
+            "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,"fkTipoOtroDocumento" => $req->infoOtroTIdentificacion, 
+             "otroDocumento" => $req->infoOtroDocumento, "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
             "porcentajeRetencion" => $req->infoPorcentajeRetencion, "esPensionado" => $req->infoSubTipoCotizante
         );
         $affected = DB::table('empleado')
@@ -1161,7 +1162,7 @@ class EmpleadoController extends Controller
     }
     public function ingresarAfiliacionesEmpleado(Request $req){
         
-        $updateEmpleado = array("fkNivelArl" => $req->afiliacionLvArl);
+        $updateEmpleado = array("fkNivelArl" => $req->afiliacionLvArl, "fkCentroTrabajo" => $req->afiliacionCentroTrabajo);
         $affected = DB::table('empleado')
         ->where('idempleado', $req->idEmpleado)
         ->update($updateEmpleado);
@@ -1746,7 +1747,7 @@ class EmpleadoController extends Controller
         
         $infoLaboral = DB::table("empleado", "e")->where('e.idempleado', $idEmpleado)->first();
         $camposOpcionalesInfoLab = array(
-            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo"],
+            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo","fkTipoOtroDocumento"],
             "cambiantes" => [
             array(
                 "campoCambia"=> array(
@@ -1965,7 +1966,7 @@ class EmpleadoController extends Controller
     public function mostrarPorqueFalla($idEmpleado){
         //Consultar que tenga todos los datos basicos
         $camposOpcionalesDatPer = array(
-            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar"],
+            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia"],
             "cambiantes" => []            
         );
         $datosPersonales = DB::table("datospersonales", "dp")->select('dp.*')
@@ -1994,7 +1995,7 @@ class EmpleadoController extends Controller
         
         $infoLaboral = DB::table("empleado", "e")->where('e.idempleado', $idEmpleado)->first();
         $camposOpcionalesInfoLab = array(
-            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo"],
+            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo","fkTipoOtroDocumento"],
             "cambiantes" => [
             array(
                 "campoCambia"=> array(
@@ -2462,8 +2463,10 @@ class EmpleadoController extends Controller
                         "numeroCuenta" => $row[12],
                         "tipoCuenta" => strtoupper($row[13]),
                         "otraFormaPago" => $row[14],
-                        "fkNivelArl" => $row[15],
-                        "fkCentroTrabajo" => $row[16],
+                        "fkTipoOtroDocumento" => $row[15],
+                        "otroDocumento" => $row[16],
+                        "fkNivelArl" => $row[17],
+                        "fkCentroTrabajo" => $row[18],
                         "procedimientoRetencion" => "TABLA",
                         "fkEstado" => 3
                     );

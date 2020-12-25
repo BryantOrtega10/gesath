@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use League\Csv\Reader;
+use Illuminate\Database\QueryException;
 
 class DatosPasadosController extends Controller
 {
@@ -105,101 +106,122 @@ class DatosPasadosController extends Controller
                 if($vacios >= 7){
                     continue;
                 }
-                
+                if(isset($row[0]) && isset($row[1]) && isset($row[2]) && isset($row[3]) && isset($row[4])){
+                    $existeEmpleado = DB::table("empleado","e")
+                    ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+                    ->where("dp.numeroIdentificacion","=", $row[2])
+                    ->where("dp.fkTipoIdentificacion","=", $row[1])
+                    ->first();
+                    $existeConcepto = DB::table("concepto","c")
+                    ->where("c.idconcepto","=",$row[0])
+                    ->first();
+                        
+                  
 
-                $existeEmpleado = DB::table("empleado","e")
-                ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-                ->where("dp.numeroIdentificacion","=", $row[2])
-                ->where("dp.fkTipoIdentificacion","=", $row[1])
-                ->first();
-                $existeConcepto = DB::table("concepto","c")
-                ->where("c.idconcepto","=",$row[0])
-                ->first();
+                    try{
+
+                        
+                        $row[5] = (isset($row[5]) ? floatval($row[5]) : 0);
+                        if(isset($existeConcepto) && isset($existeEmpleado)){
+                            DB::table("datos_pasados")->insert([
+                                "fkConcepto" => $row[0],
+                                "fkEmpleado" => $existeEmpleado->idempleado,
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" => (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "3"
+                            ]);    
+                        }
+                        else if(isset($existeConcepto)){
+                            DB::table("datos_pasados")->insert([
+                                "fkConcepto" => $row[0],
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" =>  (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "12"
+                            ]);     
+                        }
+                        else if(isset($existeEmpleado)){
+                            DB::table("datos_pasados")->insert([
+                                "fkEmpleado" => $existeEmpleado->idempleado,
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" =>   (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "13"
+                            ]);
+                        }
+                        else{
+                            DB::table("datos_pasados")->insert([
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" =>  (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "14"
+                            ]);
+                        }
+                    }
+                    catch(QueryException $e){
+                        DB::table("datos_pasados")->insert([
+                            "fecha" => NULL,
+                            "valor" => NULL,
+                            "cantidad" => NULL,
+                            "tipoUnidad" =>  "",
+                            "fkCargaDatosPasados" => $idCarga,
+                            "fkEstado" => "14"
+                        ]);
+                    }
+                    $datosSubidos++;
                     
-                $row[5] = floatval($row[5]);
-                if(isset($existeConcepto) && isset($existeEmpleado)){
-                    DB::table("datos_pasados")->insert([
-                        "fkConcepto" => $row[0],
-                        "fkEmpleado" => $existeEmpleado->idempleado,
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "3"
-                    ]);    
-                }
-                else if(isset($existeConcepto)){
-                    DB::table("datos_pasados")->insert([
-                        "fkConcepto" => $row[0],
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "12"
-                    ]);     
-                }
-                else if(isset($existeEmpleado)){
-                    DB::table("datos_pasados")->insert([
-                        "fkEmpleado" => $existeEmpleado->idempleado,
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "13"
-                    ]);
+                    if($datosSubidos == 30){
+                        DB::table("carga_datos_pasados")
+                        ->where("idCargaDatosPasados","=",$idCarga)
+                        ->update(["numActual" => ($i+1)]);
+    
+                        $datosPasados = DB::table("datos_pasados","dp")
+                        ->select("dp.*","c.nombre as nombreConcepto", "est.nombre as estado","dp2.*")
+                        ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
+                        ->join("datospersonales as dp2","dp2.idDatosPersonales", "=","e.fkDatosPersonales", "left")
+                        ->join("concepto as c","c.idconcepto", "=","dp.fkConcepto", "left")
+                        ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
+                        ->where("dp.fkCargaDatosPasados","=",$idCarga)
+                        ->get();
+                        $mensaje = "";
+    
+                        foreach($datosPasados as $index => $datoPasado){
+                            $mensaje.='<tr>
+                                <th></th>
+                                <td>'.($index + 1).'</td>
+                                <td>'.$datoPasado->numeroIdentificacion.'</td>
+                                <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
+                                <td>'.$datoPasado->nombreConcepto.'</td>
+                                <td>'.$datoPasado->fecha.'</td>
+                                <td>'.$datoPasado->cantidad.'</td>
+                                <td>'.$datoPasado->tipoUnidad.'</td>
+                                <td>$ '.number_format($datoPasado->valor,0, ",", ".").'</td>
+                                <td>'.$datoPasado->estado.'</td>
+                            </tr>';
+                        }
+                        return response()->json([
+                            "success" => true,
+                            "seguirSubiendo" => true,
+                            "numActual" =>  ($i),
+                            "mensaje" => $mensaje,
+                            "porcentaje" => ceil(($i / $cargaDatos->numRegistros)*100)."%"
+                        ]);
+                    }
                 }
                 else{
-                    DB::table("datos_pasados")->insert([
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "14"
-                    ]);
+                    $datosSubidos++;
                 }
-                $datosSubidos++;
+
                 
-                if($datosSubidos == 3){
-                    DB::table("carga_datos_pasados")
-                    ->where("idCargaDatosPasados","=",$idCarga)
-                    ->update(["numActual" => ($i+1)]);
-
-                    $datosPasados = DB::table("datos_pasados","dp")
-                    ->select("dp.*","c.nombre as nombreConcepto", "est.nombre as estado","dp2.*")
-                    ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
-                    ->join("datospersonales as dp2","dp2.idDatosPersonales", "=","e.fkDatosPersonales", "left")
-                    ->join("concepto as c","c.idconcepto", "=","dp.fkConcepto", "left")
-                    ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
-                    ->where("dp.fkCargaDatosPasados","=",$idCarga)
-                    ->get();
-                    $mensaje = "";
-
-                    foreach($datosPasados as $index => $datoPasado){
-                        $mensaje.='<tr>
-                            <th></th>
-                            <td>'.($index + 1).'</td>
-                            <td>'.$datoPasado->numeroIdentificacion.'</td>
-                            <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
-                            <td>'.$datoPasado->nombreConcepto.'</td>
-                            <td>'.$datoPasado->fecha.'</td>
-                            <td>'.$datoPasado->cantidad.'</td>
-                            <td>'.$datoPasado->tipoUnidad.'</td>
-                            <td>$ '.number_format($datoPasado->valor,0, ",", ".").'</td>
-                            <td>'.$datoPasado->estado.'</td>
-                        </tr>';
-                    }
-                    return response()->json([
-                        "success" => true,
-                        "seguirSubiendo" => true,
-                        "numActual" =>  ($i),
-                        "mensaje" => $mensaje,
-                        "porcentaje" => ceil(($i / $cargaDatos->numRegistros)*100)."%"
-                    ]);
-                }
 
 
                 
@@ -208,63 +230,77 @@ class DatosPasadosController extends Controller
                         
             if($datosSubidos!=0){
                 
-                $existeEmpleado = DB::table("empleado","e")
-                ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-                ->where("dp.numeroIdentificacion","=", $row[2])
-                ->where("dp.fkTipoIdentificacion","=", $row[1])
-                ->first();
-                $existeConcepto = DB::table("concepto","c")
-                ->where("c.idconcepto","=",$row[0])
-                ->first();
+                if(isset($row[0]) && isset($row[1]) && isset($row[2]) && isset($row[3]) && isset($row[4])){
                     
-                if(isset($existeConcepto) && isset($existeEmpleado)){
-                    DB::table("datos_pasados")->insert([
-                        "fkConcepto" => $row[0],
-                        "fkEmpleado" => $existeEmpleado->idempleado,
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "3"
-                    ]);    
-                }
-                else if(isset($existeConcepto)){
-                    DB::table("datos_pasados")->insert([
-                        "fkConcepto" => $row[0],
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "12"
-                    ]);     
-                }
-                else if(isset($existeEmpleado)){
-                    DB::table("datos_pasados")->insert([
-                        "fkEmpleado" => $existeEmpleado->idempleado,
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "13"
-                    ]);
-                }
-                else{
-                    DB::table("datos_pasados")->insert([
-                        "fecha" => $row[3],
-                        "valor" => $row[4],
-                        "cantidad" => $row[5],
-                        "tipoUnidad" => $row[6],
-                        "fkCargaDatosPasados" => $idCarga,
-                        "fkEstado" => "14"
-                    ]);
+                    $existeEmpleado = DB::table("empleado","e")
+                    ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+                    ->where("dp.numeroIdentificacion","=", $row[2])
+                    ->where("dp.fkTipoIdentificacion","=", $row[1])
+                    ->first();
+                    $existeConcepto = DB::table("concepto","c")
+                    ->where("c.idconcepto","=",$row[0])
+                    ->first();
+                    $row[5] = (isset($row[5]) ? floatval($row[5]) : 0);
+                    try{
+                        if(isset($existeConcepto) && isset($existeEmpleado)){
+                            DB::table("datos_pasados")->insert([
+                                "fkConcepto" => $row[0],
+                                "fkEmpleado" => $existeEmpleado->idempleado,
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" =>  (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "3"
+                            ]);    
+                        }
+                        else if(isset($existeConcepto)){
+                            DB::table("datos_pasados")->insert([
+                                "fkConcepto" => $row[0],
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" =>  (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "12"
+                            ]);     
+                        }
+                        else if(isset($existeEmpleado)){
+                            DB::table("datos_pasados")->insert([
+                                "fkEmpleado" => $existeEmpleado->idempleado,
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" =>  (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "13"
+                            ]);
+                        }
+                        else{
+                            DB::table("datos_pasados")->insert([
+                                "fecha" => $row[3],
+                                "valor" => $row[4],
+                                "cantidad" => $row[5],
+                                "tipoUnidad" =>  (isset($row[6]) ? $row[6] : ""),
+                                "fkCargaDatosPasados" => $idCarga,
+                                "fkEstado" => "14"
+                            ]);
+                        }
+                    }
+                    catch(QueryException $e){
+                        DB::table("datos_pasados")->insert([
+                            "fecha" => NULL,
+                            "valor" => NULL,
+                            "cantidad" => NULL,
+                            "tipoUnidad" =>  "",
+                            "fkCargaDatosPasados" => $idCarga,
+                            "fkEstado" => "14"
+                        ]);
+                    }
                 }
                 DB::table("carga_datos_pasados")
-                ->where("idCargaDatosPasados","=",$idCarga)
-                ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
-
+                    ->where("idCargaDatosPasados","=",$idCarga)
+                    ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
             }  
             $datosPasados = DB::table("datos_pasados","dp")
             ->select("dp.*","c.nombre as nombreConcepto", "est.nombre as estado","dp2.*")
@@ -321,7 +357,9 @@ class DatosPasadosController extends Controller
     }
     public function aprobarCarga($idCarga){
         $datosPasados = DB::table("datos_pasados","dp")
+        ->select("dp.*","e.*","c.fkNaturaleza as naturalezaConcepto")
         ->join("empleado as e", "e.idempleado", "=", "dp.fkEmpleado")
+        ->join("concepto as c", "c.idconcepto", "=", "dp.fkConcepto")
         ->where("dp.fkCargaDatosPasados","=",$idCarga)
         ->where("dp.fkEstado","=","3")
         ->orderBy("dp.fecha")
@@ -339,7 +377,15 @@ class DatosPasadosController extends Controller
         foreach($datosPasados as $datoPasado){
 
             
+            if($datoPasado->naturalezaConcepto=="3"){
+                $datoPasado->valor = $datoPasado->valor * -1;
+            }
 
+        }
+        foreach($datosPasados as $datoPasado){
+
+            
+           
             if($mes != date("m",strtotime($datoPasado->fecha)) || $anio != date("Y",strtotime($datoPasado->fecha)) || $nomina != $datoPasado->fkNomina){
                 $mes = date("m",strtotime($datoPasado->fecha));
                 $anio = date("Y",strtotime($datoPasado->fecha));
@@ -366,6 +412,7 @@ class DatosPasadosController extends Controller
                 $salario = 0;
                 $netoPagar = 0;
                 foreach($datosPasados as $datoPasado2){
+                   
                     if( $empleado == $datoPasado2->fkEmpleado && date("m",strtotime($datoPasado2->fecha)) == $mes 
                     && date("Y",strtotime($datoPasado2->fecha)) == $anio){
                         if ($datoPasado2->fkConcepto == "1" || $datoPasado2->fkConcepto == "2")
@@ -373,6 +420,9 @@ class DatosPasadosController extends Controller
                             $periodo = $periodo + $datoPasado2->cantidad;
                             $salario = $salario + $datoPasado2->valor;
                         }
+                        
+
+
                         $netoPagar = $netoPagar + $datoPasado2->valor;
                     }
                 }

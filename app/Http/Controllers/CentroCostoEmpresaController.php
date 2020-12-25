@@ -67,7 +67,9 @@ class CentroCostoEmpresaController extends Controller
 
     public function update(Request $request, $id) {
         try {
-            $centroCosto = CentroCostoEmpresaModel::findOrFail($id);
+            
+            
+            $centroCosto = CentroCostoEmpresaModel::findOrFail($request->idCentro);
             $centroCosto->nombre = $request->nombre;
             $centroCosto->fkEmpresa = $request->fkEmpresa;
             $centroCosto->id_uni_centro = $request->id_uni_centro;

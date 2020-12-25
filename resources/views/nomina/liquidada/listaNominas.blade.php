@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="cajaGeneral text-left">
     <h1>Liquidaciones terminadas</h1>
-    <form autocomplete="off" action="/nomina/solicitudLiquidacion/" method="GET" class="formGeneral" id="filtrar">
+    <form autocomplete="off" action="/nomina/nominasLiquidadas/" method="GET" class="formGeneral" id="filtrar">
         @csrf    
         <div class="row">
             <div class="col-2">

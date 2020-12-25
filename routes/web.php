@@ -397,6 +397,9 @@ Route::group([
 	Route::get('/detalleCargo/{id}', 'CargosController@detail');
 	Route::post('/editarCargo/{id}', 'CargosController@update');
 	Route::post('/eliminarCargo/{id}', 'CargosController@delete');
+	Route::get('/subirPlano', 'CargosController@subirPlanoIndex');
+	Route::post('/subirArchivo', 'CargosController@subirArchivo');
+	
 });
 
 

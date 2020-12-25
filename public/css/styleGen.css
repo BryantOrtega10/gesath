@@ -1027,3 +1027,12 @@ select.error {
 
 
 /* FIN ESTILOS SEBASTIAN GOMEZ */
+
+.checksCont{
+    overflow-x: hidden;
+    overflow-y: scroll;
+    max-height: 200px;
+}
+.checksCont label{
+    user-select: none;
+}

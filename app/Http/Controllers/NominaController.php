@@ -4389,10 +4389,15 @@ class NominaController extends Controller
             ->get();
         foreach($grupoConceptoCalculo as $grupoConcepto){
             if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto])){
-                $totalNoSalarialRemuneracion= $totalNoSalarialRemuneracion + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                $totalNoSalarialRemuneracion = $totalNoSalarialRemuneracion + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
             }
         }
+        //dump($totalRemuneracion);
+        
         $limite40Por = $totalRemuneracion * 0.4;
+        //dump($limite40Por);
+        //dump($totalNoSalarialRemuneracion);
+
         if($totalNoSalarialRemuneracion > $limite40Por){
             $valorInt = $totalNoSalarialRemuneracion - $limite40Por;
             $arrValorxConcepto[32] = array(
@@ -4402,9 +4407,12 @@ class NominaController extends Controller
                 "arrNovedades"=> array(),
                 "valor" => $valorInt,
                 "tipoGen" => "automaticos"
-            );                
+            );   
+            //dd($valorInt);
         }
-        
+
+
+
 
         $arrBoucherPago = array();
         $arrParafiscales = array();
@@ -5291,12 +5299,12 @@ class NominaController extends Controller
                 }                
                 $fechaFinalPrima = $fechaFin;
                 
-                $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
-                $totalPeriodoPagoParaSalario = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->diasTrabajadosPer;
+                $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
+                $totalPeriodoPagoParaSalario = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->diasTrabajadosPer) ? $liquidacionesMesesAnterioresPrima->diasTrabajadosPer : 0);
                 
 
 
-                $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                 $salarioPrima = ($salarioPrima / $totalPeriodoPagoParaSalario)*30;
 
                 
@@ -5402,11 +5410,11 @@ class NominaController extends Controller
                 }                
                 $fechaFinalPrima = $fechaFin;
 
-                $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
-                $totalPeriodoPagoParaSalario = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->diasTrabajadosPer;
+                $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
+                $totalPeriodoPagoParaSalario = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                 
-                $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                 $salarioPrima = ($salarioPrima / $totalPeriodoPagoParaSalario)*30;
 
                 $variablesSalarioMinimo = DB::table("variable")->where("idVariable","=","1")->first();
@@ -5882,7 +5890,7 @@ class NominaController extends Controller
                     ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                     ->first();
                     
-                    $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                    $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                     $diasFaltantes = 0;
                     if($periodo == 15){                
@@ -5898,7 +5906,7 @@ class NominaController extends Controller
                     $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
                     
                     
-                    $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                    $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                     $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
                    
@@ -5951,7 +5959,7 @@ class NominaController extends Controller
                     ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                     ->first();
                     
-                    $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                    $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                     $diasFaltantes = 0;
                     if($periodo == 15){                
@@ -5964,7 +5972,7 @@ class NominaController extends Controller
                     
                     $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
 
-                    $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                    $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                     $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
                     $salarioPrima = ($salarioPrima / $totalPeriodoPago)*30;
@@ -6270,7 +6278,7 @@ class NominaController extends Controller
                         ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                         ->first();
                         
-                        $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                        $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                         $diasFaltantes = 0;
                         if($periodo == 15){                
@@ -6284,7 +6292,7 @@ class NominaController extends Controller
                         
                         $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
                         
-                        $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                        $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                         $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
 
@@ -6337,7 +6345,7 @@ class NominaController extends Controller
                         ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                         ->first();
                         
-                        $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                        $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                         $diasFaltantes = 0;
                         if($periodo == 15){                
@@ -6350,7 +6358,7 @@ class NominaController extends Controller
                         
                         $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
 
-                        $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                        $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                         $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
                         $salarioPrima = ($salarioPrima / $totalPeriodoPago)*30;
@@ -6486,7 +6494,7 @@ class NominaController extends Controller
                         ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                         ->first();
                         
-                        $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                        $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                         $diasFaltantes = 0;
                         if($periodo == 15){                
@@ -6500,7 +6508,7 @@ class NominaController extends Controller
                         
                         $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
                         
-                        $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                        $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                         $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
 
@@ -6558,7 +6566,7 @@ class NominaController extends Controller
                         ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                         ->first();
                         
-                        $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                        $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                         $diasFaltantes = 0;
                         if($periodo == 15){                
@@ -6571,7 +6579,7 @@ class NominaController extends Controller
                         
                         $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
 
-                        $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                        $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                         $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
                         $salarioPrima = ($salarioPrima / $totalPeriodoPago)*30;
@@ -6715,7 +6723,7 @@ class NominaController extends Controller
                         ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                         ->first();
                         
-                        $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                        $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                         $diasFaltantes = 0;
                         if($periodo == 15){                
@@ -6729,7 +6737,7 @@ class NominaController extends Controller
                         
                         $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
                         
-                        $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                        $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                         $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
 
@@ -6789,7 +6797,7 @@ class NominaController extends Controller
                         ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])
                         ->first();
                         
-                        $totalPeriodoPago = $periodoPagoMesActual + $liquidacionesMesesAnterioresPrima->periodPago;
+                        $totalPeriodoPago = $periodoPagoMesActual + (isset($liquidacionesMesesAnterioresPrima->periodPago) ? $liquidacionesMesesAnterioresPrima->periodPago : 0);
 
                         $diasFaltantes = 0;
                         if($periodo == 15){                
@@ -6802,7 +6810,7 @@ class NominaController extends Controller
                         
                         $totalPeriodoPago = $totalPeriodoPago + $diasFaltantes;
 
-                        $salarioPrima = $salarioMes + $liquidacionesMesesAnterioresPrima->salarioPago;
+                        $salarioPrima = $salarioMes + (isset($liquidacionesMesesAnterioresPrima->salarioPago) ? $liquidacionesMesesAnterioresPrima->salarioPago : 0);
                         $salarioPrima = $salarioPrima + ($mesesFaltanes * $salarioMesSinCambios);
 
                         $salarioPrima = ($salarioPrima / $totalPeriodoPago)*30;

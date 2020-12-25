@@ -715,6 +715,7 @@ class NovedadesController extends Controller
             "fechaInicio" => $req->fechaInicial, 
             "fechaFin" => $req->fechaFinal,
             "diasCompensar" => $req->dias,
+            "diasCompletos" => $req->diasCompletos,
             "pagoAnticipado" => $req->pagoAnticipado
         ], "idVacaciones");
 
@@ -766,7 +767,7 @@ class NovedadesController extends Controller
         DB::table('novedad')->insert($arrInsertNovedad);
         return response()->json(['success'=>true]);
     }
-    public function lista(){
+    public function lista(Request $req){
         $novedades = DB::table("novedad","n")
         ->select([
             "n.*",
@@ -787,10 +788,32 @@ class NovedadesController extends Controller
         ->join("estado as est","est.idestado", "=", "n.fkEstado")
         ->join("empleado as e","e.idempleado", "=", "n.fkEmpleado")
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
-        ->where("n.fkEstado","=","7")->get();
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion");
+
+        if(isset($req->fechaInicio)){
+            $novedades = $novedades->where("n.fechaRegistro",">=",$req->fechaInicio);
+        }
+        
+        if(isset($req->fechaFin)){
+            $novedades = $novedades->where("n.fechaRegistro","<=",$req->fechaFin);
+        }
+
+        if(isset($req->nomina)){
+            $novedades = $novedades->where("n.fkNomina","=",$req->nomina);
+        }
+        if(isset($req->tipoNovedad)){
+            $novedades = $novedades->where("n.fkTipoNovedad","=",$req->tipoNovedad);
+        }
+
+        $novedades = $novedades->where("n.fkEstado","=","7")->get();
+        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $tiposnovedades = DB::table("tiponovedad")->orderBy("nombre")->get();
+
         return view('/novedades.listaNovedades',[
-            'novedades' => $novedades
+            'novedades' => $novedades,
+            "tiposnovedades" => $tiposnovedades,
+            "nominas" => $nominas,
+            "req" => $req
         ]);        
 
     }
@@ -897,11 +920,27 @@ class NovedadesController extends Controller
         }
         else if(isset($novedad->fkVacaciones)){
             $vacaciones = DB::table('vacaciones')->where("idVacaciones","=", $novedad->fkVacaciones)->first();
-            return view('/novedades.modificar.vacaciones',[
-                'novedad' => $novedad,
-                'vacaciones' => $vacaciones,
-                'conceptos' => $conceptos
-            ]);
+            $conceptos = DB::table("concepto", "c")
+            ->select(["c.*"])
+            ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
+            ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)
+            ->where("tnc.fkConcepto", "=", $novedad->fkConcepto)
+            ->get();
+            
+            if( $novedad->fkConcepto == "29"){
+                return view('/novedades.modificar.vacaciones',[
+                    'novedad' => $novedad,
+                    'vacaciones' => $vacaciones,
+                    'conceptos' => $conceptos
+                ]);
+            }
+            else{
+                return view('/novedades.modificar.vacaciones2',[
+                    'novedad' => $novedad,
+                    'vacaciones' => $vacaciones,
+                    'conceptos' => $conceptos
+                ]);
+            }
         }
         else if(isset($novedad->fkOtros)){
             
@@ -1296,6 +1335,7 @@ class NovedadesController extends Controller
             "fechaInicio" => $req->fechaInicial, 
             "fechaFin" => $req->fechaFinal,
             "diasCompensar" => $req->dias,
+            "diasCompletos" => $req->diasCompletos,
             "pagoAnticipado" => $req->pagoAnticipado
         ];
 

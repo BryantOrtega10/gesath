@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use DateTime;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use League\Csv\Writer;
 use League\Csv\Reader;
+use Illuminate\Support\Facades\Storage;
 use SplTempFileObject;          
 
 
@@ -819,4 +821,328 @@ class CatalogoContableController extends Controller
         }
         return $naturalezaCuenta;
     }
+    public function indexPlano(Request $req){
+        $cargas = DB::table("carga_catalogo_contable","cdp")
+        ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
+        ->orderBy("cdp.idCarga", "desc")
+        ->get();
+
+        return view('/catalogoContable.subirPlano', ["cargas" => $cargas]);
+    }
+    public function subirArchivoPlano(Request $req){
+    
+        $csv = $req->file("archivoCSV");
+        
+
+
+        
+        $reader = Reader::createFromFileObject($csv->openFile());
+        $reader->setDelimiter(';');
+        $csv = $csv->store("public/csvFiles");
+
+        
+        $idCarga  = DB::table("carga_catalogo_contable")->insertGetId([
+            "rutaArchivo" => $csv,
+            "fkEstado" => "3",
+            "numActual" => 0,
+            "numRegistros" => sizeof($reader)
+        ], "idCarga");
+
+        return redirect('catalogoContable/verCarga/'.$idCarga);
+
+    }
+
+    public function verCargaVac($idCarga){
+        $cargasDatosPasados = DB::table("carga_catalogo_contable","cdp")
+        ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
+        ->where("cdp.idCarga","=",$idCarga)
+        ->first();
+        
+        $datosPasados = DB::table("catalogo_contabla_plano","dp")
+        ->select("dp.*", "est.nombre as estado","dp2.*")
+        ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
+        ->join("datospersonales as dp2","dp2.idDatosPersonales", "=","e.fkDatosPersonales", "left")
+        ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
+        ->where("dp.fkCargaDatosPasados","=",$idCarga)
+        ->get();
+        
+        
+
+        return view('/datosPasadosVac.verCarga', [
+            "cargaDatoPasado" => $cargasDatosPasados,
+            "datosPasados" => $datosPasados
+        ]);
+
+    }
+    public function subirVac($idCarga){
+        $cargaDatos = DB::table("carga_catalogo_contable","cdp")
+        ->where("cdp.idCarga","=",$idCarga)
+        ->where("cdp.fkEstado","=","3")
+        ->first();
+        if(isset($cargaDatos)){
+            $contents = Storage::get($cargaDatos->rutaArchivo);
+            
+            $reader = Reader::createFromString($contents);
+            $reader->setDelimiter(';');
+            // Create a customer from each row in the CSV file
+            $datosSubidos = 0; 
+           
+           
+            for($i = $cargaDatos->numActual; $i < $cargaDatos->numRegistros; $i++){
+                
+                $row = $reader->fetchOne($i);
+                $vacios = 0;
+                foreach($row as $key =>$valor){
+                    
+                    if($valor==""){
+                        $row[$key]=null;
+                        $vacios++;
+                    }
+                    else{
+                        $row[$key] = utf8_encode($row[$key]);
+                        if(strpos($row[$key], "/")){
+                            
+                            $dt = DateTime::createFromFormat("d/m/Y", $row[$key]);
+                            if($dt === false){
+                                $dt = new DateTime();
+                            }
+                            $ts = $dt->getTimestamp();
+                            $row[$key] = date("Y-m-d", $ts);
+                        }
+                    }
+                }
+                if($vacios >= 5){
+                    continue;
+                }
+                
+
+                $existeEmpleado = DB::table("empleado","e")
+                ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+                ->where("dp.numeroIdentificacion","=", $row[1])
+                ->where("dp.fkTipoIdentificacion","=", $row[0])
+                ->first();
+           
+                    
+                $row[5] = floatval($row[5]);
+                if(isset($existeEmpleado)){
+                    DB::table("catalogo_contabla_plano")->insert([
+                        "fkEmpleado" => $existeEmpleado->idempleado,
+                        "fecha" => $row[2],
+                        "fechaInicial" => $row[3],
+                        "fechaFinal" => $row[4],
+                        "dias" => $row[5],
+                        "fkCargaDatosPasados" => $idCarga,
+                        "fkEstado" => "3"
+                    ]);
+                }
+                else{
+                    DB::table("catalogo_contabla_plano")->insert([
+                        "fecha" => $row[2],
+                        "fechaInicial" => $row[3],
+                        "fechaFinal" => $row[4],
+                        "dias" => $row[5],
+                        "fkCargaDatosPasados" => $idCarga,
+                        "fkEstado" => "14"
+                    ]);
+                }
+                $datosSubidos++;
+                
+                if($datosSubidos == 3){
+                    if($cargaDatos->numRegistros == 3){
+                        DB::table("carga_catalogo_contable")
+                        ->where("idCarga","=",$idCarga)
+                        ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+                    }
+                    else{
+                        DB::table("carga_catalogo_contable")
+                        ->where("idCarga","=",$idCarga)
+                        ->update(["numActual" => ($i+1)]);
+                    }
+                
+
+
+                    
+
+                    $datosPasados = DB::table("catalogo_contabla_plano","dp")
+                    ->select("dp.*","est.nombre as estado","dp2.*")
+                    ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
+                    ->join("datospersonales as dp2","dp2.idDatosPersonales", "=","e.fkDatosPersonales", "left")
+                    ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
+                    ->where("dp.fkCargaDatosPasados","=",$idCarga)
+                    ->get();
+                    $mensaje = "";
+
+                    foreach($datosPasados as $index => $datoPasado){
+                        $mensaje.='<tr>
+                            <th></th>
+                            <td>'.($index + 1).'</td>
+                            <td>'.$datoPasado->numeroIdentificacion.'</td>
+                            <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
+                            <td>'.$datoPasado->fecha.'</td>
+                            <td>'.$datoPasado->fechaInicial.'</td>
+                            <td>'.$datoPasado->fechaFinal.'</td>
+                            <td>'.$datoPasado->dias.'</td>
+                            <td>'.$datoPasado->estado.'</td>
+                        </tr>';
+                    }
+                    if($cargaDatos->numRegistros == 3){
+                        return response()->json([
+                            "success" => true,
+                            "seguirSubiendo" => false,
+                            "numActual" => $cargaDatos->numRegistros,
+                            "mensaje" => $mensaje,
+                            "porcentaje" => "100%"
+            
+                        ]);
+                    }
+                    else{
+                        return response()->json([
+                            "success" => true,
+                            "seguirSubiendo" => true,
+                            "numActual" =>  ($i+1),
+                            "mensaje" => $mensaje,
+                            "porcentaje" => ceil((($i+1) / $cargaDatos->numRegistros)*100)."%"
+                        ]);
+
+                    }
+                    
+                }
+
+
+                
+            }
+            
+                        
+            if($datosSubidos!=0){
+                if($datosSubidos>3){
+                    $existeEmpleado = DB::table("empleado","e")
+                    ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+                    ->where("dp.numeroIdentificacion","=", $row[1])
+                    ->where("dp.fkTipoIdentificacion","=", $row[0])
+                    ->first();
+            
+                        
+                    if(isset($existeEmpleado)){
+                        DB::table("catalogo_contabla_plano")->insert([
+                            "fkEmpleado" => $existeEmpleado->idempleado,
+                            "fecha" => $row[2],
+                            "fechaInicial" => $row[3],
+                            "fechaFinal" => $row[4],
+                            "dias" => $row[5],
+                            "fkCargaDatosPasados" => $idCarga,
+                            "fkEstado" => "11"
+                        ]);
+                    }
+                    else{
+                        DB::table("catalogo_contabla_plano")->insert([
+                            "fecha" => $row[2],
+                            "fechaInicial" => $row[3],
+                            "fechaFinal" => $row[4],
+                            "dias" => $row[5],
+                            "fkCargaDatosPasados" => $idCarga,
+                            "fkEstado" => "14"
+                        ]);
+                    }
+                }
+                DB::table("carga_catalogo_contable")
+                ->where("idCarga","=",$idCarga)
+                ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+
+            }  
+            $datosPasados = DB::table("catalogo_contabla_plano","dp")
+            ->select("dp.*","est.nombre as estado","dp2.*")
+            ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
+            ->join("datospersonales as dp2","dp2.idDatosPersonales", "=","e.idempleado", "left")
+            ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
+            ->where("dp.fkCargaDatosPasados","=",$idCarga)
+            ->get();
+            $mensaje = "";
+
+            foreach($datosPasados as $index => $datoPasado){
+                $mensaje.='<tr>
+                    <th>'.((isset($datoPasado->primerApellido)) ? '<input type="checkbox" name="idDatosPasados[]" value="'.$datoPasado->idDatosPasados.'" />' : '' ).'</th>
+                    <td>'.($index + 1).'</td>
+                    <td>'.$datoPasado->numeroIdentificacion.'</td>
+                    <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
+                    <td>'.$datoPasado->fecha.'</td>
+                    <td>'.$datoPasado->fechaInicial.'</td>
+                    <td>'.$datoPasado->fechaFinal.'</td>
+                    <td>'.$datoPasado->dias.'</td>
+                    <td>'.$datoPasado->estado.'</td>
+                </tr>';
+            }
+            
+            return response()->json([
+                "success" => true,
+                "seguirSubiendo" => false,
+                "numActual" => $cargaDatos->numRegistros,
+                "mensaje" => $mensaje,
+                "porcentaje" => "100%"
+
+            ]);
+                
+
+        }
+    }
+
+    public function cancelarCargaVac($idCarga){
+        DB::table("carga_catalogo_contable")
+        ->where("idCarga","=",$idCarga)
+        ->delete();
+        return redirect('/datosPasadosVac');
+    }
+    public function eliminarRegistrosVac(Request $req){
+
+        
+        if(isset($req->idDatosPasados)){
+            DB::table("catalogo_contabla_plano")->whereIn("idDatosPasados",$req->idDatosPasados)->delete();
+        }
+        
+        return redirect('/datosPasadosVac/verCarga/'.$req->idCarga);
+    }
+    public function aprobarCargaVac($idCarga){
+        $datosPasados = DB::table("catalogo_contabla_plano","dp")
+        ->join("empleado as e", "e.idempleado", "=", "dp.fkEmpleado")
+        ->where("dp.fkCargaDatosPasados","=",$idCarga)
+        ->where("dp.fkEstado","=","3")
+        ->orderBy("dp.fecha")
+        ->orderBy("dp.fkEmpleado")
+        ->orderBy("e.fkNomina")
+        ->get();
+
+        foreach($datosPasados as $datoPasado){            
+
+            $arrInsertVac = [
+                "fechaInicio" => $datoPasado->fechaInicial,
+                "fechaFin" => $datoPasado->fechaFinal,
+                "diasCompensar" => $datoPasado->dias,
+                "pagoAnticipado" => "1"
+            ];
+            $idVacaciones = DB::table("vacaciones")->insertGetId($arrInsertVac, "idVacaciones");
+      
+
+
+            $arrInsertNovedad =[
+                "fkTipoNovedad" => 6,
+                "fkNomina" => $datoPasado->fkNomina,
+                "fkEmpleado" => $datoPasado->fkEmpleado,
+                "fkEstado" => "8",
+                "fechaRegistro" => $datoPasado->fecha,
+                "fkConcepto" => "29",
+                "fkVacaciones" => $idVacaciones,
+                "fkCargaDatosPasadosVac" => $idCarga
+            ];
+            DB::table("novedad")->insert($arrInsertNovedad);
+            DB::table("catalogo_contabla_plano")
+                ->where("idDatosPasados","=",$datoPasado->idDatosPasados)
+                ->update(["fkEstado" => "11"]);
+
+        }
+        DB::table("carga_catalogo_contable")
+        ->where("idCarga","=",$idCarga)
+        ->update(["fkEstado" => "11"]);
+
+        return redirect('/datosPasadosVac');
+    }
+
 }

@@ -35,7 +35,7 @@
         <div class="col-3">
             <div class="form-group">
                 <label for="diasVaca" class="control-label">Dias a disfrutar:</label>
-                <input type="text" class="form-control" id="diasVaca" />
+                <input type="text" class="form-control" id="diasVaca" name="diasCompletos" />
             </div>
             <input type="hidden" id="diasCalendario" name="dias"  />
             <span id="diasCal"></span>

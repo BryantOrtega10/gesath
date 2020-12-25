@@ -66,17 +66,8 @@
                         <input type="text" class="form-control" id="diasVacac" name="dias" value="{{$vacaciones->diasCompensar}}"/>
                     </div>
                 </div>
+                <input type="hidden" value="1" name="pagoAnticipado">
                 
-                <div class="col-3">
-                    <div class="form-group hasText">
-                        <label for="pagoAnticipado" class="control-label">Pago Anticipado:</label>
-                        <select class="form-control" id="pagoAnticipado" name="pagoAnticipado">
-                            <option value=""></option>
-                            <option value="1" @if($vacaciones->pagoAnticipado == "1") selected @endif> SI</option>
-                            <option value="0" @if($vacaciones->pagoAnticipado == "0") selected @endif>NO</option>
-                        </select>
-                    </div>
-                </div>  
             </div>
             
             <div class="alert alert-danger print-error-msg-DatosNovedad" style="display:none">

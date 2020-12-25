@@ -7,6 +7,49 @@
 @section('contenido')
     <h1 class="ordenSuperior">Lista Novedades</h1>
     <div class="cajaGeneral">
+
+        <form autocomplete="off" action="/novedades/listaNovedades/" method="GET" class="formGeneral" id="filtrar">
+            @csrf    
+            <div class="row">
+                <div class="col-2">
+                    <div class="form-group @isset($req->fechaInicio) hasText @endisset">
+                        <label for="fechaInicio" class="control-label">Fecha inicio:</label>
+                        <input type="date" name="fechaInicio" class="form-control" placeholder="Fecha Inicio" @isset($req->fechaInicio) value="{{$req->fechaInicio}}" @endisset/>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group @isset($req->fechaFin) hasText @endisset">
+                        <label for="fechaFin" class="control-label">Fecha Fin:</label>
+                        <input type="date" name="fechaFin" class="form-control" placeholder="Fecha Fin" @isset($req->fechaFin) value="{{$req->fechaFin}}" @endisset/>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group @isset($req->nomina) hasText @endisset">
+                        <label for="fechaInicio" class="control-label">Nomina:</label>
+                        <select class="form-control" name="nomina">
+                            <option value=""></option>
+                            @foreach($nominas as $nomina)
+                                <option value="{{$nomina->idNomina}}" @isset($req->nomina) @if ($req->nomina == $nomina->idNomina) selected @endif @endisset>{{$nomina->nombre}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="form-group @isset($req->tipoNovedad) hasText @endisset">
+                        <label for="tipoNovedad" class="control-label">Tipo:</label>
+                        <select class="form-control" name="tipoNovedad" id="tipoNovedad">
+                            <option value=""></option>
+                            @foreach($tiposnovedades as $tiponovedad)
+                                <option value="{{$tiponovedad->idtipoNovedad}}" @isset($req->tipoNovedad) @if ($req->tipoNovedad == $tiponovedad->idtipoNovedad) selected @endif @endisset>{{$tiponovedad->nombre}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+    
+                <div class="col-3"  ><input type="submit" value="Consultar"/><input type="reset" class="recargar recargarPage" value="" /> </div>
+            </div>        
+        </form>
+
         <form action="/novedades/eliminarSeleccionados" method="POST" class="formGeneral" id="formEliminarNovedades" autocomplete="off">
             @csrf
             <div class="row">

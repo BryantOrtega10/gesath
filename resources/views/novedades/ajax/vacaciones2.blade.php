@@ -32,16 +32,8 @@
                 <input type="text" class="form-control" id="diasVacac" name="dias" />
             </div>
         </div>
-        <div class="col-3">
-            <div class="form-group">
-                <label for="pagoAnticipado" class="control-label">Pago Anticipado:</label>
-                <select class="form-control" id="pagoAnticipado" name="pagoAnticipado">
-                    <option value=""></option>
-                    <option value="1">SI</option>
-                    <option value="0">NO</option>
-                </select>
-            </div>
-        </div>  
+        <input type="hidden" value="1" name="pagoAnticipado">
+        
     </div>
     <div class="alert alert-danger print-error-msg-DatosNovedad" style="display:none">
         <ul></ul>

@@ -458,8 +458,12 @@ $(document).ready(function(){
             cache: false,
             success: function(data) {
                 if(data.success){
+                    
                     $('#fechaFinalVaca').val(data.fecha);
                     $('#fechaFinalVaca').trigger("blur");
+                    $("#diasCalendario").val(data.diasCalendario);
+                    $("#diasCal").html("Días calendario: "+data.diasCalendario);
+                    
                 }                
             },
             error: function(data) {

@@ -10,7 +10,7 @@ $(document).ready(function() {
 
 
     var camposOpciones = {
-        opcionales: ["infoOtroDocumento", "password"],
+        opcionales: ["infoOtroDocumento", "password","infoOtroTIdentificacion"],
         opcionalesAVeces: [{
                 camposQueSonOb: ["infoTipoContratoN", "infoTipoDuracionContratoN", "infoDuracionContratoN", "infoFechaFinN"],
                 camposCambia: [{ campo: "infoTipoContratoN", valorCambia: [""] }],
