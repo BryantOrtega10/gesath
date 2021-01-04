@@ -81,7 +81,7 @@
 <script type="text/javascript">
     $(document).ready(function(e){
         $(".recargar").click(function(){
-            window.open("/nomina/solicitudLiquidacion","_self");
+            window.open("/nomina/nominasLiquidadas","_self");
         });
     });
 </script>

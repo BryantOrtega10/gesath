@@ -7,7 +7,46 @@
 @section('contenido')
 <div class="cajaGeneral">
     <h1>Catalogo contable</h1>
-    <a class="btn btn-primary" href="#" id="addCuenta">Agregar cuenta</a>
+    <form autocomplete="off" action="/catalogo-contable/" method="GET"  class="formGeneral" id="filtrar">
+        @csrf    
+        <div class="row">
+            <div class="col-3">
+                <div class="form-group @isset($req->descripcion) hasText @endisset">
+                    <label for="fechaInicio" class="control-label">Descripcion:</label>
+                    <input type="text" name="descripcion" class="form-control" @isset($req->descripcion) value="{{$req->descripcion}}" @endisset/>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="form-group @isset($req->idempresa) hasText @endisset">
+                    <label for="idempresa" class="control-label">Empresa:</label>
+                    <select class="form-control" name="idempresa" id="idempresa">
+                        <option value=""></option>
+                        @foreach($empresas as $empresa)
+                            <option value="{{$empresa->idempresa}}" @isset($req->idempresa) @if ($req->idempresa == $empresa->idempresa) selected @endif @endisset>{{$empresa->razonSocial}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="form-group @isset($req->idcentroCosto) hasText @endisset">
+                    <label for="idcentroCosto" class="control-label">Centro de costo:</label>
+                    <select class="form-control" name="idcentroCosto" id="idcentroCosto">
+                        <option value=""></option>
+                        @foreach($centros_costos as $centro_costo)
+                            <option value="{{$centro_costo->idcentroCosto}}" @isset($req->idcentroCosto) @if ($req->idcentroCosto == $centro_costo->idcentroCosto) selected @endif @endisset>{{$centro_costo->nombre}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-3"><input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> </div>
+        </div>        
+    </form>
+
+    <div class="text-left">
+        <a class="btn btn-primary" href="#" id="addCuenta">Agregar cuenta</a>
+        <a class="btn btn-primary" href="/catalogo-contable/subirPlano" id="addCuenta">Agregar por archivo plano</a>
+
+    </div>
     <div class="table-responsive">
         <table class="table table-hover table-striped">
             <tr>
@@ -39,7 +78,7 @@
             @endforeach
         </table>
     </div>
-    {{ $catalogo->links() }}
+    {{ $catalogo->appends($arrConsulta)->links() }}
 </div>
 <div class="modal fade" id="catalogoModal" tabindex="-1" role="dialog" aria-labelledby="catalogoModal" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

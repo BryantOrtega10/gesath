@@ -13,10 +13,10 @@
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
-            <form method="POST" id="" autocomplete="off" class="formGeneral" action="/catalogo/subirArchivoPlano" enctype="multipart/form-data">
+            <form method="POST" id="" autocomplete="off" class="formGeneral" action="/catalogo-contable/subirArchivoPlano" enctype="multipart/form-data">
                 @csrf
                 <label for="archivoCSV">Seleccione el archivo</label> <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
-                <div class="text-center"><input type="submit" value="Cargar datos pasados" class="btnSubmitGen" /></div>
+                <div class="text-center"><input type="submit" value="Cargar datos" class="btnSubmitGen" /></div>
             </form>
         </div>
     </div>
@@ -35,7 +35,7 @@
                     <td>{{$carga->fechaCarga}}</td>
                     <td>{{ ceil(($carga->numActual / $carga->numRegistros)*100)}}%</td>
                     <td>{{$carga->nombre}}</td>
-                    <td><a href="/catalogo/verCarga/{{$carga->idCarga}}">Ver carga</a></td>
+                    <td><a href="/catalogo-contable/verCarga/{{$carga->idCarga}}">Ver carga</a></td>
                 </tr>
             @endforeach
         </table>

@@ -10,6 +10,7 @@ use SplTempFileObject;
 use DateTime;
 use DateInterval;
 use League\Csv\Reader;
+use Illuminate\Support\Facades\Log;
 
 class NominaController extends Controller
 {
@@ -340,6 +341,168 @@ class NominaController extends Controller
         ]);
     }
     
+    public function subirPlano(Request $req){
+
+        $idDistri = $req->id_distri_centro_costo;
+        $distri = DB::table("distri_centro_costo")->where("id_distri_centro_costo","=",$idDistri)->first();
+        
+        $errors = array();
+
+        $csv = $req->file("archivoCSV");
+        $reader = Reader::createFromFileObject($csv->openFile());
+        $reader->setDelimiter(';');
+        $arrCentroCosto = array();
+        foreach($reader as $row => $read){
+            if($row == 0){
+                foreach($read as $idCol =>$cols){
+                    if($idCol > 1){
+                        $centroCostoEmpresa = DB::table("centrocosto","cc")
+                        ->join("empresa as e", "e.idempresa", "=","cc.fkEmpresa")
+                        ->join("nomina as n", "n.fkEmpresa", "=","e.idempresa")                        
+                        ->where("n.idNomina", "=",$distri->fkNomina)
+                        ->where("cc.idcentroCosto", "=",$cols)
+                        ->get();
+                        if(sizeof($centroCostoEmpresa)>0){
+                            $arrCentroCosto[$idCol] = $cols;
+                        }
+                    }
+                }
+            }
+            else{
+                Log::debug($read);
+                $existeEmpleado = DB::table("empleado","e")
+                ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+                ->where("dp.numeroIdentificacion","=", $read[1])
+                ->where("dp.fkTipoIdentificacion","=", $read[0])
+                ->first();
+                if(isset($existeEmpleado)){
+                    $porcentaje = 0;
+
+                    foreach($read as $idCol =>$cols){
+                       
+                    
+                        if($idCol > 1 && isset($arrCentroCosto[$idCol])){
+                            $porcentaje = $porcentaje + floatval($cols);
+                        }
+                    }
+                    
+                    
+                     
+                    if($porcentaje == 100){
+                        foreach($read as $idCol =>$cols){
+                            
+                            if($idCol > 1  && isset($arrCentroCosto[$idCol])){
+                                $dcCentroCosto = DB::table("distri_centro_costo_centrocosto", "dcc")
+                                ->where("dcc.fkEmpleado", "=",$existeEmpleado->idempleado)
+                                ->where("dcc.fkDistribucion", "=",$idDistri)
+                                ->where("dcc.fkCentroCosto", "=",$arrCentroCosto[$idCol])
+                                ->first();
+                                $arrDCC= [
+                                    "fkEmpleado" => $existeEmpleado->idempleado,
+                                    "fkDistribucion" => $idDistri,
+                                    "fkCentroCosto" => $arrCentroCosto[$idCol],
+                                    "porcentaje" => floatval($cols),
+                                ];
+                                if(isset($dcCentroCosto)){
+                                    DB::table("distri_centro_costo_centrocosto")
+                                    ->where("idDistriCentroCentro", "=", $dcCentroCosto->idDistriCentroCentro)
+                                    ->update($arrDCC);
+                                }
+                                else{
+                                    DB::table("distri_centro_costo_centrocosto")
+                                    ->insert($arrDCC);
+                                }  
+                            }
+                            
+                         }
+                        
+                    }
+                    else if($porcentaje != 100){
+                        foreach($read as $idCol =>$cols){
+                            if(!isset($arrCentroCosto[$idCol]) && $idCol > 1){
+                                array_push($errors, ["idEmpleado" => $read[1], "msj" => "Centro de costo de la columna (".($idCol + 1).") no existe o pertenece a otra empresa"]);
+                                break;
+                            }
+                        }
+                        array_push($errors, ["idEmpleado" => $read[1], "msj" => "Porcentaje es diferente a 100 (No se efectuaron cambios)"]);
+                    }
+                    
+                }
+                else{
+                    array_push($errors, ["idEmpleado" => $read[1], "msj" => "Empleado no existe"]);
+                }
+                
+                
+            }
+            
+        }
+        $distri = DB::table("distri_centro_costo", "d")
+        ->join("nomina as n", "n.idNomina", "=","d.fkNomina")
+        ->where("d.id_distri_centro_costo", "=",$idDistri)
+        ->first();
+        $empleados = DB::table("empleado", "e")
+        ->select("e.idempleado", "dp.primerNombre", "dp.segundoNombre", "dp.primerApellido", "dp.segundoApellido", "dp.numeroIdentificacion", "ti.nombre as tipoDocumento")
+        ->join("distri_centro_costo as d", "d.fkNomina", "=","e.fkNomina")
+        ->join("datospersonales as dp", "dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->join("tipoidentificacion as ti", "ti.idtipoIdentificacion", "=","dp.fkTipoIdentificacion")
+        ->where("d.id_distri_centro_costo", "=",$idDistri)
+        ->orderByRaw("dp.primerApellido, dp.segundoApellido, dp.primerNombre, dp.segundoNombre")
+        ->get();
+
+        $centrosCostoGen = DB::table("centrocosto","cc")
+        ->select("cc.*")
+        ->join("nomina as n", "n.fkEmpresa", "=","cc.fkEmpresa")
+        ->join("distri_centro_costo as d", "d.fkNomina", "=","n.idNomina")
+        ->where("d.id_distri_centro_costo", "=",$idDistri)
+        ->orderBy("cc.id_uni_centro")
+        ->get();
+
+        $arrEmpleadoCC = array();
+        foreach($empleados as $empleado){
+
+            $centrosCostoEmpleado = DB::table("distri_centro_costo_centrocosto", "ddc")
+            ->where("ddc.fkEmpleado","=",$empleado->idempleado)
+            ->where("ddc.fkDistribucion","=",$idDistri)
+            ->get();
+            $arrCentrosCosto = array();
+
+            if(sizeof($centrosCostoEmpleado) > 0){
+                foreach($centrosCostoEmpleado as $centroCostoEmpleado ){
+                    array_push($arrCentrosCosto, [
+                        "centroCosto" => $centroCostoEmpleado->fkCentroCosto,
+                        "porcentaje" => $centroCostoEmpleado->porcentaje
+                    ]);
+                }
+            }
+            else{
+                $centrosCosto = DB::table("empleado_centrocosto", "ecc")
+                ->where("ecc.fkEmpleado", "=",$empleado->idempleado)
+                ->get();
+                foreach($centrosCosto as $centroCosto){
+                    array_push($arrCentrosCosto, [
+                        "centroCosto" => $centroCosto->fkCentroCosto,
+                        "porcentaje" => $centroCosto->porcentajeTiempoTrabajado
+                    ]);
+                }
+            }
+
+            $arrEmpleadoCC[$empleado->idempleado] = $arrCentrosCosto;
+        }
+
+
+        return view('/nomina.distri.modDistri',[
+            'distri' => $distri,
+            'arrEmpleadoCC' => $arrEmpleadoCC,
+            'centrosCostoGen' => $centrosCostoGen,
+            "empleados" => $empleados,
+            "errors" => $errors
+        ]);
+        
+        
+    }
+
+
+
 
     public function agregarSolicitudLiquidacion(){
         $nominas = DB::table("nomina")->orderBy("nombre")->get();
@@ -3518,6 +3681,7 @@ class NominaController extends Controller
                             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                             ->where("bp.fkEmpleado","=",$empleado->idempleado)
                             ->where("ln.fechaInicio","=",$fechaInicioMes)
+                            ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                             ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                             ->first();
                             if(isset($itemsBoucherSalarialMesAnteriorVac)){
@@ -3586,7 +3750,7 @@ class NominaController extends Controller
                             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                             ->where("bp.fkEmpleado","=",$empleado->idempleado)
                             ->where("ln.fechaInicio","<",$fechaInicioMes)
-                            ->whereRaw("YEAR(ln.fechaInicio) = '".$anioActual."'")                
+                            ->whereRaw("YEAR(ln.fechaInicio) = '".$anioActual."'")         
                             ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                             ->first();
 
@@ -3649,6 +3813,7 @@ class NominaController extends Controller
                             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                             ->where("bp.fkEmpleado","=",$empleado->idempleado)
                             ->where("ln.fechaInicio","=",$fechaInicioMes)
+                            ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                             ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                             ->first();
                             if(isset($itemsBoucherSalarialMesAnteriorVac)){
@@ -3837,6 +4002,7 @@ class NominaController extends Controller
                     ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
                     ->where("ln.fechaInicio","=",$fechaInicioMes)
+                    ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                     ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                     ->first();
                     if(isset($itemsBoucherSalarialMesAnteriorVac)){
@@ -4019,6 +4185,7 @@ class NominaController extends Controller
                     ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
                     ->where("ln.fechaInicio","=",$fechaInicioMes)
+                    ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                     ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                     ->first();
                     if(isset($itemsBoucherSalarialMesAnteriorVac)){
@@ -4481,9 +4648,6 @@ class NominaController extends Controller
         );
 
         $valorEpsEmpleador = $arrBoucherPago["ibc_eps"] * $varParafiscales[50];
-        /*$valorEpsEmpleador = $valorEpsEmpleador / 100;
-        $valorEpsEmpleador = ceil($valorEpsEmpleador);
-        $valorEpsEmpleador = $valorEpsEmpleador*100;*/
         $valorEpsEmpleador = round($valorEpsEmpleador);
 
 
@@ -4549,13 +4713,7 @@ class NominaController extends Controller
         $valorAfpEmpleado = 0;
         if($empleado->esPensionado == 0){
             $valorAfpEmpleado = $arrBoucherPago["ibc_afp"] * $varParafiscales[51];
-            
-           /* $valorAfpEmpleado = $valorAfpEmpleado / 100;
-            $valorAfpEmpleado = ceil($valorAfpEmpleado);
-            $valorAfpEmpleado = $valorAfpEmpleado*100;*/
             $valorAfpEmpleado = round($valorAfpEmpleado);
-            
-
             $arrValorxConcepto[19] = array(
                 "naturaleza" => "3",
                 "unidad" => "DIA",
@@ -4565,12 +4723,7 @@ class NominaController extends Controller
                 "tipoGen" => "automaticos"
             );
             $valorAfpEmpleador = $arrBoucherPago["ibc_afp"] * $varParafiscales[52];
-        
-            /*$valorAfpEmpleador = $valorAfpEmpleador / 100;
-            $valorAfpEmpleador = ceil($valorAfpEmpleador);
-            $valorAfpEmpleador = $valorAfpEmpleador*100;*/
             $valorAfpEmpleador = round($valorAfpEmpleador);
-
         }
         else{
             $arrBoucherPago["ibc_afp"] = 0;
@@ -4584,20 +4737,11 @@ class NominaController extends Controller
         ->where("e.idempleado", "=", $empleado->idempleado)
         ->first();
         $valorArlEmpleador = $arrBoucherPago["ibc_arl"] * (floatval($arl->porcentaje) / 100);
-        
-        /*$valorArlEmpleador = $valorArlEmpleador / 100;
-        $valorArlEmpleador = ceil($valorArlEmpleador);
-        $valorArlEmpleador = $valorArlEmpleador*100;*/
-
         $valorArlEmpleador = round($valorArlEmpleador);
-
         $arrParafiscales["arl"] = $valorArlEmpleador;
 
         //Calculo CCF
         $valorCCFEmpleador = $arrBoucherPago["ibc_ccf"] * $varParafiscales[53];
-        /*$valorCCFEmpleador = $valorCCFEmpleador / 100;
-        $valorCCFEmpleador = ceil($valorCCFEmpleador);
-        $valorCCFEmpleador = $valorCCFEmpleador*100;*/
         $valorCCFEmpleador = round($valorCCFEmpleador);
         $arrParafiscales["ccf"] = $valorCCFEmpleador;
 
@@ -4606,24 +4750,15 @@ class NominaController extends Controller
 
             //Calculo ICBF
             $valorICBFEmpleador = $arrBoucherPago["ibc_otros"] * $varParafiscales[54];
-            
-            /*$valorICBFEmpleador = $valorICBFEmpleador / 100;
-            $valorICBFEmpleador = ceil($valorICBFEmpleador);
-            $valorICBFEmpleador = $valorICBFEmpleador*100;*/
             $valorICBFEmpleador = round($valorICBFEmpleador);
-
             $arrParafiscales["icbf"] = $valorICBFEmpleador;
-    
+
             //Calculo SENA
             $valorSenaEmpleador = $arrBoucherPago["ibc_otros"] * $varParafiscales[55];
-            
-            /*$valorSenaEmpleador = $valorSenaEmpleador / 100;
-            $valorSenaEmpleador = ceil($valorSenaEmpleador);
-            $valorSenaEmpleador = $valorSenaEmpleador*100;*/
             $valorSenaEmpleador = round($valorSenaEmpleador);
-
             $arrParafiscales["sena"] = $valorSenaEmpleador;
 
+           
         }
         else{
             $arrParafiscales["icbf"] = 0;
@@ -4631,6 +4766,10 @@ class NominaController extends Controller
             $arrParafiscales["eps"] = 0;
             $arrBoucherPago["ibc_otros"] = 0;
         }
+
+
+
+
         if($periodo == 15){
             if(substr($liquidacionNomina->fechaInicio,8,2) == "16"){
                 $fechaPrimeraQuincena = substr($liquidacionNomina->fechaInicio,0,8)."01";
@@ -5723,6 +5862,7 @@ class NominaController extends Controller
             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
             ->where("ln.fechaInicio","=",$fechaInicioMes)
+            ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
             ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
             ->first();
             if(isset($itemsBoucherSalarialMesAnteriorVac)){
@@ -6877,6 +7017,237 @@ class NominaController extends Controller
             }            
     
         }
+        else{
+            //Vacaciones
+            $fechaInicioMes = date("Y-m-01", strtotime($fechaInicio));
+            $anioActual = intval(date("Y",strtotime($fechaInicio)));
+            $mesActual = intval(date("m",strtotime($fechaInicio)));
+            
+            $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
+
+            if(isset($novedadesRetiro)){
+                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fecha)){
+                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                }
+            }
+            
+            
+
+
+            
+            $salarialVac = 0;
+            $grupoConceptoCalculoVac = DB::table("grupoconcepto_concepto","gcc")
+                ->where("gcc.fkGrupoConcepto", "=", "13")//Salarial para provisiones
+                ->get();
+            foreach($grupoConceptoCalculoVac as $grupoConcepto){
+                if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto])){
+                    $salarialVac = $salarialVac + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                }
+            }
+            $itemsBoucherSalarialVac = DB::table("item_boucher_pago", "ibp")
+            ->selectRaw("Sum(ibp.valor) as suma")
+            ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+            ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+            ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
+            ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("ln.fechaInicio","=",$fechaInicioMes)
+            ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
+            ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
+            ->first();
+            if(isset($itemsBoucherSalarialVac)){
+                $salarialVac = $salarialVac + $itemsBoucherSalarialVac->suma;
+            }
+            
+            
+
+            $diasVac = $periodoPagoVac * 15 / 360;
+        
+            // $diasVac = $totalPeriodoPagoAnioActual * 15 / 360;
+
+            $liquidacionesMesesAnterioresCompleta = DB::table("liquidacionnomina", "ln")
+            ->selectRaw("sum(bp.periodoPago) as periodPago, sum(bp.salarioPeriodoPago) as salarioPago")
+            ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")                
+            ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("ln.fechaInicio","<=",$fechaInicioMes)
+            ->whereRaw("YEAR(ln.fechaInicio) = '".$anioActual."'")       
+            ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])         
+            ->first();
+            $primeraLiquidacion = DB::table("liquidacionnomina", "ln")
+            ->selectRaw("min(ln.fechaInicio) as primeraFecha")
+            ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")                
+            ->where("bp.fkEmpleado","=",$empleado->idempleado)->first();
+
+            $minimaFecha = date("Y-m-d");
+            
+            if(isset($primeraLiquidacion)){
+                $minimaFecha = $primeraLiquidacion->primeraFecha;
+            }
+            $diasAgregar = 0;
+            //Verificar si dicha nomina es menor a la fecha de ingreso
+            if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha)){
+                $diasAgregar = $this->days_360($empleado->fechaIngreso, $minimaFecha);
+            }
+            if(isset($vacacionesPTotal->fechaInicio)){
+                $periodoNuevo = $this->days_360($fechaInicio,$vacacionesPTotal->fechaInicio);
+            }
+            else{
+                $periodoNuevo = $this->days_360($fechaInicio,$fechaFin);
+            }
+                
+
+            $periodoPagoMesActual = $periodoNuevo + $diasAgregar;
+            $totalPeriodoPagoAnioActual = $periodoPagoMesActual + $liquidacionesMesesAnterioresCompleta->periodPago;
+
+            
+            $itemsBoucherSalarialMesesAnterioresVac = DB::table("item_boucher_pago", "ibp")
+            ->selectRaw("Sum(ibp.valor) as suma")
+            ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+            ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+            ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
+            ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("ln.fechaInicio","<",$fechaInicioMes)
+            ->whereRaw("YEAR(ln.fechaInicio) = '".$anioActual."'")                
+            ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
+            ->first();
+
+            $salarialVac = $salarialVac + $itemsBoucherSalarialMesesAnterioresVac->suma;
+            $salarialVac = ($salarialVac / $totalPeriodoPagoAnioActual)*30;
+            
+            $salarioVac = 0;
+
+            foreach($conceptosFijosEmpl as $conceptoFijoEmpl){
+                if($conceptoFijoEmpl->fkConcepto=="1" || $conceptoFijoEmpl->fkConcepto=="2"){
+                    $salarioVac = $conceptoFijoEmpl->valor; 
+                }
+            }
+
+
+            
+            $baseVac = $salarioVac + $salarialVac;
+            
+            $liquidacionVac = ($baseVac/30)*$diasVac;
+        
+
+            $historicoProvisionVac = DB::table("provision","p")
+            ->selectRaw("sum(p.valor) as sumaValor")
+            ->where("p.fkEmpleado","=",$empleado->idempleado)
+            ->where("p.mes","<",date("m",strtotime($fechaInicio)))
+            ->where("p.anio","=",date("Y",strtotime($fechaInicio)))
+            ->where("p.fkConcepto","=","74")
+            ->first();
+
+            $provisionVacValor = $liquidacionVac - $historicoProvisionVac->sumaValor;
+    
+
+        
+            $provisionVacaciones = DB::table("provision","p")
+                ->where("p.fkEmpleado","=",$empleado->idempleado)
+                ->where("p.mes","=",date("m",strtotime($fechaInicio)))
+                ->where("p.anio","=",date("Y",strtotime($fechaInicio)))
+                ->where("p.fkConcepto","=","74")
+                ->get();
+
+            $arrProvisionVacaciones = array(
+                "fkConcepto" => "74",
+                "fkEmpleado"=> $empleado->idempleado,
+                "mes" => date("m",strtotime($fechaInicio)),
+                "anio"  => date("Y",strtotime($fechaInicio)),
+                "valor" => intval($provisionVacValor)                 
+            );
+            if(sizeof($provisionVacaciones)>0){
+                DB::table("provision")
+                ->where("idProvision","=", $provisionVacaciones[0]->idProvision)
+                ->update($arrProvisionVacaciones);
+            }
+            else{
+                DB::table("provision")
+                ->insert($arrProvisionVacaciones);
+            }
+
+
+            //Provisiones en 0
+            $provisionPrima = DB::table("provision","p")
+                ->where("p.fkEmpleado","=",$empleado->idempleado)
+                ->where("p.mes","=",date("m",strtotime($fechaInicio)))
+                ->where("p.anio","=",date("Y",strtotime($fechaInicio)))
+                ->where("p.fkConcepto","=","73")
+                ->get();
+
+            $arrProvisionPrima = array(
+                "fkConcepto" => "73",
+                "fkEmpleado"=> $empleado->idempleado,
+                "mes" => date("m",strtotime($fechaInicio)),
+                "anio"  => date("Y",strtotime($fechaInicio)),
+                "valor" => intval(0)                 
+            );
+            if(sizeof($provisionPrima)>0){
+                
+
+                DB::table("provision")
+                ->where("idProvision","=", $provisionPrima[0]->idProvision)
+                ->update($arrProvisionPrima);
+
+            }
+            else{
+                DB::table("provision")
+                ->insert($arrProvisionPrima);
+            }
+
+
+
+            
+            $provisionCesantias = DB::table("provision","p")
+                ->where("p.fkEmpleado","=",$empleado->idempleado)
+                ->where("p.mes","=",date("m",strtotime($fechaInicio)))
+                ->where("p.anio","=",date("Y",strtotime($fechaInicio)))
+                ->where("p.fkConcepto","=","71")
+                ->get();
+
+            $arrProvisionCesantias = array(
+                "fkConcepto" => "71",
+                "fkEmpleado"=> $empleado->idempleado,
+                "mes" => date("m",strtotime($fechaInicio)),
+                "anio"  => date("Y",strtotime($fechaInicio)),
+                "valor" => intval(0)                 
+            );
+            if(sizeof($provisionCesantias)>0){
+                DB::table("provision")
+                ->where("idProvision","=", $provisionCesantias[0]->idProvision)
+                ->update($arrProvisionCesantias);
+            }
+            else{
+                DB::table("provision")
+                ->insert($arrProvisionCesantias);
+            }
+
+
+
+            $provisionIntCesantias = DB::table("provision","p")
+                ->where("p.fkEmpleado","=",$empleado->idempleado)
+                ->where("p.mes","=",date("m",strtotime($fechaInicio)))
+                ->where("p.anio","=",date("Y",strtotime($fechaInicio)))
+                ->where("p.fkConcepto","=","72")
+                ->get();
+
+            $arrProvisionIntCesantias = array(
+                "fkConcepto" => "72",
+                "fkEmpleado"=> $empleado->idempleado,
+                "mes" => date("m",strtotime($fechaInicio)),
+                "anio"  => date("Y",strtotime($fechaInicio)),
+                "valor" => intval(0)                 
+            );
+            if(sizeof($provisionIntCesantias)>0){
+                DB::table("provision")
+                ->where("idProvision","=", $provisionIntCesantias[0]->idProvision)
+                ->update($arrProvisionIntCesantias);
+            }
+            else{
+                DB::table("provision")
+                ->insert($arrProvisionIntCesantias);
+            }
+
+
+        }
 
 
         if($tipoliquidacion == "2" || $tipoliquidacion == "3"){
@@ -7015,6 +7386,7 @@ class NominaController extends Controller
                     ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
                     ->where("ln.fechaInicio","=",$fechaInicioMes)
+                    ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                     ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                     ->first();
                     if(isset($itemsBoucherSalarialMesAnteriorVac)){
@@ -7769,10 +8141,8 @@ class NominaController extends Controller
 
 
 
-        if(isset($arrValorxConcepto[32])){
-            
-            unset($arrValorxConcepto[32]);
-            
+        if(isset($arrValorxConcepto[32])){            
+            unset($arrValorxConcepto[32]);            
         }
 
         
@@ -7781,8 +8151,9 @@ class NominaController extends Controller
         $salarioMaximo = ($salarioMinimoDia * 30) * 25;
         $ibcOtros = 0;
         $ibcCCF = 0;
-        if(isset($fechaPrimeraQuincena)){
-            
+
+        
+        if(isset($fechaPrimeraQuincena)){ 
             if($empleado->tipoRegimen != "Salario Integral"){
                 $itemsBoucherIbcOtrosMesAnterior = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("Sum(ibp.valor) as suma")
@@ -7864,9 +8235,6 @@ class NominaController extends Controller
             $arrBoucherPago["ibc_ccf"] = intval($ibcCCF);
             //Calculo CCF
             $valorCCFEmpleador = $arrBoucherPago["ibc_ccf"] * $varParafiscales[53];
-            /*$valorCCFEmpleador = $valorCCFEmpleador / 100;
-            $valorCCFEmpleador = ceil($valorCCFEmpleador);
-            $valorCCFEmpleador = $valorCCFEmpleador*100;*/
             $valorCCFEmpleador = round($valorCCFEmpleador);
             $arrParafiscales["ccf"] = $valorCCFEmpleador;
         }
@@ -7902,23 +8270,20 @@ class NominaController extends Controller
             
             //Calculo ICBF
             $valorICBFEmpleador = $arrBoucherPago["ibc_otros"] * $varParafiscales[54];
-            
-            /*$valorICBFEmpleador = $valorICBFEmpleador / 100;
-            $valorICBFEmpleador = ceil($valorICBFEmpleador);
-            $valorICBFEmpleador = $valorICBFEmpleador*100;*/
             $valorICBFEmpleador = round($valorICBFEmpleador);
-
             $arrParafiscales["icbf"] = $valorICBFEmpleador;
     
             //Calculo SENA
-            $valorSenaEmpleador = $arrBoucherPago["ibc_otros"] * $varParafiscales[55];
-            
-            /*$valorSenaEmpleador = $valorSenaEmpleador / 100;
-            $valorSenaEmpleador = ceil($valorSenaEmpleador);
-            $valorSenaEmpleador = $valorSenaEmpleador*100;*/
+            $valorSenaEmpleador = $arrBoucherPago["ibc_otros"] * $varParafiscales[55];            
             $valorSenaEmpleador = round($valorSenaEmpleador);
-
             $arrParafiscales["sena"] = $valorSenaEmpleador;
+
+            $valorEpsEmpleador = $arrBoucherPago["ibc_eps"] * $varParafiscales[50];
+            $valorEpsEmpleador = round($valorEpsEmpleador);
+    
+    
+            $arrParafiscales["eps"] = $valorEpsEmpleador;
+            
 
         }
         else{

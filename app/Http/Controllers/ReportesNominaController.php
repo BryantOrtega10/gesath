@@ -61,7 +61,7 @@ class ReportesNominaController extends Controller
             $matrizReporte[$nomina->idempleado]["Tipo Documento"] = $nomina->tipoidentificacion;
             $matrizReporte[$nomina->idempleado]["Documento"] = $nomina->numeroIdentificacion;            
             $matrizReporte[$nomina->idempleado]["Nombre"] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
-            $matrizReporte[$nomina->idempleado]["Salario"] = intval($nomina->valorSalario);
+            $matrizReporte[$nomina->idempleado]["Sueldo"] = intval($nomina->valorSalario);
             $matrizReporte[$nomina->idempleado]["Cargo"] = $nomina->nombreCargo;
             $matrizReporte[$nomina->idempleado]["Dias"] = $nomina->diasTrabajados;
             
@@ -75,7 +75,7 @@ class ReportesNominaController extends Controller
   
             foreach($matriz as $row => $datoInt){
         
-                if(!is_int($datoInt) || $row=="Salario"){
+                if(!is_int($datoInt) || $row=="Sueldo"){
                     if(!in_array($row, $arrDefLinea1)){
                         array_push($arrDefLinea1, $row);
                     }
@@ -90,7 +90,7 @@ class ReportesNominaController extends Controller
         foreach($matrizReporte as $matriz){ 
             foreach($matriz as $row => $datoInt){
                 
-                if(is_int($datoInt) && $datoInt > 0 && $row != "Salario" && $row != "Dias"){
+                if(is_int($datoInt) && $datoInt > 0 && $row != "Sueldo" && $row != "Dias"){
                     
                     if(!in_array($row, $arrDefLinea1)){
                         array_push($arrDefLinea1, $row);
@@ -133,7 +133,7 @@ class ReportesNominaController extends Controller
                 $idDef = array_search($row, $arrDefLinea1);
         
 
-                if(is_int($datoInt) && $row != "Dias" && $row != "Salario"){
+                if(is_int($datoInt) && $row != "Dias" && $row != "Sueldo"){
                     $arrFila[$idDefTotal] = (isset($arrFila[$idDefTotal]) ? $arrFila[$idDefTotal]+ $datoInt : $datoInt);    
                     
                 }
@@ -143,7 +143,7 @@ class ReportesNominaController extends Controller
                     $arrFila[$idDefDesc]= (isset($arrFila[$idDefDesc]) ? $arrFila[$idDefDesc] + ($datoInt*-1) : ($datoInt*-1)); 
                     $arrFila[$idDef] = $datoInt*-1;    
                 }
-                else if(is_int($datoInt) && $datoInt>0 && $row != "Dias" && $row != "Salario"){
+                else if(is_int($datoInt) && $datoInt>0 && $row != "Dias" && $row != "Sueldo"){
                     $arrFila[$idDefPagos] = (isset($arrFila[$idDefPagos]) ? $arrFila[$idDefPagos] + $datoInt : $datoInt);
                     $arrFila[$idDef] = $datoInt;    
                 }
@@ -350,7 +350,7 @@ class ReportesNominaController extends Controller
             if($nomina->idconcepto == "1" || $nomina->idconcepto == "2"){
                 $matrizReporte[$nomina->idempleado]["Dias"][$nomina->idBoucherPago] = intval($nomina->cantidad);
             }
-            $matrizReporte[$nomina->idempleado]["Salario"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
+            $matrizReporte[$nomina->idempleado]["Sueldo"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
             
 
             $matrizReporte[$nomina->idempleado]["Nombre"][$nomina->idBoucherPago] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
@@ -420,20 +420,20 @@ class ReportesNominaController extends Controller
                     $idDef = array_search($row, $arrDefLinea1);
          
 
-                    if(is_array($datoInt) && $row != "Dias"){
+                    if(is_array($datoInt) && $row != "Dias" && $row != "Sueldo"){
                         $arrFila[$idDefTotal][$rowInt] = (isset($arrFila[$idDefTotal][$rowInt]) ? $arrFila[$idDefTotal][$rowInt] + $datoInt['valor'] : $datoInt['valor']);    
                     }  
                     if(is_array($datoInt) && $datoInt['naturaleza'] == "3"){
                         $arrFila[$idDefDesc][$rowInt] = (isset($arrFila[$idDefDesc][$rowInt]) ? $arrFila[$idDefDesc][$rowInt]  + ($datoInt['valor']*-1) : ($datoInt['valor']*-1)); 
                         $arrFila[$idDef][$rowInt] = $datoInt['valor']*-1;    
                     }
-                    else if(is_array($datoInt) && $datoInt['naturaleza'] == "1" && $row != "Dias"){
+                    else if(is_array($datoInt) && $datoInt['naturaleza'] == "1" && $row != "Dias" && $row != "Sueldo"){
                         $arrFila[$idDefPagos][$rowInt] = (isset($arrFila[$idDefPagos][$rowInt]) ? $arrFila[$idDefPagos][$rowInt] + $datoInt['valor'] : $datoInt['valor']);
                         $arrFila[$idDef][$rowInt] = $datoInt['valor'];    
                     }
                     else{
                         $arrFila[$idDef][$rowInt] = $datoInt;    
-                    }          
+                    }
                     
                     
                     
@@ -511,7 +511,7 @@ class ReportesNominaController extends Controller
             }
             else{
                 foreach($reporteFinal[$i] as $row => $columna){
-                    if(is_numeric($columna) && $row!=2 && $row!=4){
+                    if(is_numeric($columna) && $row!=2 && $row!=4 && $row!=7){
                         $reporteDatosJuntos[$existeEmp][$row] = $reporteDatosJuntos[$existeEmp][$row] + $columna;
                     }
                 }
@@ -3364,7 +3364,7 @@ class ReportesNominaController extends Controller
                 $totalPorcentajeEPS = 0;
                 foreach($varsEPS as $varEPS){
                     if($ultimoBoucher->ibc_otros==0 && $varEPS->idVariable == "50"){
-                    
+                        
                     }
                     else{
                         $totalPorcentajeEPS = $totalPorcentajeEPS + floatval($varEPS->valor);
@@ -3389,6 +3389,7 @@ class ReportesNominaController extends Controller
                 foreach($parafiscales as $parafiscal){
                     $cotizacionSalud = $cotizacionSalud + $parafiscal->suma_eps;
                 }
+
                 $cotizacionSalud = $ibcEPS*$totalPorcentajeEPS;
 
                 $cotizacionSalud = $this->roundSup($cotizacionSalud, -2);
@@ -3612,10 +3613,10 @@ class ReportesNominaController extends Controller
     
                 $arrayFila2[78] = $this->plantillaTxt("",1," ","left");
     
-                //$arrayFila2[94] = $this->plantillaTxt($ultimoBoucher->ibc_otros,9,"0","right");
+                
                 if($ultimoBoucher->ibc_otros!=0){
               
-                    //$ibcOtros = $this->roundSup($ibcOtros, -2);
+                    
                     if($ibcOtros < $minimosRedondeo->ibc && $ibcOtros > 0){
                         $ibcOtros = $minimosRedondeo->ibc;
                     }
@@ -4764,4 +4765,25 @@ class ReportesNominaController extends Controller
 
         
     }
+
+
+    public function formulario220Dian(Request $req){
+
+
+   
+        $idempleado = $req->idempleado;
+        $empleado = DB::table("empleado")->where("idempleado","=", $idempleado)->first();
+        $empresa = DB::table("empresa","e")->where("idempresa","=", $empleado->fkEmpresa)->first();
+        
+
+
+
+
+
+
+
+
+
+    }
+
 }

@@ -179,4 +179,8 @@ $(document).ready(function(){
 			}
 		});	
 	});
+	$(".recargar").click(function(e){
+		e.preventDefault();
+		window.open("/catalogo-contable/","_self");
+	});
 });

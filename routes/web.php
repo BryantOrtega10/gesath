@@ -185,6 +185,7 @@ Route::group([
 
 		Route::get('copiarDistri/{idDistri}','NominaController@copiarDistri');
 		Route::post('copiar','NominaController@copyDistriBd');
+		Route::post('subirPlano','NominaController@subirPlano');
 		
 	});	
 });
@@ -319,13 +320,23 @@ Route::group([
 Route::group(['prefix' => 'catalogo-contable', 'middleware' => ['auth', 'guest:2,3']], function() {
 	Route::get('/', 'CatalogoContableController@index');
 	Route::get("/getForm/add", 'CatalogoContableController@getFormAdd');
+	Route::get("/getForm/edit/{id}", 'CatalogoContableController@getFormEdit');
 	Route::post("/crear", 'CatalogoContableController@crear');
+	Route::post("/modificar", 'CatalogoContableController@modificar');
 	
 	Route::get('/reporteNomina', 'CatalogoContableController@reporteNominaIndex');
 	Route::post('/generarReporteNomina', 'CatalogoContableController@generarReporteNomina');
 	Route::get('/getCentrosCosto/{idEmpresa}', 'CatalogoContableController@getCentrosCosto');
 	Route::get('/getGrupos/{num}', 'CatalogoContableController@getGrupos');
 
+	Route::get('/subirPlano', 'CatalogoContableController@indexPlano');
+	Route::post('/subirArchivoPlano', 'CatalogoContableController@subirArchivoPlano');
+	Route::get('/verCarga/{id}', 'CatalogoContableController@verCarga');
+	Route::get('/subirDatosCuenta/{id}', 'CatalogoContableController@subirDatosCuenta');
+	Route::get('/cancelarCarga/{id}', 'CatalogoContableController@cancelarCarga');
+	Route::get('/aprobarCarga/{id}', 'CatalogoContableController@aprobarCarga');
+	Route::post('/eliminarRegistros', 'CatalogoContableController@eliminarRegistros');
+	
 	
 });
 
