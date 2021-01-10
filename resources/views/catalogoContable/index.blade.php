@@ -44,37 +44,83 @@
 
     <div class="text-left">
         <a class="btn btn-primary" href="#" id="addCuenta">Agregar cuenta</a>
-        <a class="btn btn-primary" href="/catalogo-contable/subirPlano" id="addCuenta">Agregar por archivo plano</a>
+        <a class="btn btn-primary" href="/catalogo-contable/subirPlano" >Agregar por archivo plano</a>
+        <a class="btn btn-primary" href="/catalogo-contable/descargarPlano">Descargar archivo plano</a>
 
     </div>
     <div class="table-responsive">
         <table class="table table-hover table-striped">
             <tr>
-                <th scope="col">Cuenta</th>
                 <th scope="col">Descripcion</th>
-                <th scope="col">Tipo Tercero</th>
+                <th scope="col">Cuenta Debito</th>
+                <th scope="col">Cuenta Credito</th>
                 <th scope="col">Empresa</th>
                 <th scope="col">Centro costo</th>
                 <th scope="col"></th>
             </tr>
+            
             @foreach ($catalogo as $cata)
-            <tr>
-                <th scope="row">{{ $cata->cuenta }}</th>
-                <th scope="row">{{ $cata->descripcion }}</th>
-                <td>{{ $cata->tipoTercero_nm }}</td>
-                <td>{{ $cata->empresa_nm }}</td>
-                <td>
-                    @if ($cata->centroCosto_nm == "")
-                        Todos
+            
+            
+                <tr>
+                    <td class="text-left">
+                        @if($cata["tablaConsulta"] == 1)
+                            Grupo: {{$cata["nombreGrupo"]}}
+                        @endif
+                        @if ($cata["tablaConsulta"] == "2")
+                            Provision: 
+                            @if($cata["fkTipoProvision"] == "1")    
+                                PRIMA
+                            @endif
+                            @if($cata["fkTipoProvision"] == "2")    
+                                CESANTIAS
+                            @endif
+                            @if($cata["fkTipoProvision"] == "3")    
+                                INTERESES DE CESANTIAS
+                            @endif
+                            @if($cata["fkTipoProvision"]== "4")    
+                                VACACIONES
+                            @endif
+                        @endif
+                        @if ($cata["tablaConsulta"] == "3")
+                            Aporte Empleador: 
+                            @if($cata["fkTipoAporteEmpleador"] == "1")    
+                                PENSION
+                            @endif
+                            @if($cata["fkTipoAporteEmpleador"] == "2")    
+                                SALUD
+                            @endif
+                            @if($cata["fkTipoAporteEmpleador"] == "3")    
+                                ARL
+                            @endif
+                            @if($cata["fkTipoAporteEmpleador"] == "4")    
+                                CCF
+                            @endif
+                            @if($cata["fkTipoAporteEmpleador"] == "5")    
+                                IBCF
+                            @endif
+                            @if($cata["fkTipoAporteEmpleador"] == "6")    
+                                SENA
+                            @endif
+                        @endif
+                        @if ($cata["tablaConsulta"] == "4")
+                            Concepto: {{$cata["nombreConcepto"]}}
+                        @endif
+                    </td>
+                    <td>{{$cata["cuentaDebito"]}}</td>
+                    <td>{{$cata["cuentaCredito"]}}</td>
+                    <td>{{$cata["nombreEmpresa"]}}</td>
+                    <td>@if(isset($cata["nombreCC"]))
+                        {{$cata["nombreCC"]}}
                     @else
-                        {{ $cata->centroCosto_nm }}
-                    @endif
-                    
-                </td>
-                <td>
-                    <a href="/catalogo-contable/getForm/edit/{{ $cata->idCatalgoContable }}" class="editar"><i class="fas fa-edit"></i></a>
-                </td>
-            </tr>
+                        TODOS
+                    @endif</td>
+                    <td>
+                        <a href="/catalogo-contable/getForm/edit/{{ $cata["id"] }}" class="editar"><i class="fas fa-edit"></i></a>
+                    </td>
+                </tr>
+
+            
             @endforeach
         </table>
     </div>

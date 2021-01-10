@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Storage;
 use PhpParser\Node\Expr\Cast\Bool_;
 use League\Csv\Reader;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EmpleadoController extends Controller
 {
@@ -26,9 +29,16 @@ class EmpleadoController extends Controller
                                                     'est.clase AS claseEstado',
                                                     'empleado.fkEstado',
                                                     'n.nombre as nombreNomina',
+                                                    'u.nombre as ciudad',
                                                     'dp.*')
+                                        ->selectRaw('(select cc2.nombre from centrocosto as cc2 where cc2.idcentroCosto 
+                                                        in(Select ecc.fkCentroCosto from empleado_centrocosto as ecc where 
+                                                        ecc.fkEmpleado = empleado.idempleado)
+                                                        limit 0,1) as centroCosto ')
                                         ->join('datospersonales AS dp','empleado.fkDatosPersonales', '=', 'dp.idDatosPersonales')
                                         ->join('nomina AS n','empleado.fkNomina', '=', 'n.idNomina',"left")
+                                        ->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
+                                        ->join('ubicacion AS u','u.idubicacion', '=', 'empleado.fkUbicacionLabora',"left")
                                         ->join('estado AS est','empleado.fkEstado', '=', 'est.idestado');
         $arrConsulta = array();
 
@@ -45,6 +55,21 @@ class EmpleadoController extends Controller
             $empleados->where("dp.numeroIdentificacion", "LIKE", $req->numDoc."%");
             $arrConsulta["numDoc"] = $req->numDoc;
         }
+
+        if(isset($req->empresa)){
+            $empleados->where("empleado.fkEmpresa", "=", $req->empresa);
+            $arrConsulta["empresa"] = $req->empresa;
+        }
+        else{
+            $req->centroCosto = NULL;
+        }
+
+        if(isset($req->centroCosto)){
+            $empleados->where("cc.idcentroCosto", "=", $req->centroCosto);
+            $arrConsulta["centroCosto"] = $req->centroCosto;
+        }
+
+
         if(isset($req->tipoPersona)){
             $empleados->where("empleado.tipoPersona", "=", $req->tipoPersona);
             $arrConsulta["tipoPersona"] = $req->tipoPersona;
@@ -66,13 +91,31 @@ class EmpleadoController extends Controller
             $arrConsulta["centroCosto"] = $req->centroCosto;
         }
 
-        $empleados = $empleados->paginate(15);
-        $centrosDeCosto = DB::table("centrocosto")->orderBy("nombre")->get();
+        $empleados = $empleados->distinct()->get();
+        $numResultados = sizeof($empleados);
+        $empleados = $this->paginate($empleados, 15);
+        $empleados->withPath("empleado");
+
+        
+        
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+
+        $centrosDeCosto = array();
+        
+        if(isset($req->empresa)){
+            $centrosDeCosto = DB::table("centrocosto")->where("fkEmpresa","=",$req->empresa)->orderBy("nombre")->get();
+        }
+        
         $ciudades = DB::table("ubicacion")->where("fkTipoUbicacion","=","3")->orderBy("nombre")->get();
+        $estados = DB::table("estado","e")->whereIn('e.idestado',[1,2,3])->get();
+
         return view('/empleado.verEmpleados',['empleados'=> $empleados, 
         'ciudades' => $ciudades,
          "req" => $req, 
          "arrConsulta" => $arrConsulta,
+         "estados" => $estados,
+         "numResultados" => $numResultados,
+         "empresas" => $empresas,
          "centrosDeCosto" => $centrosDeCosto]);
     }
 
@@ -3316,5 +3359,11 @@ class EmpleadoController extends Controller
             $info = 'Error, no existe un empleado con este ID';
         }
         return response()->json(['success' => $success, 'info' => $info]);
+    }
+    public function paginate($items, $perPage = 5, $page = null, $options = [])
+    {
+        $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 }

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Reporte nomina horizontal')
+@section('title', 'Reporte Formulario 220')
 @section('menuLateral')
     @include('layouts.partials.menu')
 @endsection
@@ -7,13 +7,13 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Reporte nomina acumulado</h1>
+        <h1>Reporte Formulario 220</h1>
     </div>
 </div>
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
-            <form method="POST" id="formCierre" autocomplete="off" class="formGeneral" action="/reportes/documentoNominaFechas">
+            <form method="POST" autocomplete="off" class="formGeneral" action="/reportes/generarFormulario220">
                 @csrf
                 <div class="row">
                     <div class="col-3">
@@ -36,20 +36,6 @@
                         </div>               
                     </div>
                     <div class="col-3">
-                        <div class="form-group">
-                            <label for="fechaInicio" class="control-label">Fecha Inicio</label>
-                            <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" />
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="form-group">
-                            <label for="fechaFin" class="control-label">Fecha Fin</label>
-                            <input type="date" class="form-control" id="fechaFin" name="fechaFin" />
-                        </div>
-                    </div>
-                </div>        
-                <div class="row">
-                    <div class="col-3">
                         <div class="form-group busquedaPop" id="busquedaEmpleado">
                             <label for="nombreEmpleado" class="control-label">Empleado:</label>
                             <input type="text" readonly class="form-control" id="nombreEmpleado" name="nombreEmpleado" />
@@ -57,23 +43,30 @@
                         </div>
                     </div>
                     <div class="col-3">
-                        <div>
-                            <label>Concepto:</label>
-                            <div class="contConceptos">
-                                @foreach ($conceptos as $concepto)
-                                    <div class="row">
-                                        <div class="col-2"><input type="checkbox" id="concepto_{{$concepto->idconcepto}}" name="concepto[]" value="{{$concepto->idconcepto}}"/></div>
-                                        <div class="col-10 text-left"><label for="concepto_{{$concepto->idconcepto}}">{{$concepto->nombre}}</label></div>
-                                    </div>
-                                @endforeach
-                            </div>
+                        <div class="form-group">
+                            <label for="fechaExp" class="control-label">Fecha Expedicion:</label>
+                            <input type="date" class="form-control" id="fechaExp" name="fechaExp" />
+                        </div>
+                    </div>   
+                            
+                </div>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group hasText">
+                            <label for="anio" class="control-label">Año:</label>
+                            <input type="number" class="form-control" id="anio" name="anio" max="{{date("Y")}}" value="{{date("Y")}}"/>
+                 
+                        </div>
+                    </div>            
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label for="agenteRetenedor" class="control-label">Agente retenedor:</label>
+                            <input type="text" class="form-control" id="agenteRetenedor" name="agenteRetenedor" />
                         </div>
                     </div>
-                    
                     <div class="col-3">
-                        <div class="text-center"><input type="submit" value="Generar reporte" class="btnSubmitGen" /></div>
+                        <div class="text-center"><input type="submit" value="Generar" class="btnSubmitGen" /></div>
                     </div>
-
                 </div>    
 
             </form>
@@ -90,5 +83,5 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" src="{{ URL::asset('js/nomina/nominaAcumulado.js')}}"></script>
+<script type="text/javascript" src="{{ URL::asset('js/reportes/formulario220.js')}}"></script>
 @endsection

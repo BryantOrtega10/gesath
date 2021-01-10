@@ -12,12 +12,20 @@ $(document).ready(function(){
 	        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
 	    }
 	});
-	$("body").on("change","#fkTipoTercero",function(e){
-        $(".elementoTercero").removeClass("activo");;
+	$("body").on("change","#fkTipoTerceroCred",function(e){
+        $(".elementoTerceroCred").removeClass("activo");;
         if($(this).val() == "8"){
-            $(".elementoTercero").addClass("activo");
+            $(".elementoTerceroCred").addClass("activo");
         }
 	});
+	$("body").on("change","#fkTipoTerceroDeb",function(e){
+        $(".elementoTerceroDeb").removeClass("activo");;
+        if($(this).val() == "8"){
+            $(".elementoTerceroDeb").addClass("activo");
+        }
+	});
+
+
 	$("body").on("click",".quitarGrupo",function(e){
 		const dataId = $(this).attr("data-id");
 		$(".contGrupoCuenta[data-id="+dataId+"]").remove();
@@ -57,6 +65,7 @@ $(document).ready(function(){
 		$(".grupoConceptoCuenta[data-id="+tablaConsulta+"]").removeClass("activo");
 		$(".grupoProvision[data-id="+tablaConsulta+"]").removeClass("activo");
 		$(".grupoAporteEmpleador[data-id="+tablaConsulta+"]").removeClass("activo");
+		$(".conceptoCuenta[data-id="+tablaConsulta+"]").removeClass("activo");
 
 		if($(this).val() == "1"){
 			$(".grupoConceptoCuenta[data-id="+tablaConsulta+"]").addClass("activo");
@@ -67,15 +76,46 @@ $(document).ready(function(){
 		else if($(this).val() == "3"){
 			$(".grupoAporteEmpleador[data-id="+tablaConsulta+"]").addClass("activo");
 		}
+		else if($(this).val() == "4"){
+			$(".conceptoCuenta[data-id="+tablaConsulta+"]").addClass("activo");
+		}
+	});
+
+
+
+	
+	$("body").on("change","#cuentaCred",function(e){
+		if($(this).val()=="nueva"){
+			$(".cuentaCreditoNueva").addClass("activo");
+		}
+		else{
+			$(".cuentaCreditoNueva").removeClass("activo");
+		}
+	});
+	$("body").on("change","#cuentaDeb",function(e){
+		if($(this).val()=="nueva"){
+			$(".cuentaDebitoNueva").addClass("activo");
+		}
+		else{
+			$(".cuentaDebitoNueva").removeClass("activo");
+		}
+
+	});
+
+	$("body").on("change","#fkCentroCosto",function(e){
+		$("#cuentaCred").html('<option value="nueva">Nueva</option>');
+		$("#cuentaDeb").html('<option value="nueva">Nueva</option>');
+		actualizarCuentas();
 	});
 	$("body").on("change","#fkEmpresa",function(e){
         
 
 		
 		e.preventDefault();
-		$("#fkCentroCosto").html('<option value="">Todos</option>');;
-
-
+		$("#fkCentroCosto").html('<option value="">Todos</option>');
+		$("#cuentaCred").html('<option value="nueva">Nueva</option>');
+		$("#cuentaDeb").html('<option value="nueva">Nueva</option>');
+		actualizarCuentas();
 		const idEmpresa = $(this).val();
 		if(idEmpresa != ""){
 			if(typeof $("#cargando")[0] !== 'undefined'){
@@ -89,7 +129,9 @@ $(document).ready(function(){
 				url: "/catalogo-contable/getCentrosCosto/"+idEmpresa,
 				success:function(data){
 					$("#cargando").css("display", "none");
-					$("#fkCentroCosto").append(data.html);;
+					$("#fkCentroCosto").append(data.html);
+					$("#fkCentroCosto").trigger("change");
+
 			   },
 			   error: function(data){
 					   console.log("error");
@@ -99,6 +141,35 @@ $(document).ready(function(){
 		}
 		
 	});
+
+
+	function actualizarCuentas(){
+		
+		const idEmpresa = $("#fkEmpresa").val();
+		const idCentroCosto = $("#fkCentroCosto").val();
+		if(typeof $("#cargando")[0] !== 'undefined'){
+			$("#cargando").css("display", "flex");
+		}
+		else{
+			$("body").append('<div id="cargando" style="display: flex;">Cargando...</div>');
+		}
+		$.ajax({
+			type:'GET',
+			url: "/catalogo-contable/getCuentas/"+idEmpresa+"/"+idCentroCosto,
+			success:function(data){
+				$("#cargando").css("display", "none");
+				$("#cuentaCred").append(data.html);
+				$("#cuentaDeb").append(data.html);
+				$("#cuentaDeb").trigger("change");
+				$("#cuentaCred").trigger("change");
+
+		   },
+		   error: function(data){
+				console.log("error");
+				console.log(data);
+			}
+		});	
+	}
 
 	
 	
@@ -169,8 +240,11 @@ $(document).ready(function(){
 					window.location.reload();
 				}
 				else{
-					$("#infoErrorForm").css("display", "block");
-					$("#infoErrorForm").html(data.mensaje);
+					$(".print-error").find("ul").html('');
+                    $(".print-error").css('display','block');
+                    $.each(data.error, function( key, value ) {
+                        $(".print-error").find("ul").append('<li>'+value+'</li>');
+                    });
 				}
 		   },
 		   error: function(data){

@@ -157,6 +157,8 @@ Route::group([
 	Route::post('cancelarSolicitud','NominaController@cancelarSolicitud');
 	Route::get('comoCalculo/{id}','NominaController@comoCalculo');
 	Route::get('verDetalleRetencion/{id}/{tipo}','NominaController@verDetalleRetencion');
+	Route::get('verDetalleVacacion/{id}','NominaController@verDetalleVacacion');
+	
 	Route::get('nominasLiquidadas','NominaController@nominasLiquidadas');
 	Route::get('documentoRetencion/{id}','NominaController@documentoRetencion');
 	Route::get('documentoSS/{id}','NominaController@documentoSS');
@@ -171,7 +173,7 @@ Route::group([
 	Route::get('verSolicitudLiquidacionSinEdit/{id}','NominaController@verSolicitudLiquidacionSinEdit');	
 	Route::get('centroCostoPeriodo','NominaController@centroCostoPeriodo');
 
-
+	
 
 
 	Route::group(['prefix' => 'distri'], function(){
@@ -186,6 +188,7 @@ Route::group([
 		Route::get('copiarDistri/{idDistri}','NominaController@copiarDistri');
 		Route::post('copiar','NominaController@copyDistriBd');
 		Route::post('subirPlano','NominaController@subirPlano');
+		
 		
 	});	
 });
@@ -207,6 +210,12 @@ Route::group([
 
 	Route::get('indexReporteVacaciones','ReportesNominaController@indexReporteVacaciones');
 	Route::post('reporteVacaciones','ReportesNominaController@reporteVacaciones');
+
+
+	Route::get('formulario220','ReportesNominaController@indexFormulario220');
+	Route::post('generarFormulario220','ReportesNominaController@formulario220Dian');
+	
+	
 });
 
 
@@ -327,6 +336,9 @@ Route::group(['prefix' => 'catalogo-contable', 'middleware' => ['auth', 'guest:2
 	Route::get('/reporteNomina', 'CatalogoContableController@reporteNominaIndex');
 	Route::post('/generarReporteNomina', 'CatalogoContableController@generarReporteNomina');
 	Route::get('/getCentrosCosto/{idEmpresa}', 'CatalogoContableController@getCentrosCosto');
+	Route::get('/getCuentas/{idEmpresa?}/{idCentroCosto?}', 'CatalogoContableController@getCuentas');
+	
+
 	Route::get('/getGrupos/{num}', 'CatalogoContableController@getGrupos');
 
 	Route::get('/subirPlano', 'CatalogoContableController@indexPlano');
@@ -337,6 +349,8 @@ Route::group(['prefix' => 'catalogo-contable', 'middleware' => ['auth', 'guest:2
 	Route::get('/aprobarCarga/{id}', 'CatalogoContableController@aprobarCarga');
 	Route::post('/eliminarRegistros', 'CatalogoContableController@eliminarRegistros');
 	
+	Route::get('descargarPlano','CatalogoContableController@descargarPlano');
+	Route::post('descargarArchivoxEmpresa','CatalogoContableController@descargarArchivoxEmpresa');
 	
 });
 

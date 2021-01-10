@@ -148,6 +148,11 @@
                         <span class="textoMenu">Reporte de vacaciones</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/reportes/formulario220/" >
+                        <span class="textoMenu">Formulario 220</span>
+                    </a>
+                </li>
             </ul>
         </li>
         <li class="{{ Request::is('ubicacion') ? 'active' : '' }} {{ Request::is('variables') ? 'active' : '' }} {{ Request::is('concepto') ? 'active' : '' }} {{ Request::is('grupoConcepto') ? 'active' : '' }}">

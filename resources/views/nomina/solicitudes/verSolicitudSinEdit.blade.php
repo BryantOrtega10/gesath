@@ -41,7 +41,13 @@
 
     <div class="row">
         <div class="col-3">
-            
+            @if ($liquidaciones->fkTipoLiquidacion == 8)
+                <form action="/nomina/cancelarSolicitud" method="POST" class="formGeneral" id="formModificarSolicitud2" autocomplete="off">
+                    @csrf
+                    <div class="text-center"><input type="submit" value="Cancelar Liquidación" class="btnSubmitGen" /></div>
+                    <input type="hidden" name="idLiquidacion" value="{{$liquidaciones->idLiquidacionNomina}}" />
+                </form>
+            @endif
         </div>
         <div class="col-3">
             <a href="/nomina/reversar/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Reversar nomina</a><br>
