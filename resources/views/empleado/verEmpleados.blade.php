@@ -11,15 +11,71 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-4">
+    <div class="col-12">
         <div class="cajaGeneral">
-            <h2>Filtros de B&uacute;squeda</h2>
+            <div class="row">
+                <div class="col-10"><h2>Filtros de B&uacute;squeda</h2></div>
+                <div class="col-2">
+                    <a href="/empleado/formCrear/1" class="btnGeneral">Crear Empleado</a>
+                </div>
+            </div>
             <hr>
-            <form autocomplete="off" action="/empleado" method="GET" id="filtrarEmpleado">
+            <form autocomplete="off" action="/empleado" method="GET" id="filtrarEmpleado" class="formGeneral">
                 @csrf
-                <input type="text" name="nombre" placeholder="Nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
-                <input type="text" name="numDoc" placeholder="N&uacute;mero Documento" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
-                <select name="tipoPersona">
+                <div class="row">
+                    <div class="col-2">
+                        <div class="form-group @isset($req->nombre) hasText @endisset">
+                            <label for="nombre" class="control-label">Nombre:</label>
+                            <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
+                        </div>               
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group @isset($req->numDoc) hasText @endisset">
+                            <label for="numDoc" class="control-label">Número Identificación:</label>
+                            <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
+                        </div>               
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group @isset($req->empresa) hasText @endisset">
+                            <label for="infoEmpresa" class="control-label">Empresa</label>
+                            <select class="form-control" id="infoEmpresa" name="empresa">
+                                <option value=""></option>        
+                                @foreach ($empresas as $empresa)
+                                    <option value="{{$empresa->idempresa}}" @isset($req->empresa) @if ($req->empresa == $empresa->idempresa) selected @endif @endisset>{{$empresa->razonSocial}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group @isset($req->centroCosto) hasText @endisset">
+                            <label for="centroCosto" class="control-label">Centro de costo:</label>                            
+                            <select name="centroCosto" class="form-control" id="centroCosto">
+                                <option value=""></option>
+                                @foreach ($centrosDeCosto as $centroDeCosto)
+                                    <option value="{{$centroDeCosto->idcentroCosto}}"  @isset($req->centroCosto) @if ($req->centroCosto == $centroDeCosto->idcentroCosto) selected @endif @endisset>{{$centroDeCosto->nombre}}</option>   
+                                @endforeach
+                            </select>
+                        </div>               
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group @isset($req->estado) hasText @endisset">
+                            <label for="estado" class="control-label">Estado:</label>                            
+                            <select name="estado" class="form-control" id="estado">
+                                <option value=""></option>
+                                @foreach ($estados as $estado)
+                                    <option value="{{$estado->idestado}}"  @isset($req->estado) @if ($req->estado == $estado->idestado) selected @endif @endisset>{{$estado->nombre}}</option>   
+                                @endforeach
+                            </select>
+                        </div>               
+                    </div>
+                    <div class="col-2">
+                        <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+                    </div>
+                </div>
+                
+                
+                
+                <!--<select name="tipoPersona">
                     <option value="">Tipo Persona</option>
                     <option value="empleado"  @isset($req->numDoc) @if ($req->numDoc == "empleado") selected @endif @endisset>Empleado</option>
                     <option value="contratista" @isset($req->numDoc) @if ($req->numDoc == "contratista") selected @endif @endisset>Contratista</option>
@@ -30,49 +86,36 @@
                     @foreach ($ciudades as $ciudad)
                         <option value="{{$ciudad->idubicacion}}"  @isset($req->ciudad) @if ($req->ciudad == $ciudad->idubicacion) selected @endif @endisset>{{$ciudad->nombre}}</option>   
                     @endforeach
-                </select>
-                <select name="centroCosto">
-                    <option value="">Centro de costo</option>
-                    @foreach ($centrosDeCosto as $centroDeCosto)
-                        <option value="{{$centroDeCosto->idcentroCosto}}"  @isset($req->centroCosto) @if ($req->centroCosto == $centroDeCosto->idcentroCosto) selected @endif @endisset>{{$centroDeCosto->nombre}}</option>   
-                    @endforeach
-                </select>
-                <select name="estado">
-                    <option value="">Estado</option>
-                    <option value="1"  @isset($req->estado) @if ($req->estado == "1") selected @endif @endisset>ACTIVO</option>
-                    <option value="2"  @isset($req->estado) @if ($req->estado == "2") selected @endif @endisset>INACTIVO</option>
-                    <option value="3"  @isset($req->estado) @if ($req->estado == "3") selected @endif @endisset>EN CREACIÓN</option>
-                </select>
-                <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+                </select>-->
+                
+                
+               
             </form>
         </div>
-        <div class="cajaGeneral">
-            <h2>Acciones</h2>
-            <hr>
-            <a href="/empleado/formCrear/1" class="btnGeneral">Crear Empleado</a>
-            <a href="/empleado/formCrear/2" class="btnGeneral">Crear Contratista</a>
-            <a href="/empleado/formCrear/3"  class="btnGeneral">Crear Aspirante</a>
-        
-        </div>
+
     </div>
-    <div class="col-8">
+    <div class="col-12">
         <div class="cajaGeneral">
             <h2>Resultado B&uacute;squeda</h2>
             <hr>
-            <h3>Empleados, Aspirantes o Contratistas</h3>
+            <h3>Se encontraron {{$numResultados}} resultados.</h3>
             <table class="table table-hover table-striped">
                 <tr>
                     <th scope="col">Nombre</th>
                     <th scope="col">Numero Documento</th>
+                    <th scope="col">Ciudad</th>
                     <th scope="col">Nomina</th>
+                    <th scope="col">Centro costo</th>
                     <th scope="col">Estado</th>
                     <th scope="col"></th>
                 </tr>
                 @foreach ($empleados as $empleado)
                 <tr>
-                    <th>{{ $empleado->primerNombre." ".$empleado->segundoNombre." ".$empleado->primerApellido." ".$empleado->segundoApellido}}</th>
+                    <th class="text-left">{{ $empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre}}</th>
                     <td>{{ $empleado->numeroIdentificacion }}</td>
+                    <td>{{ $empleado->ciudad }}</td>
                     <td>{{ $empleado->nombreNomina }}</td>
+                    <td>{{ $empleado->centroCosto }}</td>
                     <td><div class="estdoEmp{{ $empleado->claseEstado }}">{{ $empleado->estado }}</div></td>
                     <td>
                         <a href="/empleado/formModificar/{{ $empleado->idempleado }}" class="editar"><i class="fas fa-edit"></i></a>

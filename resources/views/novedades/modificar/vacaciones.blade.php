@@ -66,12 +66,16 @@
                         <input type="date" class="form-control" id="fechaInicialVaca" name="fechaInicial" value="{{$vacaciones->fechaInicio}}" />
                     </div>
                 </div>
+                
                 <div class="col-3">
                     <div class="form-group hasText">
-                        <label for="dias" class="control-label">Dias a disfrutar:</label>
-                        <input type="text" class="form-control" id="diasVaca" name="dias" value="{{$vacaciones->diasCompensar}}"/>
+                        <label for="diasVaca" class="control-label">Dias a disfrutar:</label>
+                        <input type="text" class="form-control" id="diasVaca" name="diasCompletos" value="{{$vacaciones->diasCompletos}}"/>
                     </div>
+                    <input type="hidden" id="diasCalendario" name="dias"  value="{{$vacaciones->diasCompensar}}"/>
+                    <span id="diasCal">Dias calendario: {{$vacaciones->diasCompensar}}</span>
                 </div>
+
             </div>
             <div class="row">
                 <div class="col-3">

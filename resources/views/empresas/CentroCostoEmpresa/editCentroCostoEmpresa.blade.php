@@ -1,5 +1,6 @@
 <form class="formEdit" action = "/empresa/centroCosto/update" method = "POST">
     <input type="hidden" name="fkEmpresa" id = "fkEmpresa" value = "{{ $centroCosto->fkEmpresa }}">
+    <input type="hidden" name="idCentro" id = "idCentro" value = "{{ $centroCosto->idcentroCosto }}">
     <div class="form-group">
         <label for="nombre">Nombre</label>
         <input type="text" class="form-control" id="nombre" name = "nombre" value = "{{ $centroCosto->nombre }}">

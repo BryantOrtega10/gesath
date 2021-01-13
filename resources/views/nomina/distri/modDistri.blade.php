@@ -40,6 +40,24 @@
                     </div>
                 </div>
             </form>
+            <hr>
+            <form method="POST" id="" autocomplete="off" class="formGeneral" action="/nomina/distri/subirPlano" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" class="form-control" name="id_distri_centro_costo" value="{{$distri->id_distri_centro_costo}}" />
+                <label for="archivoCSV">Seleccione el archivo</label> <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
+                <div class="text-center"><input type="submit" value="Cargar csv" class="btnSubmitGen" /></div>
+            </form>
+            <hr>
+            @if (isset($errors) && sizeof($errors) > 0)
+                <div class="alert alert-danger text-left">
+                    <ul>
+                        @foreach ($errors as $error)
+                            <li>Error empleado id: {{$error["idEmpleado"]}} - Mensaje: {{$error["msj"]}}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <table class="table table-hover table-striped">
                 <tr>
                     <th></th>

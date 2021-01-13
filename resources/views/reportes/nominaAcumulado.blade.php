@@ -13,7 +13,7 @@
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
-            <form method="POST" id="formCierre" autocomplete="off" class="formGeneral" action="/nomina/documentoNominaFechas">
+            <form method="POST" id="formCierre" autocomplete="off" class="formGeneral" action="/reportes/documentoNominaFechas">
                 @csrf
                 <div class="row">
                     <div class="col-3">

@@ -11,11 +11,12 @@ use Dompdf\Dompdf;
 use Dompdf\FontMetrics;
 use App\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ReportesNominaController extends Controller
 {
-    private $rutaBaseImagenes = "G:\\Trabajo\\Gesath\\web\\gesathWeb\\public\\";
-    
+    //private $rutaBaseImagenes = "/home/xtspamqf/public_html/gesathWeb/public/"; 
+    private $rutaBaseImagenes = "G:/Trabajo/Gesath/web/gesathWeb/public/"; 
     
 
     public function reporteNominaHorizontalIndex(){
@@ -61,7 +62,7 @@ class ReportesNominaController extends Controller
             $matrizReporte[$nomina->idempleado]["Tipo Documento"] = $nomina->tipoidentificacion;
             $matrizReporte[$nomina->idempleado]["Documento"] = $nomina->numeroIdentificacion;            
             $matrizReporte[$nomina->idempleado]["Nombre"] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
-            $matrizReporte[$nomina->idempleado]["Salario"] = intval($nomina->valorSalario);
+            $matrizReporte[$nomina->idempleado]["Sueldo"] = intval($nomina->valorSalario);
             $matrizReporte[$nomina->idempleado]["Cargo"] = $nomina->nombreCargo;
             $matrizReporte[$nomina->idempleado]["Dias"] = $nomina->diasTrabajados;
             
@@ -75,7 +76,7 @@ class ReportesNominaController extends Controller
   
             foreach($matriz as $row => $datoInt){
         
-                if(!is_int($datoInt) || $row=="Salario"){
+                if(!is_int($datoInt) || $row=="Sueldo"){
                     if(!in_array($row, $arrDefLinea1)){
                         array_push($arrDefLinea1, $row);
                     }
@@ -90,7 +91,7 @@ class ReportesNominaController extends Controller
         foreach($matrizReporte as $matriz){ 
             foreach($matriz as $row => $datoInt){
                 
-                if(is_int($datoInt) && $datoInt > 0){
+                if(is_int($datoInt) && $datoInt > 0 && $row != "Sueldo" && $row != "Dias"){
                     
                     if(!in_array($row, $arrDefLinea1)){
                         array_push($arrDefLinea1, $row);
@@ -133,7 +134,7 @@ class ReportesNominaController extends Controller
                 $idDef = array_search($row, $arrDefLinea1);
         
 
-                if(is_int($datoInt) && $row != "Dias"){
+                if(is_int($datoInt) && $row != "Dias" && $row != "Sueldo"){
                     $arrFila[$idDefTotal] = (isset($arrFila[$idDefTotal]) ? $arrFila[$idDefTotal]+ $datoInt : $datoInt);    
                     
                 }
@@ -143,7 +144,7 @@ class ReportesNominaController extends Controller
                     $arrFila[$idDefDesc]= (isset($arrFila[$idDefDesc]) ? $arrFila[$idDefDesc] + ($datoInt*-1) : ($datoInt*-1)); 
                     $arrFila[$idDef] = $datoInt*-1;    
                 }
-                else if(is_int($datoInt) && $datoInt>0 && $row != "Dias"){
+                else if(is_int($datoInt) && $datoInt>0 && $row != "Dias" && $row != "Sueldo"){
                     $arrFila[$idDefPagos] = (isset($arrFila[$idDefPagos]) ? $arrFila[$idDefPagos] + $datoInt : $datoInt);
                     $arrFila[$idDef] = $datoInt;    
                 }
@@ -350,7 +351,7 @@ class ReportesNominaController extends Controller
             if($nomina->idconcepto == "1" || $nomina->idconcepto == "2"){
                 $matrizReporte[$nomina->idempleado]["Dias"][$nomina->idBoucherPago] = intval($nomina->cantidad);
             }
-            $matrizReporte[$nomina->idempleado]["Salario"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
+            $matrizReporte[$nomina->idempleado]["Sueldo"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
             
 
             $matrizReporte[$nomina->idempleado]["Nombre"][$nomina->idBoucherPago] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
@@ -420,20 +421,20 @@ class ReportesNominaController extends Controller
                     $idDef = array_search($row, $arrDefLinea1);
          
 
-                    if(is_array($datoInt) && $row != "Dias"){
+                    if(is_array($datoInt) && $row != "Dias" && $row != "Sueldo"){
                         $arrFila[$idDefTotal][$rowInt] = (isset($arrFila[$idDefTotal][$rowInt]) ? $arrFila[$idDefTotal][$rowInt] + $datoInt['valor'] : $datoInt['valor']);    
                     }  
                     if(is_array($datoInt) && $datoInt['naturaleza'] == "3"){
                         $arrFila[$idDefDesc][$rowInt] = (isset($arrFila[$idDefDesc][$rowInt]) ? $arrFila[$idDefDesc][$rowInt]  + ($datoInt['valor']*-1) : ($datoInt['valor']*-1)); 
                         $arrFila[$idDef][$rowInt] = $datoInt['valor']*-1;    
                     }
-                    else if(is_array($datoInt) && $datoInt['naturaleza'] == "1" && $row != "Dias"){
+                    else if(is_array($datoInt) && $datoInt['naturaleza'] == "1" && $row != "Dias" && $row != "Sueldo"){
                         $arrFila[$idDefPagos][$rowInt] = (isset($arrFila[$idDefPagos][$rowInt]) ? $arrFila[$idDefPagos][$rowInt] + $datoInt['valor'] : $datoInt['valor']);
                         $arrFila[$idDef][$rowInt] = $datoInt['valor'];    
                     }
                     else{
                         $arrFila[$idDef][$rowInt] = $datoInt;    
-                    }          
+                    }
                     
                     
                     
@@ -511,7 +512,7 @@ class ReportesNominaController extends Controller
             }
             else{
                 foreach($reporteFinal[$i] as $row => $columna){
-                    if(is_numeric($columna) && $row!=2 && $row!=4){
+                    if(is_numeric($columna) && $row!=2 && $row!=4 && $row!=7){
                         $reporteDatosJuntos[$existeEmp][$row] = $reporteDatosJuntos[$existeEmp][$row] + $columna;
                     }
                 }
@@ -611,11 +612,19 @@ class ReportesNominaController extends Controller
 
 
 
-
+        $base64 = "";
+        if(is_file($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa)){
+            $imagedata = file_get_contents($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa);
+                     // alternatively specify an URL, if PHP settings allow
+            $base64 = base64_encode($imagedata);
+        }
+        
 
         $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
         $dompdf = new Dompdf();
+        $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
+        $dompdf->getOptions()->setIsPhpEnabled(true);
         $html='
         <html>
         <body>
@@ -661,6 +670,7 @@ class ReportesNominaController extends Controller
             if($empresayLiquidacion->fkTipoLiquidacion == "7"){
                 $html.='<div class="page liquida">
                 <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                    <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                     <b>'.$empresayLiquidacion->razonSocial.'</b>
                     <br>
                     <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -852,6 +862,7 @@ class ReportesNominaController extends Controller
                 $html.='                    
                 <div class="page liquida">
                     <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                        <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                         <b>'.$empresayLiquidacion->razonSocial.'</b>
                         <br>
                         <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -1158,6 +1169,13 @@ class ReportesNominaController extends Controller
             else{
                 $html.='<div class="page">
                     <div style="border: 2px solid #000; padding: 10px 20px;">
+                        ';
+                        
+                        
+                        
+                         $html.='
+                        
+                         <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                         <b>'.$empresayLiquidacion->razonSocial.'</b>
                         <br>
                         <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -1367,6 +1385,7 @@ class ReportesNominaController extends Controller
                 $html.='<div class="page_break"></div>
                     <div class="page">
                         <div style="border: 2px solid #000; padding: 10px 20px;">
+                            <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
                             <b>'.$empresayLiquidacion->razonSocial.'</b>
                             <br>
                             <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
@@ -1502,7 +1521,7 @@ class ReportesNominaController extends Controller
             </body>
         </html>
         ';
-                        
+        
         $dompdf->loadHtml($html ,'UTF-8');
 
         // (Optional) Setup the paper size and orientation
@@ -1643,7 +1662,7 @@ class ReportesNominaController extends Controller
             $arrayFila = array();
             $arrayNuevoRegistro = array();
             $numeroEmpleados ++;
-            
+            $fechaFin = $fechaFinMesActual;
             $arrayFila[0] = $this->plantillaTxt("02",2,"","right");
             $arrayFila[1] = $this->plantillaTxt($contador,5,"0","right");
             $arrayFila[2] = $this->plantillaTxt($empleado->siglaPila,2," ","right");
@@ -2242,7 +2261,8 @@ class ReportesNominaController extends Controller
                 
                 if(substr($novedadVac->fechaFin, 8, 2) == "31"){
                     
-                    $arrayPlace[22] = $this->plantillaTxt("X",1," ","left");
+                    //$arrayPlace[22] = $this->plantillaTxt("X",1," ","left");
+                    $arrayFila[22] = $this->plantillaTxt("X",1," ","left");
                     $novedadVac->fechaFin = substr($novedadVac->fechaFin, 0, 8)."30";
                 }
 
@@ -3346,7 +3366,7 @@ class ReportesNominaController extends Controller
                 $totalPorcentajeEPS = 0;
                 foreach($varsEPS as $varEPS){
                     if($ultimoBoucher->ibc_otros==0 && $varEPS->idVariable == "50"){
-                    
+                        
                     }
                     else{
                         $totalPorcentajeEPS = $totalPorcentajeEPS + floatval($varEPS->valor);
@@ -3371,6 +3391,7 @@ class ReportesNominaController extends Controller
                 foreach($parafiscales as $parafiscal){
                     $cotizacionSalud = $cotizacionSalud + $parafiscal->suma_eps;
                 }
+
                 $cotizacionSalud = $ibcEPS*$totalPorcentajeEPS;
 
                 $cotizacionSalud = $this->roundSup($cotizacionSalud, -2);
@@ -3594,10 +3615,10 @@ class ReportesNominaController extends Controller
     
                 $arrayFila2[78] = $this->plantillaTxt("",1," ","left");
     
-                //$arrayFila2[94] = $this->plantillaTxt($ultimoBoucher->ibc_otros,9,"0","right");
+                
                 if($ultimoBoucher->ibc_otros!=0){
               
-                    //$ibcOtros = $this->roundSup($ibcOtros, -2);
+                    
                     if($ibcOtros < $minimosRedondeo->ibc && $ibcOtros > 0){
                         $ibcOtros = $minimosRedondeo->ibc;
                     }
@@ -4607,7 +4628,7 @@ class ReportesNominaController extends Controller
 
 
                                 $novedadesVacacionGen = DB::table("novedad","n")
-                                ->selectRaw("sum(v.diasCompensar) as suma")
+                                ->selectRaw("sum(v.diasCompletos) as suma")
                                 ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
                                 ->where("n.fkEmpleado","=",$empleado->idempleado)
                                 ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
@@ -4643,9 +4664,9 @@ class ReportesNominaController extends Controller
                                         $arrFilaInt = array();
                                         $arrFilaInt['diaIni'] = (isset($novedadVacacion->fechaInicio) ? date("d/m/Y",strtotime($novedadVacacion->fechaInicio)) : "");
                                         $arrFilaInt['diaFin'] = (isset($novedadVacacion->fechaFin) ? date("d/m/Y",strtotime($novedadVacacion->fechaFin)) : "");
-                                        $arrFilaInt['diaTom'] = $novedadVacacion->diasCompensar;
+                                        $arrFilaInt['diaTom'] = $novedadVacacion->diasCompletos;
                                         array_push($arrFila['disfrute'], $arrFilaInt);
-                                        $diasTomadosPeriodo = $diasTomadosPeriodo + $novedadVacacion->diasCompensar;    
+                                        $diasTomadosPeriodo = $diasTomadosPeriodo + $novedadVacacion->diasCompletos;    
                                     }
                                     $rowspan = $rowspan + (sizeof($novedadesVacacion) > 0 ? (sizeof($novedadesVacacion) - 1) : 0);
                                     $diasPendientesPeriodo = $diasVac - $diasTomadosPeriodo;                
@@ -4745,5 +4766,869 @@ class ReportesNominaController extends Controller
 
 
         
+    }
+    public function indexFormulario220(){
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $formularios = DB::table("formulario220")->orderBy("anio","desc")->get();
+
+        return view('/reportes.formulario220',[
+            "empresas" => $empresas,
+            "formularios" => $formularios
+        ]);
+    }
+
+    public function formulario220Dian(Request $req){
+
+        $formulario =  DB::table("formulario220")->where("idFormulario220","=",$req->anio)->first();
+        $req->anio =  $formulario->anio + 1;
+       
+        
+        if($req->reporte == "PDF"){
+            $dompdf = new Dompdf();
+            $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
+            $dompdf->getOptions()->setIsPhpEnabled(true);
+    
+            $urlFoto = Storage::url($formulario->rutaImagen);
+            $base64 = "";
+            if(is_file($this->rutaBaseImagenes.$urlFoto)){
+                $imagedata = file_get_contents($this->rutaBaseImagenes.$urlFoto);
+                        // alternatively specify an URL, if PHP settings allow
+                $base64 = base64_encode($imagedata);
+            }
+            $url = Storage::url('fonts/ARIALNB.TTF');
+            ob_start();?>
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset='utf-8'>
+                        <style>
+                            @font-face {
+                                font-family: 'ArialNarrow';
+                                font-style: normal;
+                                font-weight: normal;
+                                src: url(/fonts/ARIALNB.TTF) format('truetype');
+                            }
+
+                
+                            /** 
+                                Set the margins of the page to 0, so the footer and the header
+                                can be of the full height and width !
+                            **/
+                            @page {
+                                margin: 0cm 0cm;
+                                position: absolute;
+                            }
+
+                            /** Define now the real margins of every page in the PDF **/
+                            body {
+                                margin: 0;
+                                font-family: sans-serif;
+                                font-size: 12px;
+                            }
+                            .page_break { 
+                                page-break-before: always; 
+                            }
+                        
+
+                            
+                        </style>
+                        <title>Formulario 220</title>
+                    </head>
+                    <body>
+                    <?php 
+                    $empleados = DB::table("empleado","e")
+                    ->where("fkEmpresa","=",$req->empresa)
+                    ->where("fkEstado","=","1");
+                    if(isset($req->infoNomina)){
+                        $empleados = $empleados->where("fkNomina","=",$req->infoNomina);    
+                    }
+                    if(isset($req->idEmpleado)){
+                        $empleados = $empleados->where("idempleado","=", $req->idEmpleado);
+                    }
+                    $empleados = $empleados->get();     
+
+                    foreach($empleados as $row => $empleado){
+
+
+                        $fechaPeriodoCer = $req->anio."-01-01";
+                        if(strtotime($fechaPeriodoCer) < strtotime($empleado->fechaIngreso)){
+                            $fechaPeriodoCer = $empleado->fechaIngreso;
+                        }
+                        $datosPersonales = DB::table("datospersonales", "dp")
+                        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
+                        ->where("dp.idDatosPersonales","=", $empleado->fkDatosPersonales)->first();
+                        $empresa = DB::table("empresa","e")
+                        ->select("e.*","u.nombre as ciudadUb","u.idubicacion" )
+                        ->join("ubicacion as u", "u.idubicacion", "=","e.fkUbicacion")
+                        ->where("idempresa","=", $empleado->fkEmpresa)->first();
+                        
+
+
+
+                        
+
+
+
+                        $sumaItems37 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","30")->first();
+                        $sumaItems40 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","31")->first();
+                        $sumaItems41 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","32")->first();
+                        $sumaItems42 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","33")->first();
+                        $sumaItems45 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","34")->first();
+                        $sumaItems46 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","35")->first();
+                        $sumaItems49 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","36")->first();
+                        $sumaItems50 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","37")->first();
+                        $sumaItems51 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","38")->first();
+                        $sumaItems52 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","39")->first();
+                        $sumaItems53 = DB::table("item_boucher_pago","ibp")
+                        ->selectRaw("sum(ibp.valor) as suma")
+                        ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                        ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                        ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","40")->first();
+                        
+
+
+                        $dependiente = DB::table("beneficiotributario","bt")
+                        ->select("nf.numIdentificacion", "p.nombre as paren", "nf.nombre")
+                        ->join("nucleofamiliar as nf", "nf.idNucleoFamiliar","=","bt.fkNucleoFamiliar")
+                        ->join("parentesco as p","p.idParentesco","=","nf.fkParentesco")
+                        ->where("bt.fkEmpleado", "=", $empleado->idempleado)
+                        ->where("bt.fechaVigencia", ">", date("Y-m-d", strtotime($fechaPeriodoCer)))
+                        ->first();
+
+                    ?>
+                        <div class="page">
+                            <img src="data:image/png;base64,<?php echo $base64 ?>" style="position: absolute;"/>
+                            <div style="position: absolute; font-family: 'ArialNarrow', sans-serif;   font-size: 13.3px; left: 218px; top: 43px; width: 400px; text-align: center; line-height: 11px; color:#1d1d1b; letter-spacing: -0.04px;">Certificado de Ingresos y Retenciones por Rentas de Trabajo y de Pensiones<br>Año gravable <?php echo $formulario->anio ?></div>
+                            
+                            
+                            <div style="position: absolute; font-size: 8px; color: #2b2d48; left: 95px; top: 93px; letter-spacing: 0.03px;">Antes de diligenciar este formulario lea cuidadosamente las instrucciones</div>
+
+                            <div style="position: absolute; font-size: 9px; color: #000; left: 434px; top: 85px;letter-spacing: 0.07px;">4. Número de formulario</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 51px; top: 115px;letter-spacing: 0.00px;">5. Número de Identificación Tributaria (NIT)</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 247px; top: 115px;letter-spacing: 0.00px;">6. DV.</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 274.5px; top: 115px;letter-spacing: -0.01px;">7. Primer apellido</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 393px; top: 115px;letter-spacing: -0.01px;">8. Segundo apellido</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 504px; top: 115px;letter-spacing: -0.01px;">9. Primer nombre</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 639px; top: 115px;letter-spacing: -0.01px;">10. Otros nombres</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 51px; top: 149px;letter-spacing: -0.01px;">11. Razón social</div>
+
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 53px; top: 182.5px;letter-spacing: -0.02px; line-height: 7.2px;">24. Tipo de<br>documento</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 109px; top: 180px;letter-spacing: -0.00px;">25. Número de Identificación</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 312.2px; top: 180px;letter-spacing: -0.00px;">Apellidos y nombres</div>
+
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 129px; top: 211px;letter-spacing: -0.00px;">Período de la Certificación</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 346px; top: 211px;letter-spacing: 0.02px;">32. Fecha de expedición</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 460px; top: 211px;letter-spacing: -0.2px;">33. Lugar donde se practicó la retención</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 697px; top: 213px;letter-spacing: -0.02px; line-height: 7.2px;">34. Cód.<br>Dpto.</div>
+                            <div style="position: absolute; font-size: 8px; color: #000; left: 734px; top: 213px;letter-spacing: -0.4px; line-height: 7.2px;">35. Cód. Ciudad/<br>Municipio</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 8px; color: #000; left: 34px; top: 229px;letter-spacing: 0.00px;">30. DE:</div>
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 8px; color: #000; left: 186px; top: 229px;letter-spacing: 0.00px;">31. A:</div>
+                            
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 34px; top: 245px;letter-spacing: 0.078px;">36. Número de agencias, sucursales, filiales o subsidiarias de la empresa retenedora cuyos montos de retención se consolidan</div>
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 282px; top: 260px;letter-spacing: 0.07px;">Concepto de los Ingresos</div>
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 703px; top: 260px;letter-spacing: -0.5px;">Valor</div>
+
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 277px;letter-spacing: 0.1px;">Pagos por salarios o emolumentos eclesiásticos</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 277px;letter-spacing: 0.1px;">37</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 293px;letter-spacing: 0.1px;">Pagos por honorarios</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 293px;letter-spacing: 0.1px;">38</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 309px;letter-spacing: 0.1px;">Pagos por servicios</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 309px;letter-spacing: 0.1px;">39</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 325px;letter-spacing: 0.1px;">Pagos por comisiones</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 325px;letter-spacing: 0.1px;">40</div>
+                            
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 341px;letter-spacing: 0.1px;">Pagos por prestaciones sociales</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 341px;letter-spacing: 0.1px;">41</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 357px;letter-spacing: 0.1px;">Pagos por viáticos</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 357px;letter-spacing: 0.1px;">42</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 373px;letter-spacing: 0.1px;">Pagos por gastos de representación</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 373px;letter-spacing: 0.1px;">43</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 389px;letter-spacing: 0.1px;">Pagos por compensaciones por el trabajo asociado cooperativo</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 389px;letter-spacing: 0.1px;">44</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 405px;letter-spacing: 0.1px;">Otros pagos</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 405px;letter-spacing: 0.1px;">45</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 421px;letter-spacing: 0.1px;">Cesantías e intereses de cesantías efectivamente pagadas, consignadas o reconocidas en el periodo</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 421px;letter-spacing: 0.1px;">46</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 437px;letter-spacing: 0.1px;">Pensiones de jubilación, vejez o invalidez</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 437px;letter-spacing: 0.1px;">47</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 455px;letter-spacing: 0.1px;"><b>Total de ingresos brutos</b> (Sume 37 a 47)</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 455px;letter-spacing: 0.1px;"><b>48</b></div>
+
+
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 284px; top: 470px;letter-spacing: 0.09px;">Concepto de los aportes</div>
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 704px; top: 470px;letter-spacing: -0.5px;">Valor</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 487px;letter-spacing: 0.1px;">Aportes obligatorios por salud</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 486px;letter-spacing: 0.1px;">49</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 503px;letter-spacing: 0.1px;">Aportes obligatorios a fondos de pensiones y solidaridad pensional y Aportes voluntarios al - RAIS</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 502px;letter-spacing: 0.1px;">50</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 519px;letter-spacing: 0.1px;">Aportes voluntarios a fondos de pensiones</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 518px;letter-spacing: 0.1px;">51</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 535px;letter-spacing: 0.1px;">Aportes a cuentas AFC.</div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 534px;letter-spacing: 0.1px;">52</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #FFF; left: 35px; top: 550px;letter-spacing: 0.08px;">Valor de la retención en la fuente por rentas de trabajo y pensiones</div>
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 630px; top: 550px;letter-spacing: 0.0px;">53</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 566px;letter-spacing: 0.1px;">Nombre del pagador o agente retenedor</div>
+                            
+
+
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 348px; top: 599px;letter-spacing: 0.06px;">Datos a cargo del trabajador o pensionado</div>
+
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 183px; top: 616px;letter-spacing: 0.1px;">Concepto de otros ingresos</div>
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 520px; top: 616px;letter-spacing: 0.0px;">Valor recibido</div>
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 683px; top: 616px;letter-spacing: 0.0px;">Valor retenido</div>
+
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 633px;letter-spacing: 0.1px;">Arrendamientos</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 474px; top: 633px;letter-spacing: 0.1px;">54</div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 633px;letter-spacing: 0.1px;">61</div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 649px;letter-spacing: 0.1px;">Honorarios, comisiones y servicios</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 474px; top: 649px;letter-spacing: 0.1px;">55</div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 649px;letter-spacing: 0.1px;">62</div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 665px;letter-spacing: 0.1px;">Intereses y rendimientos financieros</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 474px; top: 665px;letter-spacing: 0.1px;">56</div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 665px;letter-spacing: 0.1px;">63</div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 681px;letter-spacing: 0.1px;">Enajenación de activos fijos</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 474px; top: 681px;letter-spacing: 0.1px;">57</div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 681px;letter-spacing: 0.1px;">64</div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 697px;letter-spacing: 0.1px;">Loterías, rifas, apuestas y similares</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 474px; top: 697px;letter-spacing: 0.1px;">58</div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 697px;letter-spacing: 0.1px;">65</div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 713px;letter-spacing: 0.1px;">Otros</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 474px; top: 713px;letter-spacing: 0.1px;">59</div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 713px;letter-spacing: 0.1px;">66</div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 729px;letter-spacing: 0.1px;"><b>Totales: (Valor recibido:</b> Sume 54 a 59), (<b>Valor retenido:</b> Sume 61 a 66)</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 474px; top: 729px;letter-spacing: 0.1px;"><b>60<b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 729px;letter-spacing: 0.1px;"><b>67</b></div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 35px; top: 745px;letter-spacing: 0.1px;"><b>Total retenciones año gravable <?php echo $formulario->anio ?></b> (Sume 53 + 67)</div>   
+                            
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 630px; top: 745px;letter-spacing: 0.1px;"><b>68</b></div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 30px; top: 760px;letter-spacing: 0.1px;"><b>Item</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 253px; top: 760px;letter-spacing: 0.1px;"><b>69. Identificación de los bienes y derechos poseídos</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 670px; top: 760px;letter-spacing: 0.1px;"><b>70. Valor Patrimonial</b></div>  
+                            
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 38px; top: 776px;letter-spacing: 0.1px;"><b>1</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 38px; top: 792px;letter-spacing: 0.1px;"><b>2</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 38px; top: 808px;letter-spacing: 0.1px;"><b>3</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 38px; top: 824px;letter-spacing: 0.1px;"><b>4</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 38px; top: 840px;letter-spacing: 0.1px;"><b>5</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 38px; top: 856px;letter-spacing: 0.1px;"><b>6</b></div>  
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 38px; top: 872px;letter-spacing: 0.1px;"><b>7</b></div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #FFF; left: 37px; top: 887px;letter-spacing: 0.1px;">Deudas vigentes a 31 de Diciembre de <?php echo $formulario->anio ?></div>
+                            <div style="position: absolute; font-family: sans-serif; font-size: 9px; color: #000; left: 626px; top: 888px;letter-spacing: 0.1px;">71</div>  
+
+                            <div style="position: absolute; font-family: sans-serif; font-weight:bold; font-size: 9px; color: #000; left: 170px; top: 904px;letter-spacing: 0.1px;">Identificación de la persona dependiente de acuerdo al parágrafo 2 del artículo 387 del Estatuto Tributario</div>
+                            
+                            <div style="position: absolute; font-family: sans-serif; font-size: 10px; color: #000; left: 33px; top: 918px;letter-spacing: -0.03px;">72. C.C. o NIT</div>   
+                            <div style="position: absolute; font-family: sans-serif; font-size: 10px; color: #000; left: 196px; top: 918px;letter-spacing: -0.3px;">73. Apellidos y Nombres</div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 10px; color: #000; left: 688px; top: 918px;letter-spacing: -0.3px;">74. Parentesco</div>    
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7.6px; color: #000; left: 37px; top: 953px;letter-spacing: -0.31px;">Certifico que durante el año gravable de <?php echo $formulario->anio ?>:</div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 592px; top: 951px;letter-spacing: -0.01px;">Firma del Trabajador o Pensionado</div>    
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7px; color: #000; left: 38px; top: 965px;letter-spacing: -0.3px;"><?php echo $formulario->punto1 ?></div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7px; color: #000; left: 38px; top: 973px;letter-spacing: -0.3px;"><?php echo $formulario->punto2 ?></div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7px; color: #000; left: 38px; top: 981px;letter-spacing: -0.3px;"><?php echo $formulario->punto3 ?></div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7px; color: #000; left: 38px; top: 989px;letter-spacing: -0.3px;"><?php echo $formulario->punto4 ?></div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7px; color: #000; left: 38px; top: 997px;letter-spacing: -0.3px;"><?php echo $formulario->punto5 ?></div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7px; color: #000; left: 38px; top: 1005px;letter-spacing: -0.3px;"><?php echo $formulario->punto6 ?></div>    
+                            <div style="position: absolute; font-family: sans-serif; font-size: 7px; color: #000; left: 38px; top: 1015px;letter-spacing: -0.3px;">Por lo tanto, manifiesto que no estoy obligado a presentar declaración de renta y complementario por el año gravable <?php echo $formulario->anio ?>.</div>    
+
+                            <div style="position: absolute; font-family: sans-serif; font-size: 8px; color: #000; left: 45px; top: 1031px;letter-spacing: 0.03px;"><b>NOTA:</b> este certificado sustituye para todos los efectos legales la declaración de Renta y Complementario para el trabajador o pensionado que lo firme. Para aquellos trabajadores independientes inscritos<br>en el Régimen Simple de Tributación la declaración de renta y complementario es reemplazada por la declaración anual consolidada del Régimen Simple de Tributación (SIMPLE).</div>    
+                            
+                            
+
+                            
+
+                            <div class="campo_texto" style="position: absolute; left: 60px; top: 127px;  width: 188px; height: 15px;"><?php echo $empresa->documento; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 255px; top: 127px;  width: 10px; height: 15px;"><?php echo $empresa->digitoVerificacion; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 60px; top: 160px;  width: 700px; height: 15px;"><?php echo $empresa->razonSocial; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 55px; top: 198px;  width: 30px; height: 15px; font-size: 10px;"><?php echo $datosPersonales->sigla220; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 123px; top: 195px;  width: 180px; height: 15px;"><?php echo $datosPersonales->numeroIdentificacion; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 320px; top: 195px;  width: 100px; height: 15px;"><?php echo $datosPersonales->primerApellido; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 435px; top: 195px;  width: 110px; height: 15px;"><?php echo $datosPersonales->segundoApellido; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 555px; top: 195px;  width: 110px; height: 15px;"><?php echo $datosPersonales->primerNombre; ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 675px; top: 195px;  width: 110px; height: 15px;"><?php echo $datosPersonales->segundoNombre; ?></div>
+
+                            <div class="campo_texto" style="position: absolute; left: 85px; top: 226px;  width: 30px; height: 15px;  font-size: 11px;"><?php echo date("Y", strtotime($fechaPeriodoCer)); ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 115px; top: 226px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo date("m", strtotime($fechaPeriodoCer)); ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 135px; top: 226px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo date("d", strtotime($fechaPeriodoCer)); ?></div>
+                            
+                            <div class="campo_texto" style="position: absolute; left: 225px; top: 226px;  width: 30px; height: 15px;  font-size: 11px;"><?php echo date("Y", strtotime($fechaPeriodoCer)); ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 255px; top: 226px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo date("12", strtotime($fechaPeriodoCer)); ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 275px; top: 226px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo date("30", strtotime($fechaPeriodoCer)); ?></div>
+
+                            <div class="campo_texto" style="position: absolute; left: 355px; top: 226px;  width: 30px; height: 15px;  font-size: 11px;"><?php echo date("Y", strtotime($req->fechaExp)); ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 385px; top: 226px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo date("m", strtotime($req->fechaExp)); ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 405px; top: 226px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo date("d", strtotime($req->fechaExp)); ?></div>
+                            
+                            <div class="campo_texto" style="position: absolute; left: 460px; top: 228px;  width: 200px; height: 15px;  font-size: 11px;"><?php echo $empresa->ciudadUb;  ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 700px; top: 228px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo substr($empresa->idubicacion, 2, 2);  ?></div>
+                            <div class="campo_texto" style="position: absolute; left: 750px; top: 228px;  width: 20px; height: 15px;  font-size: 11px;"><?php echo substr($empresa->idubicacion, 4, 3);  ?></div>
+
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 274px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems37->suma,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 290px;  width: 140px; height: 15px;  font-size: 11px;">0</div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 306px;  width: 140px; height: 15px;  font-size: 11px;">0</div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 323px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems40->suma,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 339px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems41->suma,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 355px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems42->suma,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 371px;  width: 140px; height: 15px;  font-size: 11px;">0</div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 387px;  width: 140px; height: 15px;  font-size: 11px;">0</div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 403px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems45->suma,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 419px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems46->suma,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 435px;  width: 140px; height: 15px;  font-size: 11px;">0</div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 451px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems37->suma + $sumaItems40->suma +  $sumaItems41->suma + $sumaItems42->suma + $sumaItems45->suma + $sumaItems46->suma,0, ",", "."); ?></div>
+
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 483px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems49->suma*-1,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 501px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems50->suma*-1,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 517px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems51->suma*-1,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 533px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems52->suma*-1,0, ",", ".");  ?></div>
+                            <div class="campo_texto" style="text-align:right; position: absolute; left: 645px; top: 550px;  width: 140px; height: 15px;  font-size: 11px;"><?php echo number_format($sumaItems53->suma*-1,0, ",", ".");  ?></div>
+
+                            <div class="campo_texto" style="position: absolute; left: 35px; top: 580px;  width: 740px; height: 15px;  font-size: 11px;"><?php echo $req->agenteRetenedor;  ?></div>
+
+                            <?php
+                                if(isset($dependiente)){
+                                    ?>
+                                <div class="campo_texto" style="position: absolute; left: 40px; top: 933px;  width: 150px; height: 15px;  font-size: 11px;"><?php echo $dependiente->numIdentificacion;  ?></div>
+                                <div class="campo_texto" style="position: absolute; left: 200px; top: 933px;  width: 470px; height: 15px;  font-size: 11px;"><?php echo $dependiente->nombre;  ?></div>
+                                <div class="campo_texto" style="position: absolute; left: 690px; top: 933px;  width: 100px; height: 15px;  font-size: 11px;"><?php echo $dependiente->paren;  ?></div>
+                                    <?php
+                                }
+                            ?>
+                        </div>
+                        <?php 
+                            if($row < (sizeof($empleados) - 1)){
+                        ?>
+                            <div class="page_break"></div>
+                        <?php
+                        }
+                        ?>
+                        
+
+                        <?php 
+                        
+                        }
+                        ?>
+                    </body> 
+                </html>
+
+            <?php
+            $html = ob_get_clean();
+            //echo $html;
+        
+        
+            $dompdf->loadHtml($html ,'UTF-8');
+        
+            // (Optional) Setup the paper size and orientation
+            $dompdf->setPaper('letter', 'portrait');
+            // Render the HTML as PDF
+            $dompdf->render();
+
+            // Output the generated PDF to Browser
+            $dompdf->stream("Formulario 220.pdf", array('compress' => 1, 'Attachment' => 0));
+
+        }
+        else{
+
+            $arrDatos = array();
+            $empleados = DB::table("empleado","e")
+            ->where("fkEmpresa","=",$req->empresa)
+            ->where("fkEstado","=","1");
+            if(isset($req->infoNomina)){
+                $empleados = $empleados->where("fkNomina","=",$req->infoNomina);    
+            }
+            if(isset($req->idEmpleado)){
+                $empleados = $empleados->where("idempleado","=", $req->idEmpleado);
+            }
+            $empleados = $empleados->get();     
+
+
+            $arrFila = array(
+                "Campo 4",
+                "Campo 5",
+                "Campo 6",
+                "Campo 7",
+                "Campo 8",
+                "Campo 9",
+                "Campo 10",
+                "Campo 11",
+                "Campo 24",
+                "Campo 25",
+                "Campo 26",
+                "Campo 27",
+                "Campo 28",
+                "Campo 29",
+                "Campo 30",
+                "Campo 31",
+                "Campo 32",
+                "Campo 33",
+                "Campo 34",
+                "Campo 35",
+                "Campo 36",
+                "Campo 37",
+                "Campo 38",
+                "Campo 39",
+                "Campo 40",
+                "Campo 41",
+                "Campo 42",
+                "Campo 43",
+                "Campo 44",
+                "Campo 45",
+                "Campo 46",
+                "Campo 47",
+                "Campo 48",
+                "Campo 49",
+                "Campo 50",
+                "Campo 51",
+                "Campo 52",
+                "Campo 53",
+                "Agente Retenedor",
+                "Campo 54",
+                "Campo 55",
+                "Campo 56",
+                "Campo 57",
+                "Campo 58",
+                "Campo 59",
+                "Campo 60",
+                "Campo 61",
+                "Campo 62",
+                "Campo 63",
+                "Campo 64",
+                "Campo 65",
+                "Campo 66",
+                "Campo 67",
+                "Campo 68",
+                "Campo 69",
+                "Campo 70",
+                "Campo 71",
+                "Campo 72",
+                "Campo 73",
+                "Campo 74"
+            );
+
+            array_push($arrDatos, $arrFila);
+            
+            foreach($empleados as $row => $empleado){
+
+
+                $fechaPeriodoCer = $req->anio."-01-01";
+                if(strtotime($fechaPeriodoCer) < strtotime($empleado->fechaIngreso)){
+                    $fechaPeriodoCer = $empleado->fechaIngreso;
+                }
+                $datosPersonales = DB::table("datospersonales", "dp")
+                ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
+                ->where("dp.idDatosPersonales","=", $empleado->fkDatosPersonales)->first();
+                $empresa = DB::table("empresa","e")
+                ->select("e.*","u.nombre as ciudadUb","u.idubicacion" )
+                ->join("ubicacion as u", "u.idubicacion", "=","e.fkUbicacion")
+                ->where("idempresa","=", $empleado->fkEmpresa)->first();
+                
+
+
+
+                
+
+
+
+                $sumaItems37 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","30")->first();
+                $sumaItems40 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","31")->first();
+                $sumaItems41 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","32")->first();
+                $sumaItems42 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","33")->first();
+                $sumaItems45 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","34")->first();
+                $sumaItems46 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","35")->first();
+                $sumaItems49 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","36")->first();
+                $sumaItems50 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","37")->first();
+                $sumaItems51 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","38")->first();
+                $sumaItems52 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","39")->first();
+                $sumaItems53 = DB::table("item_boucher_pago","ibp")
+                ->selectRaw("sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
+                ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
+                ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","40")->first();
+                
+                $dependiente = DB::table("beneficiotributario","bt")
+                ->select("nf.numIdentificacion", "p.nombre as paren", "nf.nombre")
+                ->join("nucleofamiliar as nf", "nf.idNucleoFamiliar","=","bt.fkNucleoFamiliar")
+                ->join("parentesco as p","p.idParentesco","=","nf.fkParentesco")
+                ->where("bt.fkEmpleado", "=", $empleado->idempleado)
+                ->where("bt.fechaVigencia", ">", date("Y-m-d", strtotime($fechaPeriodoCer)))
+                ->first();
+
+
+                $arrFila = array(
+                    "",
+                    $empresa->documento,
+                    $empresa->digitoVerificacion,
+                    "",
+                    "",
+                    "",
+                    "",//10
+                    $empresa->razonSocial,
+                    $datosPersonales->sigla220,
+                    $datosPersonales->numeroIdentificacion,
+                    $datosPersonales->primerApellido,
+                    $datosPersonales->segundoApellido,
+                    $datosPersonales->primerNombre,
+                    $datosPersonales->segundoNombre,
+                    date("Y-m-d", strtotime($fechaPeriodoCer)),
+                    date("Y-12-30", strtotime($fechaPeriodoCer)),
+                    date("Y-m-d", strtotime($req->fechaExp)),
+                    $empresa->ciudadUb,
+                    substr($empresa->idubicacion, 2, 2),
+                    substr($empresa->idubicacion, 4, 3),
+                    "",
+                    number_format($sumaItems37->suma,0, ",", "."),
+                    0,
+                    0,
+                    number_format($sumaItems40->suma,0, ",", "."),
+                    number_format($sumaItems41->suma,0, ",", "."),
+                    number_format($sumaItems42->suma,0, ",", "."),
+                    0,
+                    0,
+                    number_format($sumaItems45->suma,0, ",", "."),
+                    number_format($sumaItems46->suma,0, ",", "."),
+                    0,
+                    number_format($sumaItems37->suma + $sumaItems40->suma +  $sumaItems41->suma + $sumaItems42->suma + $sumaItems45->suma + $sumaItems46->suma,0, ",", "."),
+                    number_format($sumaItems49->suma*-1,0, ",", "."),
+                    number_format($sumaItems50->suma*-1,0, ",", "."),
+                    number_format($sumaItems51->suma*-1,0, ",", "."),
+                    number_format($sumaItems52->suma*-1,0, ",", "."),
+                    number_format($sumaItems53->suma*-1,0, ",", "."),
+                    $req->agenteRetenedor,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    (isset($dependiente) ? $dependiente->numIdentificacion : ""),
+                    (isset($dependiente) ? $dependiente->nombre : ""),
+                    (isset($dependiente) ? $dependiente->paren : "")
+    
+                );
+
+                array_push($arrDatos, $arrFila);
+            }
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Description: File Transfer');
+            header('Content-Disposition: attachment; filename=Formulario220.csv');
+    
+            $csv = Writer::createFromFileObject(new SplTempFileObject());
+            $csv->setDelimiter(';');
+            $csv->insertAll($arrDatos);
+            $csv->setOutputBOM(Reader::BOM_UTF8);
+            $csv->output('Formulario220.csv');
+        }
+
+
+
+
+    }
+
+
+    public function indexNovedades(){
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        
+
+        return view('/reportes.novedades',[
+            "empresas" => $empresas,
+        ]);
+    }
+    public function generarNovedades(Request $req){
+        $novedades = DB::table("novedad","n")
+        ->select("*","c.nombre as nombreConcepto","nom.nombre as nombreNomina", 
+                "ti.nombre as tipoidentificacion", "ta.nombre as tipoAfiliacion", 
+                "t.razonSocial as nombreTercero", "l.fechaInicial as licenciaFechaInicial"
+                , "l.fechaFinal as licenciaFechaFinal", "l.numDias as licenciaNumDias", 
+                "h.cantidadHoras as horasCantidadHoras", "mr.nombre as motivoRetiro", 
+                "v.fechaInicio as vacacionesFechaInicio", "v.fechaFin as vacacionesFechaFin", "emp.razonSocial as razonSocialEmp")
+        ->join("ausencia as a","a.idAusencia","=", "n.fkAusencia","left")
+        ->join("incapacidad as i","i.idIncapacidad","=", "n.fkIncapacidad","left")
+        ->join("tipoafilicacion as ta","ta.idTipoAfiliacion","=", "i.fkTipoAfilicacion","left")
+        ->join("tercero as t","t.idTercero","=", "i.fkTercero","left")
+        ->join("licencia as l","l.idLicencia","=", "n.fkLicencia","left")
+        ->join("horas_extra as h","h.idHoraExtra","=", "n.fkHorasExtra","left")
+        ->join("retiro as r","r.idRetiro","=", "n.fkRetiro","left")
+        ->join("motivo_retiro as mr","mr.idMotivoRetiro","=", "r.fkMotivoRetiro","left")        
+        ->join("vacaciones as v","v.idVacaciones","=", "n.fkVacaciones","left")
+        ->join("otra_novedad as o","o.idOtraNovedad","=", "n.fkOtros","left")
+        ->join("concepto as c","c.idconcepto","=", "n.fkConcepto","left")
+        ->join("nomina as nom","nom.idNomina","=", "n.fkNomina","left")
+        ->join("empleado as e","e.idempleado","=", "n.fkEmpleado","left")
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales", "left")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
+        ->join("empresa as emp","emp.idEmpresa","=", "nom.fkEmpresa","left")
+        ->whereBetween("n.fechaRegistro",[$req->fechaIni, $req->fechaFin])
+        ->where("n.fkEstado","=","8")
+        ->where("nom.fkEmpresa", "=",$req->empresa)->get();
+
+        
+        $arrFila1=  [
+            "empresa",
+            "nomina",
+            "tipoNovedad",
+            "tipoReporte",
+            "fechaRegistro",
+            "concepto",
+            "tipoDocumento",
+            "documento",
+            "empleado",
+            "fechaAusenciaInicial",
+            "fechaAusenciaFinal",
+            "diasIncapacidad",
+            "fechaIncapacidadInicial",
+            "fechaIncapacidadFinal",
+            "fechaRealIncapacidadInicial",
+            "fechaRealIncapacidadFinal",
+            "pagoTotalIncapacidad",
+            "idCodigoDiagnostico",
+            "numeroIncapacidad",
+            "tipoAfiliacion",
+            "naturaleza",
+            "tipoIncapacidad",
+            "diasLicencia",
+            "fechaInicialLicencia",
+            "fechaFinalLicencia",
+            "HoraExtraInicial",
+            "HoraExtraFinal",
+            "cantidaHoras",
+            "fechaRetiro",
+            "fechaRetiroReal",
+            "motivoRetiro",
+            "indemnizacion",
+            "fechaInicialVacaciones",
+            "fechaFinalVacaciones",
+            "diasVacacionesCompletos",
+            "diasVacacionesHabiles",
+            "pagoAnticipadoVacaciones",
+            "valorOtros",
+            "SumaResta"
+        ];
+
+        $arrDatos = array();
+        array_push($arrDatos, $arrFila1);
+        foreach($novedades as $novedad){
+
+            $arrFila=  [
+                $novedad->razonSocialEmp,
+                $novedad->nombreNomina,
+                $novedad->fkTipoNovedad,
+                $novedad->fkTipoReporte,
+                $novedad->fechaRegistro,
+                $novedad->nombreConcepto,
+                $novedad->tipoidentificacion,
+                $novedad->numeroIdentificacion,
+                $novedad->primerApellido." ".$novedad->segundoApellido." ".$novedad->primerNombre." ".$novedad->segundoNombre,
+                $novedad->fechaInicio,
+                $novedad->fechaFin,
+                $novedad->numDias,
+                $novedad->fechaInicial,
+                $novedad->fechaFinal,
+                $novedad->fechaRealI,
+                $novedad->fechaRealF,
+                ($novedad->pagoTotal == "1" ? "SI" : "NO"),
+                $novedad->fkCodDiagnostico,
+                $novedad->numIncapacidad,
+                $novedad->tipoAfiliacion,
+                $novedad->naturaleza,
+                $novedad->tipoIncapacidad,
+                $novedad->licenciaNumDias,
+                $novedad->licenciaFechaInicial,
+                $novedad->licenciaFechaFinal,
+                $novedad->fechaHoraInicial,
+                $novedad->fechaHoraFinal,
+                $novedad->horasCantidadHoras,
+                $novedad->fecha,
+                $novedad->fechaReal,
+                $novedad->motivoRetiro,
+                ($novedad->indemnizacion == "1" ? "SI" : "NO"), 
+                $novedad->vacacionesFechaInicio,
+                $novedad->vacacionesFechaFin,
+                $novedad->diasCompensar,
+                $novedad->diasCompletos,
+                ($novedad->pagoAnticipado == "1" ? "SI" : "NO"),
+                $novedad->valor,
+                ($novedad->sumaResta == "1" ? "Suma" : "Resta")
+            ];
+            array_push($arrDatos, $arrFila);
+        }
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename=ReporteNovedades.csv');
+
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->setDelimiter(';');
+        $csv->insertAll($arrDatos);
+        $csv->setOutputBOM(Reader::BOM_UTF8);
+        $csv->output('ReporteNovedades.csv');
+
+
+
+
+   
     }
 }

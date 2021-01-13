@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\CargosModel;
 use App\Http\Requests\CargosRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use League\Csv\Reader;
 
 class CargosController extends Controller
 {
@@ -16,6 +17,32 @@ class CargosController extends Controller
             'cargos' => $cargos
         ]);
     }
+
+    public function subirPlanoIndex(){
+        
+        return view('/cargos/subirPlanocargos');
+    }
+
+    public function subirArchivo(Request $req){
+        $csvDatosPasados = $req->file("archivoCSV");
+        $reader = Reader::createFromFileObject($csvDatosPasados->openFile());
+        $reader->setOutputBOM(Reader::BOM_UTF8);
+        $reader->setDelimiter(';');
+        $csvDatosPasados = $csvDatosPasados->store("public/csvFiles");
+        foreach ($reader as $row){
+            foreach($row as $key =>$col){
+                $row[$key] = mb_convert_encoding($col,"UTF-8");
+            }
+            if($row[0] != ""){
+                $cargo = new CargosModel();
+                $cargo->nombreCargo = $row[0];
+                $save = $cargo->save();
+            }
+            
+        }
+        return redirect('/cargos');
+    }
+    
 
     public function getFormAdd() {
         return view('/cargos/addCargo');

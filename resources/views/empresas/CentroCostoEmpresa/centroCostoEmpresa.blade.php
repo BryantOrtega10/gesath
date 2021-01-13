@@ -11,23 +11,25 @@
     <table class="table table-hover table-striped" id = "centros_costos">
         <thead>
             <tr>
+                <th scope="col">ID</th>
                 <th scope="col">Nombre</th>
-                <th scope="col">ID Centro</th>
+                <th scope="col"># Centro interno</th>
                 <th scope="col"></th>
             </tr>
         </thead>
         <tbody>
             @foreach ($centrosCosto as $cen)
             <tr>
+                <th scope="row">{{ $cen->idcentroCosto }}</th>
                 <th scope="row">{{ $cen->nombre }}</th>
                 <th scope="row">{{ $cen->id_uni_centro }}</th>
                 <td>
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
-                            <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Centro</a>
-                            <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Centro</a>
-                            <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Centro</a>
+                            <a dataid ="{{ $cen->idcentroCosto }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Centro</a>
+                            <a dataid ="{{ $cen->idcentroCosto }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Centro</a>
+                            <a dataid ="{{ $cen->idcentroCosto }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Centro</a>
                         </div>
                     </div>
                 </td>

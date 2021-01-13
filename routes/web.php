@@ -157,6 +157,8 @@ Route::group([
 	Route::post('cancelarSolicitud','NominaController@cancelarSolicitud');
 	Route::get('comoCalculo/{id}','NominaController@comoCalculo');
 	Route::get('verDetalleRetencion/{id}/{tipo}','NominaController@verDetalleRetencion');
+	Route::get('verDetalleVacacion/{id}','NominaController@verDetalleVacacion');
+	
 	Route::get('nominasLiquidadas','NominaController@nominasLiquidadas');
 	Route::get('documentoRetencion/{id}','NominaController@documentoRetencion');
 	Route::get('documentoSS/{id}','NominaController@documentoSS');
@@ -171,8 +173,9 @@ Route::group([
 	Route::get('verSolicitudLiquidacionSinEdit/{id}','NominaController@verSolicitudLiquidacionSinEdit');	
 	Route::get('centroCostoPeriodo','NominaController@centroCostoPeriodo');
 
-
-
+	Route::get('cambiarConceptosFijos','NominaController@cambiarConceptosFijosIndex');
+	Route::post('subirCambioConceptoFijo','NominaController@subirCambioConceptoFijo');
+	
 
 	Route::group(['prefix' => 'distri'], function(){
 		Route::get('add','NominaController@centroCostoPeriodoFormAdd');
@@ -185,6 +188,8 @@ Route::group([
 
 		Route::get('copiarDistri/{idDistri}','NominaController@copiarDistri');
 		Route::post('copiar','NominaController@copyDistriBd');
+		Route::post('subirPlano','NominaController@subirPlano');
+		
 		
 	});	
 });
@@ -206,9 +211,30 @@ Route::group([
 
 	Route::get('indexReporteVacaciones','ReportesNominaController@indexReporteVacaciones');
 	Route::post('reporteVacaciones','ReportesNominaController@reporteVacaciones');
+
+
+	Route::get('formulario220','ReportesNominaController@indexFormulario220');
+	Route::post('generarFormulario220','ReportesNominaController@formulario220Dian');
+
+
+	Route::get('novedades','ReportesNominaController@indexNovedades');
+	Route::post('generarNovedades','ReportesNominaController@generarNovedades');
+	
+	
 });
 
-
+Route::group([
+	'prefix' => 'formulario220',
+	'middleware' => ['auth', 'guest:2,3'],
+], function(){
+	Route::get('/','Formulario220Controller@index');
+	Route::get('/getForm/add','Formulario220Controller@getFormAdd');
+	Route::get('/getForm/edit/{id}','Formulario220Controller@getFormEdit');
+	
+	Route::post('crear','Formulario220Controller@crear');
+	Route::post('modificar','Formulario220Controller@modificar');
+	
+});
 
 Route::group([
 	'prefix' => 'datosPasados',
@@ -319,13 +345,28 @@ Route::group([
 Route::group(['prefix' => 'catalogo-contable', 'middleware' => ['auth', 'guest:2,3']], function() {
 	Route::get('/', 'CatalogoContableController@index');
 	Route::get("/getForm/add", 'CatalogoContableController@getFormAdd');
+	Route::get("/getForm/edit/{id}", 'CatalogoContableController@getFormEdit');
 	Route::post("/crear", 'CatalogoContableController@crear');
+	Route::post("/modificar", 'CatalogoContableController@modificar');
 	
 	Route::get('/reporteNomina', 'CatalogoContableController@reporteNominaIndex');
 	Route::post('/generarReporteNomina', 'CatalogoContableController@generarReporteNomina');
 	Route::get('/getCentrosCosto/{idEmpresa}', 'CatalogoContableController@getCentrosCosto');
+	Route::get('/getCuentas/{idEmpresa?}/{idCentroCosto?}', 'CatalogoContableController@getCuentas');
+	
+
 	Route::get('/getGrupos/{num}', 'CatalogoContableController@getGrupos');
 
+	Route::get('/subirPlano', 'CatalogoContableController@indexPlano');
+	Route::post('/subirArchivoPlano', 'CatalogoContableController@subirArchivoPlano');
+	Route::get('/verCarga/{id}', 'CatalogoContableController@verCarga');
+	Route::get('/subirDatosCuenta/{id}', 'CatalogoContableController@subirDatosCuenta');
+	Route::get('/cancelarCarga/{id}', 'CatalogoContableController@cancelarCarga');
+	Route::get('/aprobarCarga/{id}', 'CatalogoContableController@aprobarCarga');
+	Route::post('/eliminarRegistros', 'CatalogoContableController@eliminarRegistros');
+	
+	Route::get('descargarPlano','CatalogoContableController@descargarPlano');
+	Route::post('descargarArchivoxEmpresa','CatalogoContableController@descargarArchivoxEmpresa');
 	
 });
 
@@ -397,6 +438,9 @@ Route::group([
 	Route::get('/detalleCargo/{id}', 'CargosController@detail');
 	Route::post('/editarCargo/{id}', 'CargosController@update');
 	Route::post('/eliminarCargo/{id}', 'CargosController@delete');
+	Route::get('/subirPlano', 'CargosController@subirPlanoIndex');
+	Route::post('/subirArchivo', 'CargosController@subirArchivo');
+	
 });
 
 

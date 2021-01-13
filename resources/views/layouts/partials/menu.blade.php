@@ -109,6 +109,11 @@
                         <span class="textoMenu">Cargar saldos</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/nomina/cambiarConceptosFijos/" >
+                        <span class="textoMenu">Cambiar conceptos fijos por plano</span>
+                    </a>
+                </li>
                 
             </ul>
         </li>
@@ -146,6 +151,16 @@
                 <li>
                     <a href="/reportes/indexReporteVacaciones/" >
                         <span class="textoMenu">Reporte de vacaciones</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/reportes/formulario220/" >
+                        <span class="textoMenu">Formulario 220</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/reportes/novedades/" >
+                        <span class="textoMenu">Reporte de novedades</span>
                     </a>
                 </li>
             </ul>
@@ -189,6 +204,11 @@
                 <li  class="{{ Request::is('cargos') ? 'active' : '' }}">
                     <a href="/cargos/">
                         <span class="textoMenu">Cargos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/formulario220/" >
+                        <span class="textoMenu">Admin Formulario 220</span>
                     </a>
                 </li>
             </ul>

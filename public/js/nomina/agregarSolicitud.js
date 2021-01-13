@@ -189,8 +189,9 @@ $(document).ready(function(){
             url: "/nomina/cargarEmpleadosxNomina/" + idNomina + "/" + idTipoliquidacion,
             success:function(data){
                 $("#cargando").css("display", "none");
-                $(".respNomina").html(data);
                 
+                $(".respNomina").html(data);
+                $(".separadorMiles").inputmask({ alias: "currency", removeMaskOnSubmit: true});
             },
             error: function(data){
                 console.log("error");
@@ -256,4 +257,5 @@ $(document).ready(function(){
             }
         });	
     });	
+    $(".separadorMiles").inputmask({ alias: "currency", removeMaskOnSubmit: true});
 });

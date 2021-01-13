@@ -2,31 +2,120 @@
 
 namespace App\Http\Controllers;
 
+use DateTime;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use League\Csv\Writer;
 use League\Csv\Reader;
+use Illuminate\Support\Facades\Storage;
 use SplTempFileObject;          
-
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CatalogoContableController extends Controller
 {
     public function index(Request $req){
 
-        $catalogo = DB::table("catalgocontable", "cc")
-        ->select("cc.*","tc.nombre as tipoTercero_nm","e.razonSocial as empresa_nm","c.nombre as centroCosto_nm")
-        ->join("tercero as t", "t.idTercero", "=","cc.fkTercero", "left")
+
+        $arrIntermedio = array();
+        $datoscuenta = DB::table("datoscuenta","dc")
+        ->select("dc.*","cc.fkEmpresa","cc.fkCentroCosto","cc.cuenta","c.nombre as nombreConcepto", "gc.nombre as nombreGrupo", "e.razonSocial as nombreEmpresa", "e.razonSocial as nombreEmpresa", "cen.nombre as nombreCC")
+        ->join("grupoconcepto as gc", "gc.idgrupoConcepto", "=","dc.fkGrupoConcepto", "left")
+        ->join("catalgocontable as cc", "cc.idCatalgoContable", "=","dc.fkCuenta")
         ->join("empresa as e", "e.idempresa", "=","cc.fkEmpresa", "left")
-        ->join("centrocosto as c", "c.idcentroCosto", "=","cc.fkCentroCosto", "left")
-        ->join("tipotercerocuenta as tc", "tc.idTipoTerceroCuenta", "=","cc.fkTipoTercero", "left")
-        ->paginate(15);
+        ->join("centrocosto as cen", "cen.idcentroCosto", "=","cc.fkCentroCosto", "left")
+        ->join("concepto as c", "c.idconcepto", "=","dc.fkConcepto", "left");
         
+        if(isset($req->idempresa)){
+            $datoscuenta = $datoscuenta->where("e.idempresa","=",$req->idempresa);
+        }
+        if(isset($req->idcentroCosto)){
+            $datoscuenta = $datoscuenta->where("c.idcentroCosto","=",$req->idcentroCosto);
+        }        
+        $datoscuenta = $datoscuenta->get();
+
+
+        foreach($datoscuenta as $datocuenta){
+            $id = $datocuenta->tablaConsulta."_".$datocuenta->fkGrupoConcepto."_".$datocuenta->subTipoConsulta."_".$datocuenta->fkConcepto."_".$datocuenta->fkEmpresa."_".$datocuenta->fkCentroCosto;
+            $fkTipoProvision = "";
+            $fkTipoAporteEmpleador = "";
+            
+
+            if($datocuenta->tablaConsulta=="2"){
+                $fkTipoProvision = $datocuenta->subTipoConsulta;
+            }
+            else if($datocuenta->tablaConsulta=="3"){
+                $fkTipoAporteEmpleador = $datocuenta->subTipoConsulta;
+            }
+
+            $cuentaDebito = "";
+            $cuentaCredito = "";
+            
+            if($datocuenta->tipoCuenta == "DEBITO"){
+                $cuentaDebito = $datocuenta->cuenta;
+            }
+            else if($datocuenta->tipoCuenta == "CREDITO"){
+                $cuentaCredito = $datocuenta->cuenta;
+            }
+
+
+           
+            if(!isset($arrIntermedio[$id])){
+                $arrIntermedio[$id] = [
+                    "id" => $id,
+                    "tablaConsulta" => $datocuenta->tablaConsulta,
+                    "nombreGrupo" => $datocuenta->nombreGrupo,
+                    "fkTipoProvision" => $fkTipoProvision,
+                    "fkTipoAporteEmpleador" => $fkTipoAporteEmpleador,
+                    "nombreConcepto" => $datocuenta->nombreConcepto,
+                    "cuentaDebito" => $cuentaDebito,
+                    "cuentaCredito" => $cuentaCredito,
+                    "nombreEmpresa" => $datocuenta->nombreEmpresa,
+                    "nombreCC" => $datocuenta->nombreCC,
+                    "transaccion" => $datocuenta->transaccion
+                ];
+            }
+            else{
+                if($datocuenta->tipoCuenta == "DEBITO"){
+                    $arrIntermedio[$id]["cuentaDebito"] = $cuentaDebito;
+                }
+                else if($datocuenta->tipoCuenta == "CREDITO"){
+                    $arrIntermedio[$id]["cuentaCredito"] = $cuentaCredito;
+                }
+            }
+        }
+        $filtro = $arrIntermedio;
+        if(isset($req->descripcion)){
+            $filtro = array();
+            foreach($arrIntermedio as $dato){
+                
+                if(strpos($dato["cuentaCredito"], $req->descripcion)!==false || strpos($dato["cuentaDebito"], $req->descripcion)!==false){                    
+                    array_push($filtro, $dato);
+                }
+            }
+        }
         
 
 
+        $data = $this->paginate($filtro, 15);
+        $data->withPath("catalogo-contable");
+
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $centros_costos = array();
+        if(isset($req->idempresa)){
+            $centros_costos = DB::table("centrocosto")->where("fkEmpresa","=",$req->idempresa)->orderBy("nombre")->get();
+        }
+        $arrConsulta = ["idempresa" => $req->idempresa, "idcentroCosto" => $req->idcentroCosto, "descripcion" => $req->descripcion];
         return view('/catalogoContable.index',
-            ["catalogo" => $catalogo]
+            [
+                "catalogo" => $data,
+                "req" => $req,
+                "empresas" => $empresas,
+                "centros_costos" => $centros_costos,
+                "arrConsulta" => $arrConsulta
+            ]
         );
     }
     public function getFormAdd(){
@@ -35,9 +124,13 @@ class CatalogoContableController extends Controller
         $empresas = DB::table("empresa")->get();
         $gruposConcepto  = DB::table("grupoconcepto")->get();
 
+        $cuentas = DB::table("catalgocontable")->orderBy("cuenta")->get();
+        $conceptos = DB::table("concepto")->orderBy("nombre")->get();
 
         return view('/catalogoContable.formAdd',
             [
+                "conceptos" => $conceptos,
+                "cuentas" => $cuentas,
                 "terceros" => $terceros, 
                 "empresas" => $empresas,
                 "tipoTerceroCuenta" => $tipoTerceroCuenta,
@@ -45,7 +138,96 @@ class CatalogoContableController extends Controller
             ]
         );
     }
+    public function getFormEdit($idCompuesto){
+
+        $arrCompuesto = explode('_', $idCompuesto);
+        
+        $datoscuenta = DB::table("datoscuenta","dc")
+        ->join("catalgocontable as cat", "cat.idCatalgoContable", "=","dc.fkCuenta")
+        ->where("dc.tablaConsulta","=",$arrCompuesto[0]);
+        if(isset($arrCompuesto[1]) && !empty($arrCompuesto[1])){
+            $datoscuenta = $datoscuenta->where("dc.fkGrupoConcepto","=",$arrCompuesto[1]);
+        }
+        if(isset($arrCompuesto[2]) && !empty($arrCompuesto[2])){
+            $datoscuenta = $datoscuenta->where("dc.subTipoConsulta","=",$arrCompuesto[2]);
+        }
+        if(isset($arrCompuesto[3]) && !empty($arrCompuesto[3])){
+            $datoscuenta = $datoscuenta->where("dc.fkConcepto","=",$arrCompuesto[3]);
+        }
+        if(isset($arrCompuesto[4]) && !empty($arrCompuesto[4])){
+            $datoscuenta = $datoscuenta->where("cat.fkEmpresa","=",$arrCompuesto[4]);
+        }
+        if(isset($arrCompuesto[5]) && !empty($arrCompuesto[5])){
+            $datoscuenta = $datoscuenta->where("cat.fkCentroCosto","=",$arrCompuesto[5]);
+        }
+        
+        $datoscuenta = $datoscuenta->get();
+        
+
+        $datosCuentaCred = array();
+        $datosCuentaDeb = array();
+        foreach($datoscuenta as $datocuenta){
+            if($datocuenta->tipoCuenta == "CREDITO"){
+                $datosCuentaCred = $datocuenta;
+            }
+            if($datocuenta->tipoCuenta == "DEBITO"){
+                $datosCuentaDeb = $datocuenta;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        $cuentas = DB::table("catalgocontable")
+        ->where("fkEmpresa","=",$arrCompuesto[4]);
+        if(!empty($arrCompuesto[5])){
+            $cuentas = $cuentas->where("fkCentroCosto","=",$arrCompuesto[5]);
+        }
+        
+        $cuentas = $cuentas->get();
+
+        $conceptos = DB::table("concepto")->orderBy("nombre")->get();
+
+        $terceros = DB::table("tercero")->orderBy("razonSocial")->get();
+        $tipoTerceroCuenta = DB::table("tipotercerocuenta")->orderBy("nombre")->get();
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $gruposConcepto  = DB::table("grupoconcepto")->orderBy("nombre")->get();
+        $centrosCosto = DB::table("centrocosto")
+        ->where("fkEmpresa","=",$arrCompuesto[4])
+        ->get();
+        
+        return view('/catalogoContable.formEdit',
+            [
+                "cuentas" => $cuentas,
+                "terceros" => $terceros, 
+                "empresas" => $empresas,
+                "tipoTerceroCuenta" => $tipoTerceroCuenta,
+                "gruposConcepto" => $gruposConcepto,
+                "centrosCosto" => $centrosCosto,
+                "datosCuentaCred" => $datosCuentaCred,
+                "datosCuentaDeb" => $datosCuentaDeb,
+                "conceptos" => $conceptos,
+                "empresaSelect" => $arrCompuesto[4],
+                "centroCostoSelect" => $arrCompuesto[5]
+            ]
+        );
+    }
     public function getCentrosCosto($fkEmpresa){
+
+
         $centrosCosto = DB::table("centrocosto")
         ->where("fkEmpresa","=",$fkEmpresa)
         ->get();
@@ -59,6 +241,25 @@ class CatalogoContableController extends Controller
             "html" => $html
         ]);
     }
+
+    public function getCuentas($fkEmpresa = null, $fkCentroCosto = null){
+
+
+        $cuentas = DB::table("catalgocontable")
+        ->where("fkEmpresa","=",$fkEmpresa)
+        ->where("fkCentroCosto","=",$fkCentroCosto)
+        ->get();
+
+        $html="";
+        foreach($cuentas as $cuenta){
+            $html.="<option value='".$cuenta->idCatalgoContable."'>".$cuenta->cuenta." - ".$cuenta->descripcion."</option>";
+        }
+        return response()->json([
+            "success" => true,
+            "html" => $html
+        ]);
+    }
+
     public function getGrupos($num){
         $gruposConcepto  = DB::table("grupoconcepto")->get();
         return view('/catalogoContable.gruposCuenta', [
@@ -71,68 +272,360 @@ class CatalogoContableController extends Controller
 
 
     public function crear(Request $req){
-        $messages = [
-            'required' => 'El campo :attribute es requerido.',
-            'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
-        ];
-        $validator = Validator::make($req->all(), [
-            'descripcion' => 'required',
-            'cuenta' => 'required',
-            'fkTipoTercero' => 'required',
-            'tablaConsulta' => 'required',
-            'fkEmpresa' => 'required'
-            
+        
+        $errors = array();
+        
+        if($req->cuentaCred == "nueva"){
+            if(!isset($req->cuentaCred2)){
+                array_push($errors, "Cuenta credito vacia");
+            }
+            if(!isset($req->descripcionCred)){
+                array_push($errors, "Descripción cuenta credito vacio");
+            }
+            if(!isset($req->fkTipoTerceroCred)){
+                array_push($errors, "Tipo tercero credito vacio");
+            }
+            if(!isset($req->fkTerceroCred) && $req->fkTipoTerceroCred == "8"){
+                array_push($errors, "Tercero fijo credito vacio");
+            }
+        }
+        
 
-        ],$messages);
-
-        if ($validator->fails()) {
-            return response()->json(['error'=>$validator->errors()->all()]);
+        if($req->cuentaDeb == "nueva"){
+            if(!isset($req->cuentaDeb2)){
+                array_push($errors, "Cuenta debito vacia");
+            }
+            if(!isset($req->descripcionDeb)){
+                array_push($errors, "Descripción cuenta debito vacio");
+            }
+            if(!isset($req->fkTipoTerceroDeb)){
+                array_push($errors, "Tipo tercero debito vacio");
+            }
+            if(!isset($req->fkTerceroDeb) && $req->fkTipoTerceroDeb == "8"){
+                array_push($errors, "Tercero fijo debito vacio");
+            }
         }
 
-        $arrCatalogo = [
-            "descripcion" => $req->descripcion,
-            "cuenta" => $req->cuenta,
-            "fkTipoTercero" => $req->fkTipoTercero,
-            "fkTercero" => $req->fkTercero,
-            "fkEmpresa" => $req->fkEmpresa,
-            "fkCentroCosto" => $req->fkCentroCosto,
-            "tipoComportamiento" => $req->tipoComportamiento,
-            "transaccion" => $req->transaccion
-        ];
-        $idCatalgoContable = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
+        if(!isset($req->fkEmpresa)){
+            array_push($errors, "Empresa vacia");
+        }
+        if(!isset($req->tablaConsulta[0])){
+            array_push($errors, "Tipo vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "1" && !isset($req->fkGrupoConcepto[0])){
+            array_push($errors, "Grupo de concepto vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "2" && !isset($req->subTipoProvision[0])){
+            array_push($errors, "provision vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "3" && !isset($req->subTipoAporteEmpleador[0])){
+            array_push($errors, "Aporte empleador vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "4" && !isset($req->fkConcepto[0])){
+            array_push($errors, "Concepto vacio");
+        }
+
+        if(sizeof($errors)>0){
+            return response()->json(['error'=>$errors]);
+        }
+
+
+        $idCuentaCredito = $req->cuentaCred;
+        if($req->cuentaCred == "nueva"){
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionCred,
+                "cuenta" => $req->cuentaCred2,
+                "fkTipoTercero" => $req->fkTipoTerceroCred,
+                "fkTercero" => $req->fkTerceroCred,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            $idCuentaCredito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
+        }
+
+
+        $idCuentaDebito = $req->cuentaDeb;
+        if($req->cuentaDeb == "nueva"){
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionDeb,
+                "cuenta" => $req->cuentaDeb2,
+                "fkTipoTercero" => $req->fkTipoTerceroDeb,
+                "fkTercero" => $req->fkTerceroDeb,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            $idCuentaDebito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
+        }
+        
         foreach($req->tablaConsulta as $row => $tablaConsulta){
+
             if($tablaConsulta == 1){
                 DB::table("datoscuenta")->insert([
                     "tablaConsulta" => $tablaConsulta,
-                    "fkCuenta" => $idCatalgoContable,
-                    "fkGrupoConcepto" => $req->fkGrupoConcepto[$row]
+                    "fkCuenta" => $idCuentaCredito,
+                    "fkGrupoConcepto" => $req->fkGrupoConcepto[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                DB::table("datoscuenta")->insert([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "fkGrupoConcepto" => $req->fkGrupoConcepto[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
                 ]);
             }
             else if($tablaConsulta == 2){
                 DB::table("datoscuenta")->insert([
                     "tablaConsulta" => $tablaConsulta,
-                    "fkCuenta" => $idCatalgoContable,
-                    "subTipoConsulta" => $req->subTipoProvision[$row]
+                    "fkCuenta" => $idCuentaCredito,
+                    "subTipoConsulta" => $req->subTipoProvision[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
                 ]);
+                DB::table("datoscuenta")->insert([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "subTipoConsulta" => $req->subTipoProvision[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                
                 
             }
             else if($tablaConsulta == 3){
                 DB::table("datoscuenta")->insert([
                     "tablaConsulta" => $tablaConsulta,
-                    "fkCuenta" => $idCatalgoContable,
-                    "subTipoConsulta" => $req->subTipoAporteEmpleador[$row]
+                    "fkCuenta" => $idCuentaCredito,
+                    "subTipoConsulta" => $req->subTipoAporteEmpleador[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                DB::table("datoscuenta")->insert([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "subTipoConsulta" => $req->subTipoAporteEmpleador[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
                 ]);
             }
+            else if($tablaConsulta == 4){
+                DB::table("datoscuenta")->insert([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaCredito,
+                    "fkConcepto" => $req->fkConcepto[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                DB::table("datoscuenta")->insert([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "fkConcepto" => $req->fkConcepto[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
+                ]);
+            }
+
         }
         return response()->json(["success" => true]);
     }
+
+    public function modificar(Request $req){
+        $errors = array();
+        
+       
+        if(!isset($req->cuentaCred2)){
+            array_push($errors, "Cuenta credito vacia");
+        }
+        if(!isset($req->descripcionCred)){
+            array_push($errors, "Descripción cuenta credito vacio");
+        }
+        if(!isset($req->fkTipoTerceroCred)){
+            array_push($errors, "Tipo tercero credito vacio");
+        }
+        if(!isset($req->fkTerceroCred) && $req->fkTipoTerceroCred == "8"){
+            array_push($errors, "Tercero fijo credito vacio");
+        }
+        
+        
+
+    
+        if(!isset($req->cuentaDeb2)){
+            array_push($errors, "Cuenta debito vacia");
+        }
+        if(!isset($req->descripcionDeb)){
+            array_push($errors, "Descripción cuenta debito vacio");
+        }
+        if(!isset($req->fkTipoTerceroDeb)){
+            array_push($errors, "Tipo tercero debito vacio");
+        }
+        if(!isset($req->fkTerceroDeb) && $req->fkTipoTerceroDeb == "8"){
+            array_push($errors, "Tercero fijo debito vacio");
+        }
+        
+
+        if(!isset($req->fkEmpresa)){
+            array_push($errors, "Empresa vacia");
+        }
+        if(!isset($req->tablaConsulta[0])){
+            array_push($errors, "Tipo vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "1" && !isset($req->fkGrupoConcepto[0])){
+            array_push($errors, "Grupo de concepto vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "2" && !isset($req->subTipoProvision[0])){
+            array_push($errors, "provision vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "3" && !isset($req->subTipoAporteEmpleador[0])){
+            array_push($errors, "Aporte empleador vacio");
+        }
+        if(isset($req->tablaConsulta[0]) && $req->tablaConsulta[0] == "4" && !isset($req->fkConcepto[0])){
+            array_push($errors, "Concepto vacio");
+        }
+
+        if(sizeof($errors)>0){
+            return response()->json(['error'=>$errors]);
+        }
+
+
+        $idCuentaCredito = $req->cuentaCred;
+        if($req->cuentaCred == "nueva"){
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionCred,
+                "cuenta" => $req->cuentaCred2,
+                "fkTipoTercero" => $req->fkTipoTerceroCred,
+                "fkTercero" => $req->fkTerceroCred,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            $idCuentaCredito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
+        }
+        else{
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionCred,
+                "cuenta" => $req->cuentaCred2,
+                "fkTipoTercero" => $req->fkTipoTerceroCred,
+                "fkTercero" => $req->fkTerceroCred,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            DB::table("catalgocontable")->where("idCatalgoContable", "=",$idCuentaCredito)->update($arrCatalogo);
+        }
+
+        $idCuentaDebito = $req->cuentaDeb;
+        if($req->cuentaDeb == "nueva"){
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionDeb,
+                "cuenta" => $req->cuentaDeb2,
+                "fkTipoTercero" => $req->fkTipoTerceroDeb,
+                "fkTercero" => $req->fkTerceroDeb,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            $idCuentaDebito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
+        }
+        else{
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionDeb,
+                "cuenta" => $req->cuentaDeb2,
+                "fkTipoTercero" => $req->fkTipoTerceroDeb,
+                "fkTercero" => $req->fkTerceroDeb,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            DB::table("catalgocontable")->where("idCatalgoContable", "=",$idCuentaDebito)->update($arrCatalogo);
+        }
+        
+        foreach($req->tablaConsulta as $row => $tablaConsulta){
+
+            if($tablaConsulta == 1){
+
+                
+               
+
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosCredito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaCredito,
+                    "fkGrupoConcepto" => $req->fkGrupoConcepto[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosDebito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "fkGrupoConcepto" => $req->fkGrupoConcepto[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
+                ]);
+            }
+            else if($tablaConsulta == 2){
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosCredito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaCredito,
+                    "subTipoConsulta" => $req->subTipoProvision[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosDebito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "subTipoConsulta" => $req->subTipoProvision[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                
+                
+            }
+            else if($tablaConsulta == 3){
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosCredito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaCredito,
+                    "subTipoConsulta" => $req->subTipoAporteEmpleador[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosDebito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "subTipoConsulta" => $req->subTipoAporteEmpleador[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
+                ]);
+            }
+            else if($tablaConsulta == 4){
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosCredito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaCredito,
+                    "fkConcepto" => $req->fkConcepto[$row],
+                    "tipoCuenta" => "CREDITO",
+                    "transaccion" => $req->transaccion
+                ]);
+                DB::table("datoscuenta")->where("idDatosCuenta","=", $req->idDatosDebito)->update([
+                    "tablaConsulta" => $tablaConsulta,
+                    "fkCuenta" => $idCuentaDebito,
+                    "fkConcepto" => $req->fkConcepto[$row],
+                    "tipoCuenta" => "DEBITO",
+                    "transaccion" => $req->transaccion
+                ]);
+            }
+
+        }
+        return response()->json(["success" => true]);
+
+
+
+    }
+    
     public function reporteNominaIndex(){
 
         $empresas = DB::table("empresa", "e")->get();
         
-        
-
-
         return view('/catalogoContable.reporteNominaIndex',
             ["empresas" => $empresas]
         );
@@ -143,6 +636,13 @@ class CatalogoContableController extends Controller
 
         $fechaInicioMes = date("Y-m-01", strtotime($req->fechaReporte));
         $fechaFinMes = date("Y-m-t", strtotime($fechaInicioMes));
+
+        $arrConceptosAjustePeso = [
+            ["concepto" => "18", "subTipoAporteEmpleador" => "2"],
+            ["concepto" => "19", "subTipoAporteEmpleador" => "1"],
+            ["concepto" => "33", "subTipoAporteEmpleador" => "1"]
+        ];
+        
 
         $empleados = DB::table("empleado", "e")
         ->select("e.*",
@@ -198,7 +698,7 @@ class CatalogoContableController extends Controller
                         "porcentaje" => $centroCosto->porcentajeTiempoTrabajado
                     ]);
                 }
-            }   
+            }
             
 
       
@@ -214,12 +714,12 @@ class CatalogoContableController extends Controller
                 ->get();
                 
                 foreach($datosCuentaTipo1 as $datoCuentaTipo1){
-                    if(!isset($datoCuentaTipo1->fkCentroCosto)){
+                    /*if(!isset($datoCuentaTipo1->fkCentroCosto)){
                         $arrCentroCosto["porcentaje"] = 100;
-                    }
+                    }*/
                    
                     $itemsBoucher = DB::table("item_boucher_pago", "ibp")
-                    ->selectRaw("ibp.pago, ibp.descuento, con.idconcepto, ibp.valor, con.nombre as con_nombre")
+                    ->selectRaw("ibp.pago, ibp.descuento, con.idconcepto, ibp.valor, con.nombre as con_nombre, con.fkNaturaleza as con_naturaleza")
                     ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                     ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                     ->join("concepto as con","con.idConcepto","=","ibp.fkConcepto") 
@@ -232,69 +732,137 @@ class CatalogoContableController extends Controller
                     foreach($itemsBoucher as $itemBoucher){
                         
                         $valor = 0;
-                        $tipoReg = "";
-                        if($datoCuentaTipo1->tipoComportamiento == 1){
-                            
-                            if($itemBoucher->valor > 0){
-                                $tipoReg = "DEBITO";
-                                $valor = $itemBoucher->valor;
-                            }
-                            else{
-                                $tipoReg = "CREDITO";
-                                $valor = $itemBoucher->valor * -1;
-                            }
-                            
-                        }
-                        else{
-                            if($itemBoucher->valor > 0){
-                                $tipoReg = "CREDITO";
-                                $valor = $itemBoucher->valor;
-                            }
-                            else{
-                                $tipoReg = "DEBITO";
-                                $valor = $itemBoucher->valor * -1;
-                            }
-                        }
+                        $tipoReg = $datoCuentaTipo1->tipoCuenta;
+                        $tipoRegDif = $datoCuentaTipo1->tipoCuenta;
 
-                        $val = true;
+                        
+
+                        //$itemBoucher->valor = ; 
+                        
+                        if($itemBoucher->valor < 0 && $itemBoucher->con_naturaleza=="1"){
+                            if($tipoReg == "CREDITO"){
+                                $tipoReg = "DEBITO";
+                            }
+                            else{
+                                $tipoReg = "CREDITO";
+                            }
+                            $valor = $itemBoucher->valor*-1;
+                        }
+                        else if($itemBoucher->valor > 0 && $itemBoucher->con_naturaleza=="1"){
+                            $valor = $itemBoucher->valor;
+                        }
+                        else if($itemBoucher->valor > 0 && $itemBoucher->con_naturaleza=="3"){
+                            $valor = $itemBoucher->valor;
+                            if($tipoReg == "CREDITO"){
+                                $tipoReg = "DEBITO";
+                            }
+                            else{
+                                $tipoReg = "CREDITO";
+                            }
+
+                        }
+                        else if($itemBoucher->valor < 0 && $itemBoucher->con_naturaleza=="3"){
+                            $valor = $itemBoucher->valor*-1;
+                        }  
                         if(!isset( $arrayInt[1][$datoCuentaTipo1->cuenta])){
                             $arrayInt[1][$datoCuentaTipo1->cuenta] = array();
                         }
-                        else{
-                            $porcentajeInterno = 0;
-                            foreach($arrayInt[1][$datoCuentaTipo1->cuenta] as $arrCuentaInt2){
-                                if($arrCuentaInt2["idConcepto"] == $itemBoucher->idconcepto){
-                                    $porcentajeInterno = $porcentajeInterno + $arrCuentaInt2["porcentaje"];
-                                }
-                                
-                            }
-                            if($porcentajeInterno > 100){
-                                $val = true;
-                            }
 
+
+                        $diferencia = 0;
+                        foreach($arrConceptosAjustePeso as $arrConceptoAjustePeso){
+                            if($arrConceptoAjustePeso["concepto"] == $itemBoucher->idconcepto){
+                                $diferencia =  $valor - $this->roundSup($valor, -2);
+                                if($diferencia != 0){
+                                    if($diferencia < 0 && $itemBoucher->con_naturaleza=="1"){
+                                        if($tipoRegDif == "CREDITO"){
+                                            $tipoRegDif = "DEBITO";
+                                        }
+                                        else{
+                                            $tipoRegDif = "CREDITO";
+                                        }
+                                        $diferencia = $diferencia*-1;
+                                    }
+                                    else if($diferencia > 0 && $itemBoucher->con_naturaleza=="3"){
+                                        if($tipoRegDif == "CREDITO"){
+                                            $tipoRegDif = "DEBITO";
+                                        }
+                                        else{
+                                            $tipoRegDif = "CREDITO";
+                                        }    
+                                    }
+                                    else if($diferencia < 0 && $itemBoucher->con_naturaleza=="3"){
+                                        $diferencia = $diferencia*-1;
+                                    }    
+                        
+                                   
+                                    //Consultar cuenta empleador para el concepto 
+        
+                                    $datosCuentaEmpleador = DB::table("datoscuenta", "dc")
+                                    ->join("catalgocontable as cc", "cc.idCatalgoContable", "=","dc.fkCuenta")
+                                    ->where("dc.tablaConsulta","=","3")
+                                    ->where("dc.subTipoConsulta","=",$arrConceptoAjustePeso["subTipoAporteEmpleador"])
+                                    ->where("cc.fkEmpresa","=",$empleado->fkEmpresa)
+                                    ->whereRaw("(cc.fkCentroCosto is NULL or cc.fkCentroCosto = ".$arrCentroCosto["centroCosto"].")")
+                                    ->orderBy("cc.fkCentroCosto")
+                                    ->first();
+        
+                                    if(!isset( $arrayInt[1][$datosCuentaEmpleador->cuenta])){
+                                        $arrayInt[1][$datosCuentaEmpleador->cuenta] = array();
+                                    }
+                                    $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                    if(isset($datosCuentaEmpleador)){
+                                        array_push($arrayInt[1][$datosCuentaEmpleador->cuenta], 
+                                            array(
+                                                "arrCentrosCosto" => $arrCentroCosto,
+                                                "empleado" => $empleado,
+                                                "tablaConsulta" => "1",
+                                                "cuenta" => $datosCuentaEmpleador->cuenta,
+                                                "descripcion" => $datosCuentaEmpleador->descripcion,
+                                                "transaccion" => $datosCuentaEmpleador->transaccion,
+                                                "porcentaje" => $arrCentroCosto["porcentaje"],
+                                                "valor" => round($diferencia),
+                                                "tipoReg" => $tipoRegDif,
+                                                "idConcepto" => "",
+                                                "nombreConcepto" => "",
+                                                "tercero" => $this->cargarTerceroAdecuado($datosCuentaEmpleador->fkTipoTercero, $empleado, $datosCuentaEmpleador->fkTercero)
+                                            )
+                                        );
+                                    }
+
+                                }
+                            }
                         }
                         
+
+
                         
-                        if($val){
-                            $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
-                         
-                            array_push($arrayInt[1][$datoCuentaTipo1->cuenta], 
-                                array(
-                                    "arrCentrosCosto" => $arrCentroCosto,
-                                    "empleado" => $empleado,
-                                    "tablaConsulta" => "1",
-                                    "cuenta" => $datoCuentaTipo1->cuenta,
-                                    "descripcion" => $datoCuentaTipo1->descripcion,
-                                    "transaccion" => $datoCuentaTipo1->transaccion,
-                                    "porcentaje" => $arrCentroCosto["porcentaje"],
-                                    "valor" => round($valor),
-                                    "tipoReg" => $tipoReg,
-                                    "idConcepto" => $itemBoucher->idconcepto,
-                                    "nombreConcepto" => $itemBoucher->con_nombre,
-                                    "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo1->fkTipoTercero, $empleado, $datoCuentaTipo1->fkTercero)
-                                )
-                            );
-                        }
+
+
+              
+                       
+                
+                        $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
+                        array_push($arrayInt[1][$datoCuentaTipo1->cuenta], 
+                            array(
+                                "arrCentrosCosto" => $arrCentroCosto,
+                                "empleado" => $empleado,
+                                "tablaConsulta" => "1",
+                                "cuenta" => $datoCuentaTipo1->cuenta,
+                                "descripcion" => $datoCuentaTipo1->descripcion,
+                                "transaccion" => $datoCuentaTipo1->transaccion,
+                                "porcentaje" => $arrCentroCosto["porcentaje"],
+                                "valor" => round($valor),
+                                "tipoReg" => $tipoReg,
+                                "idConcepto" => $itemBoucher->idconcepto,
+                                "nombreConcepto" => $itemBoucher->con_nombre,
+                                "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo1->fkTipoTercero, $empleado, $datoCuentaTipo1->fkTercero)
+                            )
+                        );
+
+                        
+                            
+                        
                     }                   
                 }
                 
@@ -305,12 +873,10 @@ class CatalogoContableController extends Controller
                 ->whereRaw("(cc.fkCentroCosto is NULL or cc.fkCentroCosto = ".$arrCentroCosto["centroCosto"].")")
                 ->orderBy("cc.fkCentroCosto")
                 ->get();
-                
+            
                 
                 foreach($datosCuentaTipo2 as $datoCuentaTipo2){
-                    if(!isset($datoCuentaTipo2->fkCentroCosto)){
-                        $arrCentroCosto["porcentaje"] = 100;
-                    }
+          
                     $fkConcepto = 0;
                     if($datoCuentaTipo2->subTipoConsulta == "1"){
                         $fkConcepto = "73";
@@ -331,20 +897,24 @@ class CatalogoContableController extends Controller
                     ->where("p.fkConcepto","=",$fkConcepto)
                     ->whereRaw("(p.mes = MONTH('".$req->fechaReporte."') and p.anio= YEAR('".$req->fechaReporte."'))")
                     ->first();
+                    
 
-                    $datosProvResta = DB::table('provision','p')
-                        ->selectRaw("sum(p.valor) as suma")
-                        ->where("p.anio","=",$provision->anio)
-                        ->where("p.mes","<",$provision->mes)
-                        ->where("p.fkEmpleado","=",$provision->fkEmpleado)
-                        ->where("p.fkConcepto","=",$provision->fkConcepto)
-                        ->first();
-                    if(isset($datosProvResta)){
-                        $valor = $provision->valor - $datosProvResta->suma;    
+
+
+                    $valor = $provision->valor;   
+                    //$valor = $this->roundSup($valor, -2); 
+                    $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo2->cuenta);
+
+                    if($valor < 0){
+                        if($tipoReg == "CREDITO"){
+                            $tipoReg = "DEBITO";
+                        }
+                        else{
+                            $tipoReg = "CREDITO";
+                        }
+                        $valor = $valor*-1;
                     }
-                    else{
-                        $valor = $provision->valor;    
-                    }
+                    
                     
                     $val = true;
                     if(!isset( $arrayInt[2][$datoCuentaTipo2->cuenta])){
@@ -363,6 +933,8 @@ class CatalogoContableController extends Controller
                         }
 
                     }
+
+                    
                     
                     if($val){
                         $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
@@ -377,7 +949,7 @@ class CatalogoContableController extends Controller
                                 "transaccion" => $datoCuentaTipo2->transaccion,
                                 "porcentaje" => $arrCentroCosto["porcentaje"],
                                 "valor" => round($valor),
-                                "tipoReg" => $this->comportamientoPorNaturaleza($datoCuentaTipo2->cuenta),
+                                "tipoReg" => $tipoReg,
                                 "idConcepto" => $fkConcepto,
                                 "nombreConcepto" => "",
                                 "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo2->fkTipoTercero, $empleado, $datoCuentaTipo2->fkTercero)
@@ -385,10 +957,10 @@ class CatalogoContableController extends Controller
                         );
           
                     }
-
+                    
 
                 }
-
+               
                 $datosCuentaTipo3 = DB::table("datoscuenta", "dc")
                 ->join("catalgocontable as cc", "cc.idCatalgoContable", "=","dc.fkCuenta")
                 ->where("dc.tablaConsulta","=","3")
@@ -399,17 +971,14 @@ class CatalogoContableController extends Controller
                 
 
                 foreach($datosCuentaTipo3 as $datoCuentaTipo3){
-                    if(!isset($datoCuentaTipo3->fkCentroCosto)){
-                        $arrCentroCosto["porcentaje"] = 100;
-                    }
-
-
                     $parafiscales = DB::table("parafiscales", "para")
                     ->selectRaw("para.*")
                     ->join("boucherpago as bp","bp.idBoucherPago","=","para.fkBoucherPago")
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
                     ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
+                    ->orderBy("idParafiscales","desc")
+                    ->limit("1")
                     ->get();
 
                     $valor = 0;
@@ -419,6 +988,48 @@ class CatalogoContableController extends Controller
                     if($datoCuentaTipo3->subTipoConsulta == "1"){
                         foreach($parafiscales as $parafiscal){
                             $valor = $parafiscal->afp;
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+        
+                            if($valor < 0){
+                                if($tipoReg == "CREDITO"){
+                                    $tipoReg = "DEBITO";
+                                }
+                                else{
+                                    $tipoReg = "CREDITO";
+                                }
+                                $valor = $valor*-1;
+                            }
+
+                            $diferencia =  $valor - $this->roundSup($valor, -2);
+                            $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+
+                            if($diferencia != 0){
+                                if($diferencia < 0){
+                                    $diferencia = $diferencia*-1;
+                                } 
+                                $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($diferencia),
+                                        "tipoReg" => $tipoRegDif,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }
+
+
+                    
+                            
                             $val = true; 
                                                        
                             if($val){
@@ -433,7 +1044,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
-                                        "tipoReg" => $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta),
+                                        "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
                                         "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
@@ -445,7 +1056,45 @@ class CatalogoContableController extends Controller
                     }
                     else if($datoCuentaTipo3->subTipoConsulta == "2"){
                         foreach($parafiscales as $parafiscal){
+
                             $valor = $parafiscal->eps;
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+        
+                            if($valor < 0){
+                                if($tipoReg == "CREDITO"){
+                                    $tipoReg = "DEBITO";
+                                }
+                                else{
+                                    $tipoReg = "CREDITO";
+                                }
+                                $valor = $valor*-1;
+                            }
+                            $diferencia =  $valor - $this->roundSup($valor, -2);
+                            $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+
+                            if($diferencia != 0){
+                                if($diferencia < 0){
+                                    $diferencia = $diferencia*-1;
+                                } 
+                                $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($diferencia),
+                                        "tipoReg" => $tipoRegDif,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }
                             $val = true;                            
                             if($val){
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
@@ -459,7 +1108,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
-                                        "tipoReg" => $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta),
+                                        "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
                                         "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
@@ -471,7 +1120,46 @@ class CatalogoContableController extends Controller
                     }
                     else if($datoCuentaTipo3->subTipoConsulta == "3"){
                         foreach($parafiscales as $parafiscal){
+                            
                             $valor = $parafiscal->arl;
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+                            //$valor = $this->roundSup($valor, -2); 
+                            if($valor < 0){
+                                if($tipoReg == "CREDITO"){
+                                    $tipoReg = "DEBITO";
+                                }
+                                else{
+                                    $tipoReg = "CREDITO";
+                                }
+                                $valor = $valor*-1;
+                            }
+
+                            $diferencia =  $valor - $this->roundSup($valor, -2);
+                            $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+
+                            if($diferencia != 0){
+                                if($diferencia < 0){
+                                    $diferencia = $diferencia*-1;
+                                } 
+                                $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($diferencia),
+                                        "tipoReg" => $tipoRegDif,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }
                             $val = true;                            
                             if($val){
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
@@ -485,7 +1173,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
-                                        "tipoReg" => $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta),
+                                        "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
                                         "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
@@ -497,7 +1185,46 @@ class CatalogoContableController extends Controller
                     }
                     else if($datoCuentaTipo3->subTipoConsulta == "4"){
                         foreach($parafiscales as $parafiscal){
+                            
+
                             $valor = $parafiscal->ccf;
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+                            //$valor = $this->roundSup($valor, -2); 
+                            if($valor < 0){
+                                if($tipoReg == "CREDITO"){
+                                    $tipoReg = "DEBITO";
+                                }
+                                else{
+                                    $tipoReg = "CREDITO";
+                                }
+                                $valor = $valor*-1;
+                            }
+                            $diferencia =  $valor - $this->roundSup($valor, -2);
+                            $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+
+                            if($diferencia != 0){
+                                if($diferencia < 0){
+                                    $diferencia = $diferencia*-1;
+                                } 
+                                $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($diferencia),
+                                        "tipoReg" => $tipoRegDif,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }
                             $val = true;                            
                             if($val){
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
@@ -511,7 +1238,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
-                                        "tipoReg" => $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta),
+                                        "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
                                         "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
@@ -523,7 +1250,45 @@ class CatalogoContableController extends Controller
                     }
                     else if($datoCuentaTipo3->subTipoConsulta == "5"){
                         foreach($parafiscales as $parafiscal){
+
                             $valor = $parafiscal->icbf;
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+                            //$valor = $this->roundSup($valor, -2); 
+                            if($valor < 0){
+                                if($tipoReg == "CREDITO"){
+                                    $tipoReg = "DEBITO";
+                                }
+                                else{
+                                    $tipoReg = "CREDITO";
+                                }
+                                $valor = $valor*-1;
+                            }
+                            $diferencia =  $valor - $this->roundSup($valor, -2);
+                            $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+
+                            if($diferencia != 0){
+                                if($diferencia < 0){
+                                    $diferencia = $diferencia*-1;
+                                } 
+                                $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($diferencia),
+                                        "tipoReg" => $tipoRegDif,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }
                             $val = true;                            
                             if($val){
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
@@ -537,7 +1302,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
-                                        "tipoReg" => $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta),
+                                        "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
                                         "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
@@ -549,7 +1314,45 @@ class CatalogoContableController extends Controller
                     }
                     else if($datoCuentaTipo3->subTipoConsulta == "6"){
                         foreach($parafiscales as $parafiscal){
+                            
                             $valor = $parafiscal->sena;
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+                            //$valor = $this->roundSup($valor, -2); 
+                            if($valor < 0){
+                                if($tipoReg == "CREDITO"){
+                                    $tipoReg = "DEBITO";
+                                }
+                                else{
+                                    $tipoReg = "CREDITO";
+                                }
+                                $valor = $valor*-1;
+                            }
+                            $diferencia =  $valor - $this->roundSup($valor, -2);
+                            $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+
+                            if($diferencia != 0){
+                                if($diferencia < 0){
+                                    $diferencia = $diferencia*-1;
+                                } 
+                                $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($diferencia),
+                                        "tipoReg" => $tipoRegDif,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }
                             $val = true;                            
                             if($val){
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
@@ -563,7 +1366,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
-                                        "tipoReg" => $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta),
+                                        "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
                                         "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
@@ -577,8 +1380,176 @@ class CatalogoContableController extends Controller
 
                 }
 
+                //Consular por tipo la cuenta
+                $datosCuentaTipo4 = DB::table("datoscuenta", "dc")
+                ->join("catalgocontable as cc", "cc.idCatalgoContable", "=","dc.fkCuenta")
+                ->where("dc.tablaConsulta","=","4")
+                ->where("cc.fkEmpresa","=",$empleado->fkEmpresa)
+                ->whereRaw("(cc.fkCentroCosto is NULL or cc.fkCentroCosto = ".$arrCentroCosto["centroCosto"].")")
+                ->orderBy("cc.fkCentroCosto")
+                ->get();
+                
+                foreach($datosCuentaTipo4 as $datoCuentaTipo4){
+                    /*if(!isset($datoCuentaTipo4->fkCentroCosto)){
+                        $arrCentroCosto["porcentaje"] = 100;
+                    }*/
+                    $itemsBoucher = DB::table("item_boucher_pago", "ibp")
+                    ->selectRaw("ibp.pago, ibp.descuento, con.idconcepto, ibp.valor, con.nombre as con_nombre, con.fkNaturaleza as con_naturaleza")
+                    ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                    ->join("concepto as con","con.idConcepto","=","ibp.fkConcepto") 
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
+                    ->where("ibp.fkConcepto","=",$datoCuentaTipo4->fkConcepto) 
+                    ->get();
+            
+                    foreach($itemsBoucher as $itemBoucher){
+                        
+                        $valor = 0;
+                        $tipoReg = $datoCuentaTipo4->tipoCuenta;
+                        $tipoRegDif = $datoCuentaTipo4->tipoCuenta;
+                        
+                        //$itemBoucher->valor = $this->roundSup($itemBoucher->valor, -2); 
+                        
 
 
+                        if($itemBoucher->valor < 0 && $itemBoucher->con_naturaleza=="1"){
+                            if($tipoReg == "CREDITO"){
+                                $tipoReg = "DEBITO";
+                            }
+                            else{
+                                $tipoReg = "CREDITO";
+                            }
+                            $valor = $itemBoucher->valor*-1;
+                        }
+                        else if($itemBoucher->valor > 0 && $itemBoucher->con_naturaleza=="1"){
+                            $valor = $itemBoucher->valor;
+                        }
+                        else if($itemBoucher->valor > 0 && $itemBoucher->con_naturaleza=="3"){
+                            $valor = $itemBoucher->valor;
+                            if($tipoReg == "CREDITO"){
+                                $tipoReg = "DEBITO";
+                            }
+                            else{
+                                $tipoReg = "CREDITO";
+                            }
+
+                        }
+                        else if($itemBoucher->valor < 0 && $itemBoucher->con_naturaleza=="3"){
+                            $valor = $itemBoucher->valor*-1;
+                        }  
+                        
+
+                        $diferencia = 0;
+                        foreach($arrConceptosAjustePeso as $arrConceptoAjustePeso){
+                            if($arrConceptoAjustePeso["concepto"] == $itemBoucher->idconcepto){
+                                $diferencia =  $valor - $this->roundSup($valor, -2);
+                                if($diferencia != 0){
+                                    if($diferencia < 0 && $itemBoucher->con_naturaleza=="1"){
+                                        if($tipoRegDif == "CREDITO"){
+                                            $tipoRegDif = "DEBITO";
+                                        }
+                                        else{
+                                            $tipoRegDif = "CREDITO";
+                                        }
+                                        $diferencia = $diferencia*-1;
+                                    }
+                                    else if($diferencia > 0 && $itemBoucher->con_naturaleza=="3"){
+                                        if($tipoRegDif == "CREDITO"){
+                                            $tipoRegDif = "DEBITO";
+                                        }
+                                        else{
+                                            $tipoRegDif = "CREDITO";
+                                        }    
+                                    }
+                                    else if($diferencia < 0 && $itemBoucher->con_naturaleza=="3"){
+                                        $diferencia = $diferencia*-1;
+                                    }    
+                        
+                                   
+                                    //Consultar cuenta empleador para el concepto 
+        
+                                    $datosCuentaEmpleador = DB::table("datoscuenta", "dc")
+                                    ->join("catalgocontable as cc", "cc.idCatalgoContable", "=","dc.fkCuenta")
+                                    ->where("dc.tablaConsulta","=","3")
+                                    ->where("dc.subTipoConsulta","=",$arrConceptoAjustePeso["subTipoAporteEmpleador"])
+                                    ->where("cc.fkEmpresa","=",$empleado->fkEmpresa)
+                                    ->whereRaw("(cc.fkCentroCosto is NULL or cc.fkCentroCosto = ".$arrCentroCosto["centroCosto"].")")
+                                    ->orderBy("cc.fkCentroCosto")
+                                    ->first();
+        
+                                    if(!isset( $arrayInt[1][$datosCuentaEmpleador->cuenta])){
+                                        $arrayInt[1][$datosCuentaEmpleador->cuenta] = array();
+                                    }
+                                    $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                    if(isset($datosCuentaEmpleador)){
+                                        array_push($arrayInt[1][$datosCuentaEmpleador->cuenta], 
+                                            array(
+                                                "arrCentrosCosto" => $arrCentroCosto,
+                                                "empleado" => $empleado,
+                                                "tablaConsulta" => "1",
+                                                "cuenta" => $datosCuentaEmpleador->cuenta,
+                                                "descripcion" => $datosCuentaEmpleador->descripcion,
+                                                "transaccion" => $datosCuentaEmpleador->transaccion,
+                                                "porcentaje" => $arrCentroCosto["porcentaje"],
+                                                "valor" => round($diferencia),
+                                                "tipoReg" => $tipoRegDif,
+                                                "idConcepto" => "",
+                                                "nombreConcepto" => "",
+                                                "tercero" => $this->cargarTerceroAdecuado($datosCuentaEmpleador->fkTipoTercero, $empleado, $datosCuentaEmpleador->fkTercero)
+                                            )
+                                        );
+                                    }
+
+                                }
+                            }
+                        }
+                        
+
+
+                        $val = true;
+                        if(!isset( $arrayInt[4][$datoCuentaTipo4->cuenta])){
+                            $arrayInt[4][$datoCuentaTipo4->cuenta] = array();
+                        }
+                        else{
+                            $porcentajeInterno = 0;
+                            foreach($arrayInt[4][$datoCuentaTipo4->cuenta] as $arrCuentaInt2){
+                                if($arrCuentaInt2["idConcepto"] == $itemBoucher->idconcepto){
+                                    $porcentajeInterno = $porcentajeInterno + $arrCuentaInt2["porcentaje"];
+                                }
+                                
+                            }
+                            if($porcentajeInterno > 100){
+                                $val = true;
+                            }
+
+                        }
+                        
+                        
+                        if($val){
+                            $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
+                         
+                            array_push($arrayInt[4][$datoCuentaTipo4->cuenta], 
+                                array(
+                                    "arrCentrosCosto" => $arrCentroCosto,
+                                    "empleado" => $empleado,
+                                    "tablaConsulta" => "1",
+                                    "cuenta" => $datoCuentaTipo4->cuenta,
+                                    "descripcion" => $datoCuentaTipo4->descripcion,
+                                    "transaccion" => $datoCuentaTipo4->transaccion,
+                                    "porcentaje" => $arrCentroCosto["porcentaje"],
+                                    "valor" => round($valor),
+                                    "tipoReg" => $tipoReg,
+                                    "idConcepto" => $itemBoucher->idconcepto,
+                                    "nombreConcepto" => $itemBoucher->con_nombre,
+                                    "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo4->fkTipoTercero, $empleado, $datoCuentaTipo4->fkTercero)
+                                )
+                            );
+                        }
+                    }     
+
+
+                }
               
                
             }
@@ -588,7 +1559,7 @@ class CatalogoContableController extends Controller
             //Add a global
 
         }
-      
+        
         $arrDef = array(
             [
                 "Fecha",
@@ -618,8 +1589,7 @@ class CatalogoContableController extends Controller
         }
         foreach($arrSalida as $arrSalid){
             foreach($arrSalid as $arrSalid2){
-                foreach($arrSalid2 as $arrSalid3){
-                    
+                foreach($arrSalid2 as $arrSalid3){                    
                     foreach($arrSalid3 as $arrSalid4){
                         $valorDebito = "0";
                         $valorCredito = "0";
@@ -649,8 +1619,8 @@ class CatalogoContableController extends Controller
                                 $valorCredito                            
                             ];
                             array_push($arrDef, $arrDefInt);
-                     
                         }
+                        
                         
                     }
                    
@@ -658,10 +1628,11 @@ class CatalogoContableController extends Controller
             }
 
         }
+
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Description: File Transfer');
         header('Content-Disposition: attachment; filename=InformeContable'.$req->empresa.'_'.date("m",strtotime($req->fechaReporte)).'_'.date("Y",strtotime($req->fechaReporte)).'.csv');
-
+        
         $csv = Writer::createFromFileObject(new SplTempFileObject());
         $csv->setDelimiter(';');
         $csv->insertAll($arrDef);
@@ -818,5 +1789,738 @@ class CatalogoContableController extends Controller
             $naturalezaCuenta = $naturalezaCredito;
         }
         return $naturalezaCuenta;
+    }
+    public function indexPlano(Request $req){
+        $cargas = DB::table("carga_catalogo_contable","cdp")
+        ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
+        ->orderBy("cdp.idCarga", "desc")
+        ->get();
+
+        return view('/catalogoContable.subirPlano', ["cargas" => $cargas]);
+    }
+
+    public function subirArchivoPlano(Request $req){
+    
+        $csv = $req->file("archivoCSV");
+        
+
+
+        
+        $reader = Reader::createFromFileObject($csv->openFile());
+        $reader->setDelimiter(';');
+        $csv = $csv->store("public/csvFiles");
+
+        
+        $idCarga  = DB::table("carga_catalogo_contable")->insertGetId([
+            "rutaArchivo" => $csv,
+            "fkEstado" => "3",
+            "numActual" => 0,
+            "numRegistros" => sizeof($reader)
+        ], "idCarga");
+
+        return redirect('catalogo-contable/verCarga/'.$idCarga);
+
+    }
+
+    public function verCarga($idCarga){
+        $cargas = DB::table("carga_catalogo_contable","ccc")
+        ->join("estado as e", "e.idEstado", "=", "ccc.fkEstado")
+        ->where("ccc.idCarga","=",$idCarga)
+        ->first();
+        
+
+         
+
+        $datosCuentas = DB::table("catalogo_contable_plano","ccp")
+        ->select("ccp.*", "ttc.nombre as nombreTipoTercero", "est.nombre as estado","t.razonSocial as nombreTercero", 
+                "e.razonSocial as nombreEmpresa", "cc.nombre as nombreCentroCosto","gc.nombre as nombreGrupoConcepto")
+        ->join("tipotercerocuenta as ttc","ttc.idTipoTerceroCuenta", "=","ccp.fkTipoTercero", "left")
+        ->join("tercero as t","t.idTercero", "=","ccp.fkTerceroFijo", "left")
+        ->join("empresa as e","e.idempresa", "=","ccp.fkEmpresa", "left")
+        ->join("centrocosto as cc","cc.idcentroCosto", "=","ccp.fkCentroCosto", "left")
+        ->join("grupoconcepto as gc","gc.idgrupoConcepto", "=","ccp.fkGrupoConcepto", "left")
+        ->join("estado as est", "est.idEstado", "=", "ccp.fkEstado")
+        ->where("ccp.fkCarga","=",$idCarga)
+        ->get();
+        
+        
+
+        return view('/catalogoContable.verCarga', [
+            "cargas" => $cargas,
+            "datosCuentas" => $datosCuentas
+        ]);
+
+    }
+    public function subirDatosCuenta($idCarga){
+        $cargaDatos = DB::table("carga_catalogo_contable","ccc")
+        ->where("ccc.idCarga","=",$idCarga)
+        ->where("ccc.fkEstado","=","3")
+        ->first();
+        if(isset($cargaDatos)){
+            $contents = Storage::get($cargaDatos->rutaArchivo);
+            
+            $reader = Reader::createFromString($contents);
+            $reader->setDelimiter(';');
+            // Create a customer from each row in the CSV file
+            $datosSubidos = 0; 
+           
+           
+            for($i = $cargaDatos->numActual; $i < $cargaDatos->numRegistros; $i++){
+                
+                $row = $reader->fetchOne($i);
+                $vacios = 0;
+                foreach($row as $key =>$valor){
+                    
+                    if($valor==""){
+                        $row[$key]=null;
+                        $vacios++;
+                    }
+                    else{
+                        $row[$key] = mb_convert_encoding($row[$key],"UTF-8");
+                        if(strpos($row[$key], "/")){
+                            
+                            $dt = DateTime::createFromFormat("d/m/Y", $row[$key]);
+                            if($dt === false){
+                                $dt = new DateTime();
+                            }
+                            $ts = $dt->getTimestamp();
+                            $row[$key] = date("Y-m-d", $ts);
+                        }
+                    }
+                }
+                $estado = "3";
+                if($row[0]=="1"){
+                    
+
+                    $existeEmpresa = DB::table("empresa","e")
+                    ->where("e.idempresa","=", $row[5])
+                    ->first();
+                    if(!isset($existeEmpresa)){
+                        $estado = "17";
+                    }
+                    
+                    if($row[6]!=NULL){
+                        $existeCentroCosto = DB::table("centrocosto","cc")
+                        ->where("cc.idcentroCosto","=", $row[6])
+                        ->first();
+                        if(!isset($existeCentroCosto)){
+                            $estado = "18";
+                        }
+    
+                        $centroCostoPerteneceEmpresa = DB::table("centrocosto","cc")
+                        ->where("cc.idcentroCosto","=", $row[6])
+                        ->where("cc.fkEmpresa","=", $row[5])
+                        ->first();
+                        if(!isset($centroCostoPerteneceEmpresa)){
+                            $estado = "19";
+                        }
+                    }
+                    
+
+
+                    $existeTipoTercero = DB::table("tipotercerocuenta","ttc")
+                    ->where("ttc.idTipoTerceroCuenta","=", $row[3])
+                    ->first();
+
+                    if(!isset($existeTipoTercero)){
+                        $estado = "20";
+                    }
+
+                    if($row[3]=="8"){
+                        $existeTercero = DB::table("tercero","t")
+                        ->where("t.idTercero","=", $row[4])
+                        ->first();
+                        if(!isset($existeTercero)){
+                            $estado = "21";
+                        }
+                    }
+                    
+                                       
+                    
+                    
+                    $datosSubidos ++;
+                    $arrSubida = [
+                        "tipoRegistro" => $row[0],
+                        "cuenta" => $row[1],
+                        "descripcion" => $row[2],
+                        "fkTipoTercero" => $row[3],
+                        "fkEmpresa" => $row[5],
+                        "fkCentroCosto" => $row[6],
+                        "tipoComportamiento" => "1",
+                        "fkCarga" => $idCarga,
+                        "fkEstado" => $estado
+                    ];
+                   
+                    if($row[3]=="8"){
+                        $arrSubida["fkTerceroFijo"] = $row[4];
+                    }
+                    DB::table("catalogo_contable_plano")->insert($arrSubida);
+
+
+                }
+                else if($row[0]=="2"){
+                    if($row[1]=="1"){
+                        $existeGrupoConcepto = DB::table("grupoconcepto","gc")
+                        ->where("gc.idgrupoConcepto","=", $row[2])
+                        ->first();
+                        if(!isset($existeGrupoConcepto)){
+                            $estado = "23";
+                        }
+                        
+                    }
+                    else if($row[1]=="2"){
+                        if(intval($row[3])<=0 || intval($row[3])>4 ){
+                            //No existe provision
+                            $estado = "24";
+                        }
+
+                    }
+                    else if($row[1]=="3"){
+                        if(intval($row[4])<=0 || intval($row[4])>6 ){
+                            //No existe Aporte Empleador
+                            $estado = "25";
+                        }
+                    }
+                    else if($row[1]=="4"){
+                        $existeConcepto = DB::table("concepto","c")
+                        ->where("c.idconcepto","=", $row[5])
+                        ->first();
+                        if(!isset($existeConcepto)){
+                            $estado = "23";
+                        }
+                        
+                    }
+                    else{
+                        //No existe tipoConulta
+                        $estado = "26";
+                    }
+
+
+
+                    if($row[10]=="1"){
+                        $row[10] = "Aportes";
+                    }
+                    else if($row[10]=="2"){
+                        $row[10] = "Provisiones";
+                    }
+                    else if($row[10]=="3"){
+                        $row[10] = "Nomina";
+                    }
+                    else{
+                        $estado = "22";
+                        //No existe transaccion
+                    }
+
+                    $datosSubidos ++;
+                    $arrSubida = [
+                        "tipoRegistro" => $row[0],
+                        "tipoConsulta" => $row[1],
+                        "fkGrupoConcepto" => $row[2],
+                        "fkTipoAporteEmpleador" => $row[3],
+                        "fkTipoProvision" => $row[4],      
+                        "fkConcepto" => $row[5],     
+                        "cuenta1" => $row[6],
+                        "cuenta2" => $row[7],
+                        "fkEmpresa2" => $row[8],
+                        "fkCentroCosto2" => $row[9],
+                        "transaccion" => $row[10],
+                        "fkCarga" => $idCarga,
+                        "fkEstado" => $estado
+                    ];
+                   
+                    DB::table("catalogo_contable_plano")->insert($arrSubida);
+                }              
+               
+                $datosSubidos++;
+                
+                if($datosSubidos == 10){
+                    if($cargaDatos->numRegistros == 10){
+                        DB::table("carga_catalogo_contable")
+                        ->where("idCarga","=",$idCarga)
+                        ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+                    }
+                    else{
+                        DB::table("carga_catalogo_contable")
+                        ->where("idCarga","=",$idCarga)
+                        ->update(["numActual" => ($i+1)]);
+                    }
+                
+
+
+                    
+
+                    $datosCuentas = DB::table("catalogo_contable_plano","ccp")
+                    ->select("ccp.*", "ttc.nombre as nombreTipoTercero", "est.nombre as estado","t.razonSocial as nombreTercero", 
+                            "e.razonSocial as nombreEmpresa", "cc.nombre as nombreCentroCosto", "gc.nombre as nombreGrupoConcepto")
+                    ->join("tipotercerocuenta as ttc","ttc.idTipoTerceroCuenta", "=","ccp.fkTipoTercero", "left")
+                    ->join("tercero as t","t.idTercero", "=","ccp.fkTerceroFijo", "left")
+                    ->join("empresa as e","e.idempresa", "=","ccp.fkEmpresa", "left")
+                    ->join("centrocosto as cc","cc.idcentroCosto", "=","ccp.fkCentroCosto", "left")
+                    ->join("grupoconcepto as gc","gc.idgrupoConcepto", "=","ccp.fkGrupoConcepto", "left")
+                    ->join("estado as est", "est.idEstado", "=", "ccp.fkEstado")
+                    ->where("ccp.fkCarga","=",$idCarga)
+                    ->get();
+                    $mensaje = "";
+
+                    foreach($datosCuentas as $index => $datoCuenta){
+                        if($datoCuenta->tipoRegistro=="1"){
+                            $mensaje.='<tr>
+                                <th></th>
+                                <td>'.($index + 1).'</td>
+                                <td>'.$datoCuenta->cuenta.'</td>
+                                <td>'.$datoCuenta->descripcion.'</td>
+                                <td>'.$datoCuenta->nombreEmpresa.'</td>
+                                <td>'.$datoCuenta->nombreCentroCosto.'</td>
+                                <td>'.$datoCuenta->estado.'</td>
+                            </tr>';
+                        }
+                        else{
+                            $mensaje.='<tr>
+                                <th></th>
+                                <td>'.($index + 1).'</td>
+                                <td></td>
+                                <td>'.$datoCuenta->nombreGrupoConcepto.'</td>
+                                <td>'.$datoCuenta->fkTipoProvision.'</td>
+                                <td>'.$datoCuenta->fkTipoAporteEmpleador.'</td>
+                                <td>'.$datoCuenta->estado.'</td>
+                            </tr>';
+                        }
+                        
+                    }
+                    if($cargaDatos->numRegistros == 10){
+                        return response()->json([
+                            "success" => true,
+                            "seguirSubiendo" => false,
+                            "numActual" => $cargaDatos->numRegistros,
+                            "mensaje" => $mensaje,
+                            "porcentaje" => "100%"
+            
+                        ]);
+                    }
+                    else{
+                        return response()->json([
+                            "success" => true,
+                            "seguirSubiendo" => true,
+                            "numActual" =>  ($i+1),
+                            "mensaje" => $mensaje,
+                            "porcentaje" => ceil((($i+1) / $cargaDatos->numRegistros)*100)."%"
+                        ]);
+
+                    }
+                    
+                }
+
+
+                
+            }
+            
+                        
+            if($datosSubidos!=0){
+    
+                /*$estado = "3";
+                if($row[0]=="1"){
+                    
+
+                    $existeEmpresa = DB::table("empresa","e")
+                    ->where("e.idempresa","=", $row[5])
+                    ->first();
+                    if(!isset($existeEmpresa)){
+                        $estado = "17";
+                    }
+                    
+
+                    $existeCentroCosto = DB::table("centrocosto","cc")
+                    ->where("cc.idcentroCosto","=", $row[6])
+                    ->first();
+                    if(!isset($existeCentroCosto)){
+                        $estado = "18";
+                    }
+
+                    $centroCostoPerteneceEmpresa = DB::table("centrocosto","cc")
+                    ->where("cc.idcentroCosto","=", $row[6])
+                    ->where("cc.fkEmpresa","=", $row[5])
+                    ->first();
+                    if(!isset($centroCostoPerteneceEmpresa)){
+                        $estado = "19";
+                    }
+
+
+                    $existeTipoTercero = DB::table("tipotercerocuenta","ttc")
+                    ->where("ttc.idTipoTerceroCuenta","=", $row[3])
+                    ->first();
+
+                    if(!isset($existeTipoTercero)){
+                        $estado = "20";
+                    }
+
+                    if($row[3]=="8"){
+                        $existeTercero = DB::table("tercero","t")
+                        ->where("t.idTercero","=", $row[4])
+                        ->first();
+                        if(!isset($existeTercero)){
+                            $estado = "21";
+                        }
+                    }
+                    
+                    if($row[7]!="1" && $row[7]!="2"){
+                        //No existe tipoComportamiento
+                        $estado = "27";
+                    }
+                    
+                    if($row[8]=="1"){
+                        $row[8] = "Aportes";
+                    }
+                    else if($row[8]=="2"){
+                        $row[8] = "Provisiones";
+                    }
+                    else if($row[8]=="3"){
+                        $row[8] = "Nomina";
+                    }
+                    else{
+                        $estado = "22";
+                        //No existe transaccion
+                    }
+                    
+                    $datosSubidos ++;
+                    $arrSubida = [
+                        "tipoRegistro" => $row[0],
+                        "cuenta" => $row[1],
+                        "descripcion" => $row[2],
+                        "fkTipoTercero" => $row[3],
+                        "fkEmpresa" => $row[5],
+                        "fkCentroCosto" => $row[6],
+                        "tipoComportamiento" => $row[7],
+                        "transaccion" => $row[8],
+                        "fkCarga" => $idCarga,
+                        "fkEstado" => $estado
+                    ];
+                   
+                    if($row[3]=="8"){
+                        $arrSubida["fkTerceroFijo"] = $row[4];
+                    }
+                    DB::table("catalogo_contable_plano")->insert($arrSubida);
+
+
+                }
+                else if($row[0]=="2"){
+
+                   
+                    
+
+                    if($row[1]=="1"){
+                        $existeGrupoConcepto = DB::table("grupoconcepto","gc")
+                        ->where("gc.idgrupoConcepto","=", $row[2])
+                        ->first();
+                        if(!isset($existeGrupoConcepto)){
+                            $estado = "23";
+                        }
+                        
+                    }
+                    else if($row[1]=="2"){
+                        if(intval($row[3])<=0 || intval($row[3])>4 ){
+                            //No existe provision
+                            $estado = "24";
+                        }
+
+                    }
+                    else if($row[1]=="3"){
+                        if(intval($row[4])<=0 || intval($row[4])>6 ){
+                            //No existe Aporte Empleador
+                            $estado = "25";
+                        }
+                    }
+                    else{
+                        //No existe tipoConulta
+                        $estado = "26";
+                    }
+
+        
+
+                    $datosSubidos ++;
+                    $arrSubida = [
+                        "tipoRegistro" => $row[0],
+                        "tipoConsulta" => $row[1],
+                        "fkGrupoConcepto" => $row[2],
+                        "fkTipoProvision" => $row[3],
+                        "fkTipoAporteEmpleador" => $row[4],
+                        "fkCarga" => $idCarga,
+                        "fkEstado" => $estado
+                    ];
+                   
+                    DB::table("catalogo_contable_plano")->insert($arrSubida);
+                }*/
+                DB::table("carga_catalogo_contable")
+                ->where("idCarga","=",$idCarga)
+                ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+            }
+            $datosCuentas = DB::table("catalogo_contable_plano","ccp")
+            ->select("ccp.*", "ttc.nombre as nombreTipoTercero", "est.nombre as estado","t.razonSocial as nombreTercero", 
+                    "e.razonSocial as nombreEmpresa", "cc.nombre as nombreCentroCosto", "gc.nombre as nombreGrupoConcepto")
+            ->join("tipotercerocuenta as ttc","ttc.idTipoTerceroCuenta", "=","ccp.fkTipoTercero", "left")
+            ->join("tercero as t","t.idTercero", "=","ccp.fkTerceroFijo", "left")
+            ->join("empresa as e","e.idempresa", "=","ccp.fkEmpresa", "left")
+            ->join("centrocosto as cc","cc.idcentroCosto", "=","ccp.fkCentroCosto", "left")
+            ->join("grupoconcepto as gc","gc.idgrupoConcepto", "=","ccp.fkGrupoConcepto", "left")
+            ->join("estado as est", "est.idEstado", "=", "ccp.fkEstado")
+            ->where("ccp.fkCarga","=",$idCarga)
+            ->get();
+            $mensaje = "";
+
+            foreach($datosCuentas as $index => $datoCuenta){
+                if($datoCuenta->tipoRegistro=="1"){
+                    $mensaje.='<tr>
+                        <th></th>
+                        <td>'.($index + 1).'</td>
+                        <td>'.$datoCuenta->cuenta.'</td>
+                        <td>'.$datoCuenta->descripcion.'</td>
+                        <td>'.$datoCuenta->nombreEmpresa.'</td>
+                        <td>'.$datoCuenta->nombreCentroCosto.'</td>
+                        <td>'.$datoCuenta->estado.'</td>
+                    </tr>';
+                }
+                else{
+                    $mensaje.='<tr>
+                        <th></th>
+                        <td>'.($index + 1).'</td>
+                        <td></td>
+                        <td>'.$datoCuenta->nombreGrupoConcepto.'</td>
+                        <td>'.$datoCuenta->fkTipoProvision.'</td>
+                        <td>'.$datoCuenta->fkTipoAporteEmpleador.'</td>
+                        <td>'.$datoCuenta->estado.'</td>
+                    </tr>';
+                }
+                
+            }
+            return response()->json([
+                "success" => true,
+                "seguirSubiendo" => false,
+                "numActual" => $cargaDatos->numRegistros,
+                "mensaje" => $mensaje,
+                "porcentaje" => "100%"
+            ]);
+        }
+    }
+
+    public function cancelarCarga($idCarga){
+        DB::table("carga_catalogo_contable")
+        ->where("idCarga","=",$idCarga)
+        ->delete();
+        return redirect('/catalogo-contable/subirPlano');
+    }
+    public function eliminarRegistros(Request $req){
+
+        
+        if(isset($req->idCartalogoContablePlano)){
+            DB::table("catalogo_contable_plano")->whereIn("idCartalogoContablePlano",$req->idCartalogoContablePlano)->delete();
+        }
+        
+        return redirect('/catalogo-contable/verCarga/'.$req->idCarga);
+    }
+    public function aprobarCarga($idCarga){
+
+        $datosCuentas = DB::table("catalogo_contable_plano","ccp")
+        ->select("ccp.*")
+        ->where("ccp.fkCarga","=",$idCarga)
+        ->get();
+        $idCatalgoContable = 0;
+        foreach($datosCuentas as $datoCuenta){            
+            if($datoCuenta->tipoRegistro == "1"){
+
+                $arrInsertCuenta = [
+                    "descripcion" => $datoCuenta->descripcion,
+                    "cuenta" => $datoCuenta->cuenta,
+                    "fkTipoTercero" => $datoCuenta->fkTipoTercero,
+                    "fkTercero" => $datoCuenta->fkTerceroFijo,
+                    "fkEmpresa" => $datoCuenta->fkEmpresa,
+                    "fkCentroCosto" => $datoCuenta->fkCentroCosto,
+                    "tipoComportamiento" => "1"
+                ];  
+                $idCatalgoContable = DB::table("catalgocontable")->insertGetId($arrInsertCuenta, "idCatalgoContable");
+
+                DB::table("catalogo_contable_plano")
+                    ->where("idCartalogoContablePlano","=",$datoCuenta->idCartalogoContablePlano)
+                    ->update(["fkEstado" => "11"]);
+            }
+            else if($datoCuenta->tipoRegistro == "2"){
+
+                $tipo = 0;
+                if(isset($datoCuenta->fkTipoProvision) && $datoCuenta->fkTipoProvision!=0){
+                    $tipo = $datoCuenta->fkTipoProvision;
+                }
+                else if(isset($datoCuenta->fkTipoAporteEmpleador) && $datoCuenta->fkTipoAporteEmpleador!=0){
+                    $tipo = $datoCuenta->fkTipoAporteEmpleador;
+                }
+               
+                $cuenta1 = DB::table("catalgocontable")
+                ->where("fkEmpresa","=",$datoCuenta->fkEmpresa2)
+                ->where("fkCentroCosto","=",$datoCuenta->fkCentroCosto2)
+                ->where("cuenta","=",$datoCuenta->cuenta1)
+                ->first();
+
+                $cuenta2 = DB::table("catalgocontable")
+                ->where("fkEmpresa","=",$datoCuenta->fkEmpresa2)
+                ->where("fkCentroCosto","=",$datoCuenta->fkCentroCosto2)
+                ->where("cuenta","=",$datoCuenta->cuenta2)
+                ->first();
+
+                if(!isset($cuenta1) || !isset($cuenta2)){
+                    DB::table("catalogo_contable_plano")
+                    ->where("idCartalogoContablePlano","=",$datoCuenta->idCartalogoContablePlano)
+                    ->update(["fkEstado" => "28"]);
+                }
+                else{
+                    $arrInsertDatosCuenta = [
+                        "tablaConsulta" => $datoCuenta->tipoConsulta,
+                        "fkCuenta" => $cuenta1->idCatalgoContable,
+                        "fkGrupoConcepto" => $datoCuenta->fkGrupoConcepto,
+                        "fkConcepto" => $datoCuenta->fkConcepto,
+                        "tipoCuenta" => "DEBITO",
+                        "subTipoConsulta" => $tipo,
+                        "transaccion" => $datoCuenta->transaccion
+                    ];  
+                    
+                    DB::table("datoscuenta")->insert($arrInsertDatosCuenta);
+    
+                    $arrInsertDatosCuenta = [
+                        "tablaConsulta" => $datoCuenta->tipoConsulta,
+                        "fkCuenta" => $cuenta2->idCatalgoContable,
+                        "fkGrupoConcepto" => $datoCuenta->fkGrupoConcepto,
+                        "fkConcepto" => $datoCuenta->fkConcepto,
+                        "tipoCuenta" => "CREDITO",
+                        "subTipoConsulta" => $tipo,
+                        "transaccion" => $datoCuenta->transaccion
+                    ]; 
+
+                    DB::table("datoscuenta")->insert($arrInsertDatosCuenta);
+
+
+                    DB::table("catalogo_contable_plano")
+                    ->where("idCartalogoContablePlano","=",$datoCuenta->idCartalogoContablePlano)
+                    ->update(["fkEstado" => "11"]);
+                }
+            }
+        }
+        DB::table("carga_catalogo_contable")
+        ->where("idCarga","=",$idCarga)
+        ->update(["fkEstado" => "11"]);
+
+        return redirect('/catalogo-contable/subirPlano');
+    }
+
+    public function descargarPlano(){
+        
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+
+        return view('/catalogoContable.descargarPlano', ["empresas" => $empresas]);
+    }
+    
+    public function descargarArchivoxEmpresa(Request $req){
+        $cuentasEmpresa = DB::table("catalgocontable")->where("fkEmpresa","=",$req->idempresa)->get();
+        $arrDef = array();
+        foreach($cuentasEmpresa as $cuentaEmpresa){
+            array_push($arrDef, [
+                "1",
+                $cuentaEmpresa->cuenta,
+                $cuentaEmpresa->descripcion,
+                $cuentaEmpresa->fkTipoTercero,
+                $cuentaEmpresa->fkTercero,
+                $cuentaEmpresa->fkEmpresa,
+                $cuentaEmpresa->fkCentroCosto
+            ]);
+        }
+        $arrIntermedio = array();
+        $datoscuenta = DB::table("datoscuenta","dc")
+        ->join("catalgocontable as cc", "cc.idCatalgoContable", "=","dc.fkCuenta")
+        ->where("cc.fkEmpresa","=",$req->idempresa)->get();
+        foreach($datoscuenta as $datocuenta){
+            $id = $datocuenta->tablaConsulta."_".$datocuenta->fkGrupoConcepto."_".$datocuenta->subTipoConsulta."_".$datocuenta->fkConcepto;
+            $fkTipoProvision = "";
+            $fkTipoAporteEmpleador = "";
+            
+
+            if($datocuenta->tablaConsulta=="2"){
+                $fkTipoProvision = $datocuenta->subTipoConsulta;
+            }
+            else if($datocuenta->tablaConsulta=="3"){
+                $fkTipoAporteEmpleador = $datocuenta->subTipoConsulta;
+            }
+
+            $cuentaDebito = "";
+            $cuentaCredito = "";
+            
+            if($datocuenta->tipoCuenta == "DEBITO"){
+                $cuentaDebito = $datocuenta->cuenta;
+            }
+            else if($datocuenta->tipoCuenta == "CREDITO"){
+                $cuentaCredito = $datocuenta->cuenta;
+            }
+
+
+            $transaccion = "";
+            if($datocuenta->transaccion=="Aportes"){
+                $transaccion = "1";
+            }
+            else if($datocuenta->transaccion=="Provisiones"){
+                $transaccion = "2";
+            }
+            else if($datocuenta->transaccion=="Nomina"){
+                $transaccion = "3";
+            }            
+            if(!isset($arrIntermedio[$id])){
+                $arrIntermedio[$id] = [
+                    0 => "2",
+                    1 => $datocuenta->tablaConsulta,
+                    2 => $datocuenta->fkGrupoConcepto,
+                    3 => $fkTipoProvision,
+                    4 => $fkTipoAporteEmpleador,
+                    5 => $datocuenta->fkConcepto,
+                    6 => $cuentaDebito,
+                    7 => $cuentaCredito,
+                    8 => $datocuenta->fkEmpresa,
+                    9 => $datocuenta->fkCentroCosto,
+                    10 => $transaccion
+                ];
+            }
+            else{
+                if($datocuenta->tipoCuenta == "DEBITO"){
+                    $arrIntermedio[$id][6] = $cuentaDebito;
+                }
+                else if($datocuenta->tipoCuenta == "CREDITO"){
+                    $arrIntermedio[$id][7] = $cuentaCredito;
+                }
+            }
+        }
+
+        //Transformar intermedio en def
+        foreach($arrIntermedio as $intermedio){
+            array_push($arrDef, $intermedio);
+        }
+        
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename=CatalogoContable'.$req->idempresa.'.csv');
+        
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->setDelimiter(';');
+        $csv->insertAll($arrDef);
+        $csv->setOutputBOM(Reader::BOM_UTF8);
+        $csv->output('CatalogoContable'.$req->idempresa.'.csv');
+
+        
+    }
+
+
+    public function roundSup($numero, $presicion){
+        $redondeo = $numero / pow(10,$presicion*-1);
+        
+        $redondeo = ceil($redondeo);
+        $redondeo = $redondeo * pow(10,$presicion*-1);
+        return $redondeo;
+    }
+    public function paginate($items, $perPage = 5, $page = null, $options = [])
+    {
+        $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 }

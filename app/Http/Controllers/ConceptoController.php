@@ -36,8 +36,11 @@ class ConceptoController extends Controller
         $naturalezas = DB::table('naturalezaconcepto')->get();
         $tiposConcepto = DB::table('tipo_concepto')->get();
         $variables = Variable::orderBy("nombre")->get();
-		
-    	return view('/concepto.add', ['naturalezas' => $naturalezas, 'tiposConcepto' => $tiposConcepto, 'variables' => $variables]);
+        
+        $gruposConcepto = DB::table("grupoconcepto")->orderBy("nombre")->get();
+
+
+    	return view('/concepto.add', ['naturalezas' => $naturalezas, 'tiposConcepto' => $tiposConcepto, 'variables' => $variables, "gruposConcepto" => $gruposConcepto]);
     }
 
     public function getFormulaConceptoAdd(){
@@ -111,7 +114,14 @@ class ConceptoController extends Controller
         $concepto->generacionAutomatica = $req->generacionAutomatica; 
         $concepto->save();
         
-        
+        if(isset($req->gruposConcepto)){
+            foreach($req->gruposConcepto as $key => $grupo){    
+                DB::table('grupoconcepto_concepto')->insert([
+                    "fkConcepto" => $concepto->idconcepto,
+                    "fkGrupoConcepto" => $grupo
+                ]);
+            }
+        }
 
         if($req->subTipo == "Formula"){
             $arrInsertFormulaConcepto = array("fkConcepto" => $concepto->idconcepto);
@@ -172,12 +182,20 @@ class ConceptoController extends Controller
         $concepto = DB::table('concepto','c')->where("idconcepto","=", $idConcepto)->first();
         $formulaConcepto = DB::table('formulaconcepto', 'fc')->where("fkConcepto", "=", $idConcepto)->get();
 
+        $gruposConcepto = DB::table("grupoconcepto","gc")
+        ->select("gc.*", "gcc.fkConcepto as relacion")
+        ->leftjoin('grupoconcepto_concepto as gcc', function($join) use($idConcepto){
+            $join->on('gcc.fkGrupoConcepto','=','gc.idgrupoConcepto'); 
+            $join->where('gcc.fkConcepto','=',$idConcepto);
+        })
+        ->orderBy("gc.nombre")->get();
     	return view('/concepto.copy', [
             'naturalezas' => $naturalezas,
             'tiposConcepto' => $tiposConcepto,
             'variables' => $variables,
             'formulaConcepto' => $formulaConcepto,
-            'concepto' => $concepto
+            'concepto' => $concepto,
+            "gruposConcepto" => $gruposConcepto
         ]);
     }
     public function getFormEdit($idConcepto){
@@ -188,12 +206,22 @@ class ConceptoController extends Controller
         $concepto = DB::table('concepto','c')->where("idconcepto","=", $idConcepto)->first();
         $formulaConcepto = DB::table('formulaconcepto', 'fc')->where("fkConcepto", "=", $idConcepto)->get();
 
+        $gruposConcepto = DB::table("grupoconcepto","gc")
+        ->select("gc.*", "gcc.fkConcepto as relacion")
+        ->leftjoin('grupoconcepto_concepto as gcc', function($join) use($idConcepto){
+            $join->on('gcc.fkGrupoConcepto','=','gc.idgrupoConcepto'); 
+            $join->where('gcc.fkConcepto','=',$idConcepto);
+        })
+        ->orderBy("gc.nombre")->get();
+        
+
     	return view('/concepto.edit', [
             'naturalezas' => $naturalezas,
             'tiposConcepto' => $tiposConcepto,
             'variables' => $variables,
             'formulaConcepto' => $formulaConcepto,
-            'concepto' => $concepto
+            'concepto' => $concepto,
+            "gruposConcepto" => $gruposConcepto
         ]);
     }
     public function getFormulaConceptoMod($idConcepto){
@@ -240,6 +268,45 @@ class ConceptoController extends Controller
         $concepto->generacionAutomatica = $req->generacionAutomatica; 
         $concepto->save();
         
+        if(isset($req->gruposConceptoRelacion)){
+            foreach($req->gruposConceptoRelacion as $key => $relacion){    
+               
+                if($relacion != "0"){
+
+                    $valid=false;
+                    foreach($req->gruposConcepto as $grupo){
+                        if($grupo==$req->gruposConceptoIds[$key]){
+                            $valid=true;
+                        }
+                    }
+
+                    if(!$valid){            
+                        DB::table('grupoconcepto_concepto')
+                        ->where("fkConcepto", "=",$concepto->idconcepto)
+                        ->where("fkGrupoConcepto", "=", $req->gruposConceptoIds[$key])
+                        ->delete();
+                    }
+                }
+                else{
+                    $valid=false;
+                    foreach($req->gruposConcepto as $grupo){
+                        if($grupo==$req->gruposConceptoIds[$key]){
+                            $valid=true;
+                        }
+                    }
+                    if($valid){
+                        DB::table('grupoconcepto_concepto')->insert([
+                            "fkConcepto" => $concepto->idconcepto,
+                            "fkGrupoConcepto" => $req->gruposConceptoIds[$key]
+                        ]);
+                    }
+                    
+                   
+                }
+               
+            }
+        }
+
         
         DB::table('formulaconcepto')->where("fkConcepto", "=", $req->idconcepto)->delete();
         if($req->subTipo == "Formula"){
@@ -308,7 +375,14 @@ class ConceptoController extends Controller
         $concepto->generacionAutomatica = $req->generacionAutomatica; 
         $concepto->save();
         
-        
+        if(isset($req->gruposConcepto)){
+            foreach($req->gruposConcepto as $key => $grupo){    
+                DB::table('grupoconcepto_concepto')->insert([
+                    "fkConcepto" => $concepto->idconcepto,
+                    "fkGrupoConcepto" => $grupo
+                ]);
+            }
+        }
 
         if($req->subTipo == "Formula"){
             $arrInsertFormulaConcepto = array("fkConcepto" => $concepto->idconcepto);
@@ -364,7 +438,7 @@ class ConceptoController extends Controller
             );
             DB::table('conceptosxtipoliquidacion')->insert($arrConceptoTipoLiquidacion);
         }
-
+/*
         $grupoConceptoConcepto = DB::table('grupoconcepto_concepto')
         ->where("fkConcepto","=",$req->idconcepto)
         ->get();
@@ -376,7 +450,7 @@ class ConceptoController extends Controller
             );
             DB::table('grupoconcepto_concepto')->insert($arrGrupoconcepto_concepto);
         }
-
+*/
         $tiponovconceptotipoent = DB::table('tiponovconceptotipoent')
         ->where("fkConcepto","=",$req->idconcepto)
         ->get();

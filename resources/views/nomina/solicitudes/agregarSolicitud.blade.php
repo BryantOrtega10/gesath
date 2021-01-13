@@ -77,6 +77,7 @@
         </form>
     </div>
     
-    
+    <script type="text/javascript" src="{{ URL::asset('js/jquery.inputmask.js') }}"></script>
+    <script type="text/javascript" src="{{ URL::asset('js/jquery.inputmask.numeric.extensions.js') }}"></script>
     <script type="text/javascript" src="{{ URL::asset('js/nomina/agregarSolicitud.js') }}"></script>
 @endsection

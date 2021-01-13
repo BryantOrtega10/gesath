@@ -620,28 +620,45 @@ class NovedadesController extends Controller
                 $fecha->add(new DateInterval('P1D'));
                 if($empleado->sabadoLaborable == "1"){
                     if(date('N',strtotime($fecha->format('Y-m-d')))<=6){
-                        $i++;
+                        
+                        $calendarios = DB::table("calendario")->selectRaw("count(*) as cuenta")
+                        ->where("fecha", "=", $fecha->format('Y-m-d'))->first();
+                        if($calendarios->cuenta == 0){
+                            $i++;
+                        }
                     }
                 }
                 else{
+
                     if(date('N',strtotime($fecha->format('Y-m-d')))<=5){
-                        $i++;
+                        $calendarios = DB::table("calendario")->selectRaw("count(*) as cuenta")
+                        ->where("fecha", "=", $fecha->format('Y-m-d'))->first();
+                        if($calendarios->cuenta == 0){
+                            $i++;
+                        }
                     }
                 }
+
+
+
+
+
+                
             }
             
 
-            $calendarios = DB::table("calendario")->selectRaw("count(*) as cuenta")
+            /*$calendarios = DB::table("calendario")->selectRaw("count(*) as cuenta")
             ->whereBetween("fecha",[$req->fecha,  $fecha->format('Y-m-d')])->first();
             if($calendarios->cuenta > 0){
 
                 $fecha->add(new DateInterval('P'.$calendarios->cuenta.'D'));
-            }
+            }*/
 
 
 
             $datetime1 = new DateTime($req->fecha);
             $datetime2 = new DateTime($fecha->format('Y-m-d'));
+
             $interval = $datetime1->diff($datetime2);
 
             return response()->json([
@@ -715,6 +732,7 @@ class NovedadesController extends Controller
             "fechaInicio" => $req->fechaInicial, 
             "fechaFin" => $req->fechaFinal,
             "diasCompensar" => $req->dias,
+            "diasCompletos" => $req->diasCompletos,
             "pagoAnticipado" => $req->pagoAnticipado
         ], "idVacaciones");
 
@@ -766,7 +784,7 @@ class NovedadesController extends Controller
         DB::table('novedad')->insert($arrInsertNovedad);
         return response()->json(['success'=>true]);
     }
-    public function lista(){
+    public function lista(Request $req){
         $novedades = DB::table("novedad","n")
         ->select([
             "n.*",
@@ -787,10 +805,32 @@ class NovedadesController extends Controller
         ->join("estado as est","est.idestado", "=", "n.fkEstado")
         ->join("empleado as e","e.idempleado", "=", "n.fkEmpleado")
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
-        ->where("n.fkEstado","=","7")->get();
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion");
+
+        if(isset($req->fechaInicio)){
+            $novedades = $novedades->where("n.fechaRegistro",">=",$req->fechaInicio);
+        }
+        
+        if(isset($req->fechaFin)){
+            $novedades = $novedades->where("n.fechaRegistro","<=",$req->fechaFin);
+        }
+
+        if(isset($req->nomina)){
+            $novedades = $novedades->where("n.fkNomina","=",$req->nomina);
+        }
+        if(isset($req->tipoNovedad)){
+            $novedades = $novedades->where("n.fkTipoNovedad","=",$req->tipoNovedad);
+        }
+
+        $novedades = $novedades->where("n.fkEstado","=","7")->get();
+        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $tiposnovedades = DB::table("tiponovedad")->orderBy("nombre")->get();
+
         return view('/novedades.listaNovedades',[
-            'novedades' => $novedades
+            'novedades' => $novedades,
+            "tiposnovedades" => $tiposnovedades,
+            "nominas" => $nominas,
+            "req" => $req
         ]);        
 
     }
@@ -897,11 +937,27 @@ class NovedadesController extends Controller
         }
         else if(isset($novedad->fkVacaciones)){
             $vacaciones = DB::table('vacaciones')->where("idVacaciones","=", $novedad->fkVacaciones)->first();
-            return view('/novedades.modificar.vacaciones',[
-                'novedad' => $novedad,
-                'vacaciones' => $vacaciones,
-                'conceptos' => $conceptos
-            ]);
+            $conceptos = DB::table("concepto", "c")
+            ->select(["c.*"])
+            ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
+            ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)
+            ->where("tnc.fkConcepto", "=", $novedad->fkConcepto)
+            ->get();
+            
+            if( $novedad->fkConcepto == "29"){
+                return view('/novedades.modificar.vacaciones',[
+                    'novedad' => $novedad,
+                    'vacaciones' => $vacaciones,
+                    'conceptos' => $conceptos
+                ]);
+            }
+            else{
+                return view('/novedades.modificar.vacaciones2',[
+                    'novedad' => $novedad,
+                    'vacaciones' => $vacaciones,
+                    'conceptos' => $conceptos
+                ]);
+            }
         }
         else if(isset($novedad->fkOtros)){
             
@@ -1296,6 +1352,7 @@ class NovedadesController extends Controller
             "fechaInicio" => $req->fechaInicial, 
             "fechaFin" => $req->fechaFinal,
             "diasCompensar" => $req->dias,
+            "diasCompletos" => $req->diasCompletos,
             "pagoAnticipado" => $req->pagoAnticipado
         ];
 
@@ -1484,7 +1541,6 @@ class NovedadesController extends Controller
                 $req->concepto = $row[3];
                 $empleado = DB::table("empleado","e")
                 ->join("datospersonales as dp","dp.idDatosPersonales", "=","e.fkDatosPersonales")
-                ->where("dp.fkTipoIdentificacion", "=",$row[4])
                 ->where("dp.numeroIdentificacion", "=",$row[5])
                 ->get();
                 $req->idEmpleado = null;
@@ -1609,10 +1665,26 @@ class NovedadesController extends Controller
                 }
                 else if($row[0]=="2"){
 
-                    
                     $req->dias = $row[8];
-                    $req->fechaInicial = $row[9];
                     $req->fechaFinal = $row[10];
+                    if(!empty($row[9]) && !empty($row[10])){
+                        $datetime1 = new DateTime($row[9]);
+                        $datetime2 = new DateTime($row[10]);
+
+                        $interval = $datetime1->diff($datetime2);
+                        $req->dias = ($interval->format('%a') + 1);
+                    }
+                    else if(empty($row[10])){
+                        $datetime1 = new DateTime($row[9]);
+                        
+                        $datetime1->add(new DateInterval('P'.($req->dias - 1).'D'));
+                        $req->fechaFinal = $datetime1->format("Y-m-d");
+                    }
+
+
+                    
+                    $req->fechaInicial = $row[9];
+                    
                     $req->fechaRealI = $row[11];
                     $req->fechaRealF = $row[12];
                     $req->pagoTotal = $row[13];

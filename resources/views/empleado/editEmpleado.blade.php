@@ -1005,7 +1005,7 @@
                                 <input type="text" class="form-control" id="infoNoCuenta" name="infoNoCuenta" value="{{ $empleado->numeroCuenta }}"/>
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-2">
                             <div class="form-group @isset($empleado->tipoCuenta) hasText @endisset">
                                 <label for="infoTipoCuenta" class="control-label">Tipo cuenta:</label>
                                 <select class="form-control" id="infoTipoCuenta" name="infoTipoCuenta">
@@ -1017,7 +1017,18 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-2">
+                            <div class="form-group @isset($empleado->fkTipoIdentificacion) hasText @endif">
+                                <label for="infoOtroTIdentificacion" class="control-label">Tipo Identificación</label>
+                                <select class="form-control" id="infoOtroTIdentificacion" name="infoOtroTIdentificacion">
+                                    <option value=""></option>
+                                    @foreach ($tipoidentificacion as $tipoidentificacio)
+                                        <option value="{{$tipoidentificacio->idtipoIdentificacion}}" @if($tipoidentificacio->idtipoIdentificacion == $empleado->fkTipoOtroDocumento) selected @endif>{{$tipoidentificacio->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-2">
                             <div class="form-group @isset($empleado->otroDocumento) hasText @endisset">
                                 <label for="infoOtroDocumento" class="control-label">Otro documento</label>
                                 <input type="text" class="form-control" id="infoOtroDocumento" name="infoOtroDocumento" value="{{$empleado->otroDocumento}}"/>
@@ -1563,6 +1574,19 @@
                                         <option value="{{$nivelArl->idnivel_arl}}" @if($empleado->fkNivelArl == $nivelArl->idnivel_arl)
                                             selected
                                         @endif  >{{$nivelArl->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-group @isset($empleado->fkCentroTrabajo) hasText @endisset">
+                                <label for="afiliacionCentroTrabajo" class="control-label">Centro trabajo *</label>
+                                <select class="form-control" id="afiliacionCentroTrabajo" name="afiliacionCentroTrabajo">
+                                    <option value=""></option>
+                                    @foreach ($centrosTrabajo as $centroTrabajo)
+                                        <option value="{{$centroTrabajo->idCentroTrabajo}}" @if($empleado->fkCentroTrabajo == $centroTrabajo->idCentroTrabajo)
+                                            selected
+                                        @endif  >{{$centroTrabajo->codigo}} - {{$centroTrabajo->nombre}}</option>
                                     @endforeach
                                 </select>
                             </div>
