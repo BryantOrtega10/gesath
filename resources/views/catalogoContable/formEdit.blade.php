@@ -30,30 +30,30 @@
 			@endforeach
 		</select>
 	</div>
-	<div class="cuentaCreditoNueva">
+	<div class="cuentaCreditoNueva activo2">
 		<div class="form-group">
 			<label for="cuentaCred2" class="control-label">Cuenta credito *</label>
-			<input type="text" class="form-control" id="cuentaCred2" name="cuentaCred2" />
+			<input type="text" class="form-control" id="cuentaCred2" name="cuentaCred2" value="{{$datosCuentaCred->cuenta}}" />
 		</div>	
 		<div class="form-group">
 			<label for="descripcionCred" class="control-label">Descripcion cuenta credito *</label>
-			<input type="text" class="form-control" id="descripcionCred" name="descripcionCred" />
+			<input type="text" class="form-control" id="descripcionCred" name="descripcionCred" value="{{$datosCuentaCred->descripcion}}" />
 		</div>	
 		<div class="form-group">
 			<label for="fkTipoTerceroCred" class="control-label">Tipo tercero credito*</label>
 			<select class="form-control" id="fkTipoTerceroCred"  name="fkTipoTerceroCred">
 				<option value="">Seleccione uno</option>
 				@foreach($tipoTerceroCuenta as $tipoCuenta)
-					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}">{{$tipoCuenta->nombre}}</option>
+					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}" @if($datosCuentaCred->fkTipoTercero==$tipoCuenta->idTipoTerceroCuenta) selected @endif >{{$tipoCuenta->nombre}}</option>
 				@endforeach
 			</select>
 		</div>
-		<div class="form-group elementoTerceroCred">
+		<div class="form-group elementoTerceroCred @if ($datosCuentaCred->fkTipoTercero == "8") activo @endif">
 			<label for="fkTerceroCred" class="control-label">Tercero credito*</label>
 			<select class="form-control" id="fkTerceroCred" name="fkTerceroCred">
 				<option value="">Seleccione uno</option>
 				@foreach($terceros as $tercero)
-					<option value="{{$tercero->idTercero}}">{{$tercero->razonSocial}}</option>
+					<option value="{{$tercero->idTercero}}" @if($datosCuentaCred->fkTercero==$tercero->idTercero) selected @endif >{{$tercero->razonSocial}}</option>
 				@endforeach
 			</select>
 		</div>		
@@ -67,30 +67,30 @@
 			@endforeach
 		</select>
 	</div>
-	<div class="cuentaDebitoNueva">
+	<div class="cuentaDebitoNueva activo2">
 		<div class="form-group">
 			<label for="cuentaDeb2" class="control-label">Cuenta debito *</label>
-			<input type="text" class="form-control" id="cuentaDeb2" name="cuentaDeb2" />
+			<input type="text" class="form-control" id="cuentaDeb2" name="cuentaDeb2" value="{{$datosCuentaDeb->cuenta}}"/>
 		</div>	
 		<div class="form-group">
 			<label for="descripcionDeb" class="control-label">Descripcion cuenta debito *</label>
-			<input type="text" class="form-control" id="descripcionDeb" name="descripcionDeb" />
+			<input type="text" class="form-control" id="descripcionDeb" name="descripcionDeb"   value="{{$datosCuentaDeb->descripcion}}"/>
 		</div>	
 		<div class="form-group">
 			<label for="fkTipoTerceroDeb" class="control-label">Tipo tercero debito*</label>
 			<select class="form-control" id="fkTipoTerceroDeb" name="fkTipoTerceroDeb">
 				<option value="">Seleccione uno</option>
 				@foreach($tipoTerceroCuenta as $tipoCuenta)
-					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}">{{$tipoCuenta->nombre}}</option>
+					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}"  @if($datosCuentaDeb->fkTipoTercero == $tipoCuenta->idTipoTerceroCuenta) selected @endif>{{$tipoCuenta->nombre}}</option>
 				@endforeach
 			</select>
 		</div>
-		<div class="form-group elementoTerceroDeb">
+		<div class="form-group elementoTerceroDeb @if ($datosCuentaCred->fkTipoTercero == "8") activo @endif">
 			<label for="fkTerceroDeb" class="control-label">Tercero debito*</label>
 			<select class="form-control" id="fkTerceroDeb" name="fkTerceroDeb">
 				<option value="">Seleccione uno</option>
 				@foreach($terceros as $tercero)
-					<option value="{{$tercero->idTercero}}">{{$tercero->razonSocial}}</option>
+					<option value="{{$tercero->idTercero}}" @if($datosCuentaDeb->fkTercero== $tercero->idTercero) selected @endif>{{$tercero->razonSocial}}</option>
 				@endforeach
 			</select>
 		</div>		

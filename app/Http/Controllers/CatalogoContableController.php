@@ -435,36 +435,36 @@ class CatalogoContableController extends Controller
     public function modificar(Request $req){
         $errors = array();
         
-        if($req->cuentaCred == "nueva"){
-            if(!isset($req->cuentaCred2)){
-                array_push($errors, "Cuenta credito vacia");
-            }
-            if(!isset($req->descripcionCred)){
-                array_push($errors, "Descripción cuenta credito vacio");
-            }
-            if(!isset($req->fkTipoTerceroCred)){
-                array_push($errors, "Tipo tercero credito vacio");
-            }
-            if(!isset($req->fkTerceroCred) && $req->fkTipoTerceroCred == "8"){
-                array_push($errors, "Tercero fijo credito vacio");
-            }
+       
+        if(!isset($req->cuentaCred2)){
+            array_push($errors, "Cuenta credito vacia");
+        }
+        if(!isset($req->descripcionCred)){
+            array_push($errors, "Descripción cuenta credito vacio");
+        }
+        if(!isset($req->fkTipoTerceroCred)){
+            array_push($errors, "Tipo tercero credito vacio");
+        }
+        if(!isset($req->fkTerceroCred) && $req->fkTipoTerceroCred == "8"){
+            array_push($errors, "Tercero fijo credito vacio");
         }
         
+        
 
-        if($req->cuentaDeb == "nueva"){
-            if(!isset($req->cuentaDeb2)){
-                array_push($errors, "Cuenta debito vacia");
-            }
-            if(!isset($req->descripcionDeb)){
-                array_push($errors, "Descripción cuenta debito vacio");
-            }
-            if(!isset($req->fkTipoTerceroDeb)){
-                array_push($errors, "Tipo tercero debito vacio");
-            }
-            if(!isset($req->fkTerceroDeb) && $req->fkTipoTerceroDeb == "8"){
-                array_push($errors, "Tercero fijo debito vacio");
-            }
+    
+        if(!isset($req->cuentaDeb2)){
+            array_push($errors, "Cuenta debito vacia");
         }
+        if(!isset($req->descripcionDeb)){
+            array_push($errors, "Descripción cuenta debito vacio");
+        }
+        if(!isset($req->fkTipoTerceroDeb)){
+            array_push($errors, "Tipo tercero debito vacio");
+        }
+        if(!isset($req->fkTerceroDeb) && $req->fkTipoTerceroDeb == "8"){
+            array_push($errors, "Tercero fijo debito vacio");
+        }
+        
 
         if(!isset($req->fkEmpresa)){
             array_push($errors, "Empresa vacia");
@@ -503,7 +503,18 @@ class CatalogoContableController extends Controller
             ];
             $idCuentaCredito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
         }
-
+        else{
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionCred,
+                "cuenta" => $req->cuentaCred2,
+                "fkTipoTercero" => $req->fkTipoTerceroCred,
+                "fkTercero" => $req->fkTerceroCred,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            DB::table("catalgocontable")->where("idCatalgoContable", "=",$idCuentaCredito)->update($arrCatalogo);
+        }
 
         $idCuentaDebito = $req->cuentaDeb;
         if($req->cuentaDeb == "nueva"){
@@ -517,6 +528,18 @@ class CatalogoContableController extends Controller
                 "tipoComportamiento" => "1"
             ];
             $idCuentaDebito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
+        }
+        else{
+            $arrCatalogo = [
+                "descripcion" => $req->descripcionDeb,
+                "cuenta" => $req->cuentaDeb2,
+                "fkTipoTercero" => $req->fkTipoTerceroDeb,
+                "fkTercero" => $req->fkTerceroDeb,
+                "fkEmpresa" => $req->fkEmpresa,
+                "fkCentroCosto" => $req->fkCentroCosto,
+                "tipoComportamiento" => "1"
+            ];
+            DB::table("catalgocontable")->where("idCatalgoContable", "=",$idCuentaDebito)->update($arrCatalogo);
         }
         
         foreach($req->tablaConsulta as $row => $tablaConsulta){

@@ -880,7 +880,7 @@ a.btnSubmitGen:hover {
     padding-left: 50px;
     display: none;
 }
-.cuentaCreditoNueva.activo, .cuentaDebitoNueva.activo {
+.cuentaCreditoNueva.activo, .cuentaDebitoNueva.activo, .cuentaCreditoNueva.activo2, .cuentaDebitoNueva.activo2 {
     display: block;
 }
 
@@ -1035,6 +1035,9 @@ select.error {
     padding: 0;
 }
 
+img.formulario {
+    width: 110px;
+}
 
 /* FIN ESTILOS SEBASTIAN GOMEZ */
 

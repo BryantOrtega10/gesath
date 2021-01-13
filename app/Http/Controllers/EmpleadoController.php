@@ -2314,6 +2314,7 @@ class EmpleadoController extends Controller
             $contents = Storage::get($cargaEmpleado->rutaArchivo);
             
             $reader = Reader::createFromString($contents);
+            
             $reader->setOutputBOM(Reader::BOM_UTF8);
             $reader->setDelimiter(';');
             // Create a customer from each row in the CSV file

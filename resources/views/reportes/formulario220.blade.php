@@ -52,16 +52,29 @@
                 </div>
                 <div class="row">
                     <div class="col-3">
-                        <div class="form-group hasText">
-                            <label for="anio" class="control-label">Año:</label>
-                            <input type="number" class="form-control" id="anio" name="anio" max="{{date("Y")}}" value="{{date("Y")}}"/>
-                 
+                        <div class="form-group">
+                            <label for="anio" class="control-label">Año</label>
+                            <select class="form-control" id="anio" name="anio">
+                                <option value=""></option>        
+                                @foreach ($formularios as $formulario)
+                                    <option value="{{$formulario->idFormulario220}}">{{$formulario->anio}}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>            
                     <div class="col-3">
                         <div class="form-group">
                             <label for="agenteRetenedor" class="control-label">Agente retenedor:</label>
                             <input type="text" class="form-control" id="agenteRetenedor" name="agenteRetenedor" />
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group hasText">
+                            <label for="reporte" class="control-label">Reporte</label>
+                            <select class="form-control" id="reporte" name="reporte">
+                                <option value="PDF">PDF</option>        
+                                <option value="EXCEL">EXCEL</option>                                
+                            </select>
                         </div>
                     </div>
                     <div class="col-3">

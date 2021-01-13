@@ -9726,4 +9726,123 @@ class NominaController extends Controller
         $redondeo = $redondeo * pow(10,$presicion*-1);
         return $redondeo;
     }
+    public function cambiarConceptosFijosIndex(){
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        return view('/nomina.cambiarConceptoFijo', ["empresas" => $empresas ]);
+    }
+    public function subirCambioConceptoFijo(Request $req){
+
+
+        
+        $csv = $req->file("archivoCSV");
+        $subidos = 0;
+        $reader = Reader::createFromFileObject($csv->openFile());
+        $reader->setDelimiter(';');
+        foreach($reader as $id => $row){
+            
+            foreach($row as $key =>$valor){
+                if($valor==""){
+                    $row[$key]=null;
+                }
+                else{
+                    $row[$key] = mb_convert_encoding($row[$key],"UTF-8");
+                    if(strpos($row[$key], "/")){
+                        
+                        $dt = DateTime::createFromFormat("d/m/Y", $row[$key]);
+                        if($dt === false){
+                            $dt = new DateTime();
+                        }
+                        $ts = $dt->getTimestamp();
+                        $row[$key] = date("Y-m-d", $ts);
+                    }
+                }
+            }
+            
+            //Buscar empleado
+
+            $empleado = DB::table("empleado","e")
+            ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+            ->where("dp.numeroIdentificacion","=",$row[0])->first();
+
+            if(isset($empleado)){
+                $conceptoFijo = DB::table("conceptofijo","cf")
+                ->where("cf.fkEmpleado","=",$empleado->idempleado)
+                ->where("cf.fkConcepto","=",$row[1])
+                ->first();
+                if(isset($conceptoFijo)){
+
+                    $idCambioSalario = 0;
+                    if($row[1] == "1" || $row[1] == "2"){                        
+                        $idCambioSalario = DB::table("cambiosalario")->insertGetId([
+                            "fechaCambio" => $row[3],
+                            "fkEstado" => "4",
+                            "valorNuevo" => $row[2],
+                            "valorAnterior" => $conceptoFijo->valor
+                        ], "idCambioSalario");
+
+                        if(strtotime($row[3]) < strtotime("today")){
+                            DB::table("cambiosalario",)->where("idCambioSalario","=",$idCambioSalario)->update(["fkEstado" => "5"]);
+                            DB::table("conceptofijo")
+                            ->where("idConceptoFijo","=",$conceptoFijo->idConceptoFijo)
+                            ->update([
+                                "fechaInicio" => $row[3],
+                                "fechaFin" => (isset($row[4]) ? $row[4] : NULL),
+                                "valor" => $row[2],
+                                "fkEstado" => "1"
+                            ]);
+                        }
+                        $subidos++;
+                    }
+                    else{
+                        DB::table("conceptofijo")
+                        ->where("idConceptoFijo","=",$conceptoFijo->idConceptoFijo)
+                        ->update([
+                            "fechaInicio" => $row[3],
+                            "fechaFin" => (isset($row[4]) ? $row[4] : NULL),
+                            "valor" => $row[2],
+                            "fkEstado" => "4"
+                        ]);
+                        if(strtotime($row[3]) < strtotime("today")){
+                            DB::table("conceptofijo")
+                            ->where("idConceptoFijo","=",$conceptoFijo->idConceptoFijo)
+                            ->update(["fkEstado" => "1"]);
+                        }
+                        $subidos++;
+                    }
+
+                    
+                }
+                else{
+                    $idConceptoFijo = DB::table("conceptofijo")
+                    ->insertGetId([
+                        "unidad" => "MES",
+                        "fkEmpleado" => $empleado->idempleado,
+                        "fkConcepto" => $row[1],
+                        "fechaInicio" => $row[3],
+                        "fechaFin" => (isset($row[4]) ? $row[4] : NULL),
+                        "valor" => $row[2],
+                        "fkEstado" => "4"
+                    ],"idConceptoFijo");
+
+                    if(strtotime($row[3]) < strtotime("today")){
+                        DB::table("conceptofijo")
+                        ->where("idConceptoFijo","=",$idConceptoFijo)
+                        ->update(["fkEstado" => "1"]);
+                    }
+                    $subidos++;
+                }
+
+
+            }
+
+            
+        }
+
+
+        
+        return view('/nomina.subirConceptoFijoResumen', [
+            "subidos" => $subidos
+        ]);
+
+    }
 }

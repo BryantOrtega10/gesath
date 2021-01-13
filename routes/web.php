@@ -173,8 +173,9 @@ Route::group([
 	Route::get('verSolicitudLiquidacionSinEdit/{id}','NominaController@verSolicitudLiquidacionSinEdit');	
 	Route::get('centroCostoPeriodo','NominaController@centroCostoPeriodo');
 
+	Route::get('cambiarConceptosFijos','NominaController@cambiarConceptosFijosIndex');
+	Route::post('subirCambioConceptoFijo','NominaController@subirCambioConceptoFijo');
 	
-
 
 	Route::group(['prefix' => 'distri'], function(){
 		Route::get('add','NominaController@centroCostoPeriodoFormAdd');
@@ -214,11 +215,26 @@ Route::group([
 
 	Route::get('formulario220','ReportesNominaController@indexFormulario220');
 	Route::post('generarFormulario220','ReportesNominaController@formulario220Dian');
+
+
+	Route::get('novedades','ReportesNominaController@indexNovedades');
+	Route::post('generarNovedades','ReportesNominaController@generarNovedades');
 	
 	
 });
 
-
+Route::group([
+	'prefix' => 'formulario220',
+	'middleware' => ['auth', 'guest:2,3'],
+], function(){
+	Route::get('/','Formulario220Controller@index');
+	Route::get('/getForm/add','Formulario220Controller@getFormAdd');
+	Route::get('/getForm/edit/{id}','Formulario220Controller@getFormEdit');
+	
+	Route::post('crear','Formulario220Controller@crear');
+	Route::post('modificar','Formulario220Controller@modificar');
+	
+});
 
 Route::group([
 	'prefix' => 'datosPasados',
