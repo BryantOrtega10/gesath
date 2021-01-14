@@ -14,9 +14,11 @@ class GrupoConceptoController extends Controller
     public function index(){
     	
         $grupoConceptos = GrupoConcepto::all();
-
-        
-    	return view('/grupoConcepto.grupoConcepto', ['grupos' => $grupoConceptos]);
+        $usu = UsuarioController::dataAdminLogueado();
+    	return view('/grupoConcepto.grupoConcepto', [
+            'grupos' => $grupoConceptos,
+            'dataUsu' => $usu
+        ]);
     }
     public function getFormAdd(){
         $conceptos = DB::table('concepto')->orderBy('nombre')->get();        

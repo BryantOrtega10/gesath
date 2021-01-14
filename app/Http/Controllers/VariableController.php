@@ -11,9 +11,12 @@ class VariableController extends Controller
 
         $variables = Variable::all();
         $arrConsulta = array();
-
-        return view('/variables.variable', ['variables' => $variables,
-        "arrConsulta" => $arrConsulta]);
+        $usu = UsuarioController::dataAdminLogueado();
+        return view('/variables.variable', [
+            'variables' => $variables,
+            "arrConsulta" => $arrConsulta,
+            'dataUsu' => $usu
+        ]);
     }
     public function getFormulaVariableAdd(){
         $variables = Variable::whereIn("fkTipoCampo", ["1","2","4"])->get();

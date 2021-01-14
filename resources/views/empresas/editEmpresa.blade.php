@@ -43,6 +43,20 @@
         <input type="text" class="form-control" id="razonSocial" name = "razonSocial" value = "{{ $empresa->razonSocial}}">
     </div>
 
+    <div class="form-group">
+        <label for="fkTipoIdentificacion">Tipo de identificación</label>
+        <select name="fkTipoIdentificacion" id="fkTipoIdentificacion" class="form-control">
+            <option value="">-- Seleccione una opción --</option>
+            @foreach ($tipoIdent as $tipo)
+                <option value="{{ $tipo->idtipoIdentificacion}}"
+                @if ($tipo->idtipoIdentificacion == old('fkTipoIdentificacion', $empresa->fkTipoIdentificacion))
+                    selected="selected"
+                @endif
+                >{{ $tipo->nombre }}</option>
+            @endforeach
+        </select>
+    </div>
+
     <div class="row">
         <div class="col form-group">
             <label for="documento">NIT</label>
@@ -71,17 +85,22 @@
     </div>   
     
     <div class="form-group">
-        <label for="fkTipoIdentificacion">Tipo de identificación</label>
-        <select name="fkTipoIdentificacion" id="fkTipoIdentificacion" class="form-control">
+        <label for="docRepresentante">Tipo de identificación representante</label>
+        <select name="docRepresentante" id="docRepresentante" class="form-control">
             <option value="">-- Seleccione una opción --</option>
             @foreach ($tipoIdent as $tipo)
                 <option value="{{ $tipo->idtipoIdentificacion}}"
-                @if ($tipo->idtipoIdentificacion == old('fkTipoIdentificacion', $empresa->fkTipoIdentificacion))
+                @if ($tipo->idtipoIdentificacion == old('docRepresentante', $empresa->fkTipoIdentificacion))
                     selected="selected"
                 @endif
                 >{{ $tipo->nombre }}</option>
             @endforeach
         </select>
+    </div>
+
+    <div class="form-group">
+        <label for="numDocRepresentante">Número Representante Legal</label>
+        <input type="text" class="form-control" id="numDocRepresentante" name = "numDocRepresentante" value = "{{ $empresa->numDocRepresentante }}">
     </div>
 
     {{-- <div class="row">
@@ -106,7 +125,7 @@
             <option value="">-- Seleccione una opción --</option>
             @foreach ($terceroArl as $terArl)
                 <option value="{{ $terArl->idTercero}}"
-                    @if ($terArl->idTercero == old('fkTercero_ARL', $empresa->fkTercero_ARL))
+                    @if ($c->idubicacion == old('ubi', $empresa->ubi))
                         selected="selected"
                     @endif
                     >{{ $terArl->razonSocial }}</option>
@@ -196,6 +215,14 @@
             @endif
         >
         <label class="form-check-label" for="exento">¿Exento de parafiscales?</label>
+    </div><br>
+        
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="vacacionesNegativas"
+            @if($empresa->vacacionesNegativas == 1)
+                checked
+            @endif>
+        <label class="form-check-label" for="vacacionesNegativas">¿Vacaciones negativas?</label>
     </div><br>
     
     <div class="form-group">

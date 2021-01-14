@@ -5,11 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\UserRequest;
+use App\Http\Requests\CrearUsuarioAdminRequest;
+use App\Http\Requests\SoloPassRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\User;
 
 class UsuarioController extends Controller
 {
     public function index() {
+        $usu = $this->dataAdminLogueado();
         $usuarios = User::select(
             'users.*',
             'rol.nombre'
@@ -17,20 +22,69 @@ class UsuarioController extends Controller
         ->join('rol', 'users.fkRol', 'rol.idrol')
         ->get();
         return view('/usuarios/usuarios', [
-            'usuarios' => $usuarios
+            'usuarios' => $usuarios,
+            'dataUsu' => $usu
         ]);
     }
 
-    public function getFormAdd() {
-        return view('/usuarios/addUsuario');
+    public static function dataAdminLogueado() {
+        $usuario = Auth::user();
+        $dataUsu = DB::table('users')->select(
+            'users.username',
+            'users.email',
+            'datospersonales.primerNombre',
+            'datospersonales.primerApellido',
+            'datospersonales.foto',
+            'empleado.idempleado'
+        )->join('empleado', 'users.fkEmpleado', 'empleado.idempleado')
+        ->join('empresa', 'empresa.idempresa', 'empleado.fkEmpresa')
+        ->join('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
+        ->where('users.id', $usuario->id)
+        ->first();
+        return $dataUsu;
     }
 
-    public function create(UserRequest $request) {
+    public function getFormAdd() {
+        $empresas = DB::table('empresa')
+        ->select(
+            'idempresa',
+            'razonSocial'
+        )
+        ->get();
+        return view('/usuarios/addUsuario', [
+            'empresas' => $empresas
+        ]);
+    }
+
+    public function create(CrearUsuarioAdminRequest $request) {
+        // Creamos primero registro de datos personales
+        $image = $request->file('foto');
+        $name = "imagen_" . time() . '.' . $image->getClientOriginalExtension();
+        $destinationPath = storage_path('app/public/imgEmpleados');
+        $image->move($destinationPath, $name);
+
+        $idDatosP = DB::table('datospersonales')->insertGetId([
+            'foto' => $name,
+            'primerNombre' => $request->primerNombre,
+            'primerApellido' => $request->primerApellido
+        ]);
+
+        // Creamos registro de empleado
+
+        $idRecEmp = DB::table('empleado')->insertGetId([
+            'fkDatosPersonales' => $idDatosP,
+            'fkEmpresa' => $request->fkEmpresa,
+            'fechaIngreso' => date('Y-m-d')
+        ]);
+
+        // Creamos registro en la tabla usuarios
+
         $usuario = new User();
         $usuario->username = $request->username;
         $usuario->email = $request->email;
         $usuario->password = $request->password;
         $usuario->fkRol = $request->fkRol;
+        $usuario->fkEmpleado = $idRecEmp;
         $usuario->estado = 1;
         $usuario->created_at = date("Y-m-d H:i:s");
         $usuario->updated_at = date("Y-m-d H:i:s");
@@ -149,7 +203,7 @@ class UsuarioController extends Controller
 		}
     }
 
-    public function actPass(Request $request, $id) {
+    public function actPass(SoloPassRequest $request, $id) {
         try {
             $usuario = User::findOrFail($id);
             $usuario->password = $request->password;

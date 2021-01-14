@@ -25,7 +25,10 @@ class EmpresaModel extends Model
         'email2',
         'exento',
         'representanteLegal',
-        'logoEmpresa'
+        'docRepresentante',
+        'numDocRepresentante',
+        'logoEmpresa',
+        'vacacionesNegativas'
     ];
     public $timestamps = false;
 }

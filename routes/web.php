@@ -425,6 +425,17 @@ Route::group([
 		Route::post('/update/{idNomina}', 'NominaEmpresaController@update');
 		Route::post('/delete/{idNomina}', 'NominaEmpresaController@delete');
 	});
+
+	Route::group([ 'prefix' => 'centroTrabajo' ], function() {
+		Route::get('/{id}', 'CentroTrabajoController@index');
+		Route::get('/getFormAdd/{id}', 'CentroTrabajoController@getFormAdd');
+		Route::post('/agregarCentroTrabajo/{id}', 'CentroTrabajoController@create');
+		Route::get('/datosCentroTrabajoXId/{id}', 'CentroTrabajoController@edit');
+		Route::get('/detalleCentroTrabajo/{id}', 'CentroTrabajoController@detail');
+		Route::post('/editarCentroTrabajo/{id}', 'CentroTrabajoController@update');
+		Route::post('/eliminarCentroTrabajo/{id}', 'CentroTrabajoController@delete');
+	});
+
 });
 
 Route::group([
@@ -443,6 +454,18 @@ Route::group([
 	
 });
 
+Route::group([
+	'prefix' => 'calendario',
+	'middleware' => ['auth', 'guest:2,3'],
+], function() {
+	Route::get('/', 'CalendarioController@index');
+	Route::get('/getFormAdd', 'CalendarioController@getFormAdd');
+	Route::post('/agregarCalendario', 'CalendarioController@create');
+	Route::get('/datosCalendarioXId/{id}', 'CalendarioController@edit');
+	Route::get('/detalleCalendario/{id}', 'CalendarioController@detail');
+	Route::post('/editarCalendario/{id}', 'CalendarioController@update');
+	Route::post('/eliminarCalendario/{id}', 'CalendarioController@delete');
+});
 
 Route::group([
 	'prefix' => 'usuarios',
@@ -464,7 +487,9 @@ Route::get('/recuperar_pass', 'InicioController@vistaRecuperarMail');
 Route::get('/vista_rec_pass/{token}', 'InicioController@vistaActPass');
 Route::post('/enviar_correo_rec_pass', 'InicioController@validarUsuario');
 Route::post('/act_pass', 'InicioController@resetPassword');
+Route::get('/dataUsuLog', 'UsuarioController@dataAdminLogueado');
 
+ 
  
 Route::get("storage-link", function(){
     File::link(
@@ -493,6 +518,7 @@ Route::group([
 	Route::post('/ediDatosEmple/{idEmpleado}', 'PortalEmpleadoController@editarDataEmple');
 	Route::get('/getVistaPass/{id}', 'PortalEmpleadoController@vistaActPass');
 	Route::post('/cambiarContrasenia/{id}', 'PortalEmpleadoController@actPass');
+	Route::post('/cambiarContrasenia/{id}', 'PortalEmpleadoController@actOnlyPass');
 });
 
 // Ruta para eliminar cache de la aplicacion

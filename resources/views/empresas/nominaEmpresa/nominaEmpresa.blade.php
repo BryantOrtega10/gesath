@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Nómina por empresa')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 @section('contenido')
 <h1>Nómina empresa</h1>

@@ -20,8 +20,11 @@ class TransaccionController extends Controller
         ->paginate(15); 
 
 
-        return view('/transaccion.index',
-            ["transacciones" => $transacciones]
+        $usu = UsuarioController::dataAdminLogueado();
+        return view('/transaccion.index', [
+            "transacciones" => $transacciones,
+            'dataUsu' => $usu
+        ]
         );
     }
     public function getFormAdd(){

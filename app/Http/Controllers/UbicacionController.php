@@ -9,13 +9,16 @@ class UbicacionController extends Controller
 {
     public function index(){
 		$ubicaciones = DB::table('ubicacion')
-    							->join('tipoubicacion AS tpu', 'tpu.idtipoUbicacion', '=', 'ubicacion.fkTipoUbicacion')
-    							->join('ubicacion AS u2','ubicacion.idUbicacion', '=', 'u2.idUbicacion')
-								->select('ubicacion.*', 'tpu.nombre AS tpu_nombre', 'u2.nombre AS u2_nombre')
-								->orderBy('ubicacion.fkTipoUbicacion', 'asc')
-								->orderBy('ubicacion.nombre', 'asc')->get();
-   
-    	return view('/ubicacion.ubicacion', ['ubicaciones' => $ubicaciones]);
+		->join('tipoubicacion AS tpu', 'tpu.idtipoUbicacion', '=', 'ubicacion.fkTipoUbicacion')
+		->join('ubicacion AS u2','ubicacion.idUbicacion', '=', 'u2.idUbicacion')
+		->select('ubicacion.*', 'tpu.nombre AS tpu_nombre', 'u2.nombre AS u2_nombre')
+		->orderBy('ubicacion.fkTipoUbicacion', 'asc')
+		->orderBy('ubicacion.nombre', 'asc')->get();
+		$usu = UsuarioController::dataAdminLogueado();
+    	return view('/ubicacion.ubicacion', [
+			'ubicaciones' => $ubicaciones,
+			'dataUsu' => $usu
+		]);
     }
     public function getFormAdd(){
 		$tUbicacion = DB::table('tipoubicacion')->get();

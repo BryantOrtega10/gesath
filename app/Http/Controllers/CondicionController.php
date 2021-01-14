@@ -16,8 +16,12 @@ class CondicionController extends Controller
         ->join('tiporesultado AS tr', 'tr.idtipoResultado', '=', 'condicion.fkTipoResultado')
         ->where('condicion.fkConcepto', $idConcepto)
         ->get();
-      
-        return view('/concepto.condiciones.condiciones', ['condiciones' => $condiciones, 'idConcepto' => $idConcepto]);
+        $usu = UsuarioController::dataAdminLogueado();
+        return view('/concepto.condiciones.condiciones', [
+            'condiciones' => $condiciones,
+            'idConcepto' => $idConcepto,
+            'dataUsu' => $usu
+        ]);
     }
     public function getFormAdd($idConcepto){
 

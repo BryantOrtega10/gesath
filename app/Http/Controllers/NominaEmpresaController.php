@@ -13,8 +13,10 @@ class NominaEmpresaController extends Controller
 {
     public function index($id) {
         $nominaEmpresa = NominaEmpresaModel::where('fkEmpresa', $id)->get();
+        $usu = UsuarioController::dataAdminLogueado();
         return view('/empresas/nominaEmpresa.nominaEmpresa', [
-            "nominaEmpresa" => $nominaEmpresa
+            "nominaEmpresa" => $nominaEmpresa,
+            'dataUsu' => $usu
         ]);
     }
 

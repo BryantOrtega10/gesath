@@ -45,7 +45,7 @@ class ActPassRequest extends FormRequest
     public function messages()
     {
         return [
-            'Token.required' => 'Es necesario el token de activación',
+            'token.required' => 'Es necesario el token de activación',
             'email.required' => 'Correo electrónico requerido',
             'email.email' => ' Ingrese un correo electrónico valido',
             'password.required' => 'Contraseña requerida',

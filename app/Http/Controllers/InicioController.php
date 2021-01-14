@@ -39,20 +39,25 @@ class InicioController extends Controller
     {
         $dataUsu = User::where('email', $request->email)->first();
         if ($dataUsu) {
-            $estadoUsu = $dataUsu->estado;
-            if ($estadoUsu == 1) {
-                $credentials = $request->only($this->username(), 'password');
-                $authSuccess = Auth::attempt($credentials);
-        
-                if($authSuccess) {
-                    $request->session()->regenerate();
-                    return response(['success' => true, 'rol' => $dataUsu->fkRol], 200);
-                }
-        
-                return response()->json(['success' => false, 'mensaje' => 'Error, usuario o contraseña incorrectos']);
-            } else {
-                return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado']);
-            }   
+            // $emple = DB::table('empleado')->select('fkEstado')->where('idempleado', $dataUsu->fkEmpleado)->first();
+            // if ($emple->fkEstado == 1) {
+                $estadoUsu = $dataUsu->estado;
+                if ($estadoUsu == 1) {
+                    $credentials = $request->only($this->username(), 'password');
+                    $authSuccess = Auth::attempt($credentials);
+            
+                    if($authSuccess) {
+                        $request->session()->regenerate();
+                        return response(['success' => true, 'rol' => $dataUsu->fkRol], 200);
+                    }
+            
+                    return response()->json(['success' => false, 'mensaje' => 'Error, usuario o contraseña incorrectos']);
+                } else {
+                    return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado']);
+                }   
+            // } else {
+            //     return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado o está en creación']);
+            // }
         } else {
             return response()->json(['success' => false, 'mensaje' => 'Error, usuario o contraseña incorrectos']);
         }

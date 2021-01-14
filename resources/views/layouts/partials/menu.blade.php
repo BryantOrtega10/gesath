@@ -1,12 +1,21 @@
 <div class="interiorMenu">
     <div class="headMenu">
         <div class="openMenu"></div>
-        <div class="perfilPersona">
-            <span class="nombreUsuario">
-                Hola Andres12
-            </span>
-            <img src="{{ URL::asset('img/menu/personaDefecto.png') }}" />
-        </div>
+        @if ($dataUsu)
+            <div class="perfilPersona">
+                <span class="nombreUsuario">
+                    Hola {{ $dataUsu->primerNombre }} {{ $dataUsu->primerApellido }}
+                </span>
+                <img src="/storage/imgEmpleados/{{ $dataUsu->foto }}" />
+            </div>
+        @else
+            <div class="perfilPersona">
+                <span class="nombreUsuario">
+                    Hola Andres12
+                </span>
+                <img src="{{ URL::asset('img/menu/personaDefecto.png') }}" />
+            </div>
+        @endif
     </div>
     <ul class="itemsMenu">
         <li class="{{ Request::is('empleado') ? 'active' : '' }}">

@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Centro de costo empresa')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')
@@ -27,9 +29,9 @@
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
-                            <a dataid ="{{ $cen->idcentroCosto }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Centro</a>
-                            <a dataid ="{{ $cen->idcentroCosto }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Centro</a>
-                            <a dataid ="{{ $cen->idcentroCosto }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Centro</a>
+                            <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Centro</a>
+                            <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Centro</a>
+                            <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Centro</a>
                         </div>
                     </div>
                 </td>

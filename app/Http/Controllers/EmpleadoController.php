@@ -108,6 +108,7 @@ class EmpleadoController extends Controller
         
         $ciudades = DB::table("ubicacion")->where("fkTipoUbicacion","=","3")->orderBy("nombre")->get();
         $estados = DB::table("estado","e")->whereIn('e.idestado',[1,2,3])->get();
+        $usu = UsuarioController::dataAdminLogueado();
 
         return view('/empleado.verEmpleados',['empleados'=> $empleados, 
         'ciudades' => $ciudades,
@@ -116,7 +117,9 @@ class EmpleadoController extends Controller
          "estados" => $estados,
          "numResultados" => $numResultados,
          "empresas" => $empresas,
-         "centrosDeCosto" => $centrosDeCosto]);
+         "centrosDeCosto" => $centrosDeCosto,
+         'dataUsu' => $usu
+        ]);
     }
 
 
@@ -144,6 +147,8 @@ class EmpleadoController extends Controller
         $nivelesEstudios = DB::table("nivel_estudio")->get();
         $etnias = DB::table("etnia")->get();
 
+        $usu = UsuarioController::dataAdminLogueado();
+        
         return view('/empleado.addEmpleado', ['paises'=>$paises, 
             'generos' => $generos, 
             'estadosCivil' => $estadosCivil, 
@@ -153,7 +158,8 @@ class EmpleadoController extends Controller
             'tipoidentificacion' => $tipoidentificacion,   
             'tipoEmpleado' => $tipoEmpleadoEnv,
             'nivelesEstudios' => $nivelesEstudios,
-            'etnias' => $etnias
+            'etnias' => $etnias,
+            'dataUsu' => $usu
         ]);
     }
     public function cargarPersonasVive($num){
@@ -545,8 +551,12 @@ class EmpleadoController extends Controller
         $etnias = DB::table("etnia")->get();
 
         $centrosTrabajo = DB::table("centrotrabajo")->get();
+
+        $usu = UsuarioController::dataAdminLogueado();
+
         return view('/empleado.editEmpleado', [
             'paises'=>$paises,
+            'dataUsu' => $usu,
             'usuExiste' => $existe,
             'generos' => $generos, 
             'estadosCivil' => $estadosCivil, 

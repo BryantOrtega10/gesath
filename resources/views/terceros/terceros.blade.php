@@ -1,11 +1,13 @@
 @extends('layouts.admin')
 @section('title', 'Tercero')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')
-<h1>Variables</h1>
+<h1>Terceros</h1>
 <a class="btn btn-primary" href="#" id="addTercero">Agregar tercero</a>
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "terceros">

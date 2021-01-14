@@ -13,8 +13,10 @@ class CargosController extends Controller
 {
     public function index() {
         $cargos = CargosModel::all();
+        $usu = UsuarioController::dataAdminLogueado();
         return view('/cargos/cargos', [
-            'cargos' => $cargos
+            'cargos' => $cargos,
+            'dataUsu' => $usu
         ]);
     }
 

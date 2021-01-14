@@ -19,8 +19,10 @@ class EmpresaController extends Controller
 {
     public function index() {
         $empresas = EmpresaModel::all();
+        $usu = UsuarioController::dataAdminLogueado();
     	return view('/empresas.empresas', [
             'empresas' => $empresas,
+            'dataUsu' => $usu
         ]);
     }
 
@@ -64,7 +66,11 @@ class EmpresaController extends Controller
         $empresas->sigla = $request->sigla;
         $empresas->dominio = $request->dominio;
         $empresas->fkTipoIdentificacion = $request->fkTipoIdentificacion;
+        
         $empresas->representanteLegal = $request->representanteLegal;
+        $empresas->docRepresentante = $request->docRepresentante;
+        $empresas->numDocRepresentante = $request->numDocRepresentante;
+        
         
         $empresas->fkUbicacion = $request->fkUbicacion;
         $empresas->direccion = $request->direccion;
@@ -77,6 +83,7 @@ class EmpresaController extends Controller
         $empresas->digitoVerificacion = $request->digitoVerificacion;
         $empresas->fkTercero_ARL = $request->fkTercero_ARL;
         $empresas->exento = $request->exento;
+        $empresas->vacacionesNegativas = $request->vacacionesNegativas;
         $insert = $empresas->save();
         if ($insert) {
             // Creamos centro de costo
@@ -199,7 +206,10 @@ class EmpresaController extends Controller
             $empresas->sigla = $request->sigla;
             $empresas->dominio = $request->dominio;
             $empresas->fkTipoIdentificacion = $request->fkTipoIdentificacion;
+
             $empresas->representanteLegal = $request->representanteLegal;
+            $empresas->docRepresentante = $request->docRepresentante;
+            $empresas->numDocRepresentante = $request->numDocRepresentante;
             
             $empresas->fkUbicacion = $request->fkUbicacion;
             $empresas->direccion = $request->direccion;
@@ -212,6 +222,7 @@ class EmpresaController extends Controller
             $empresas->digitoVerificacion = $request->digitoVerificacion;
             $empresas->fkTercero_ARL = $request->fkTercero_ARL;
             $empresas->exento = $request->exento;
+            $empresas->vacacionesNegativas = $request->vacacionesNegativas;
             $actualizar = $empresas->save();
             if ($actualizar) {
                 $success = true;
