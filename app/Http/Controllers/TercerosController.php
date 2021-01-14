@@ -17,8 +17,10 @@ class TercerosController extends Controller
 {
     public function index() {
         $terceros = TercerosModel::all();
+        $usu = UsuarioController::dataAdminLogueado();
     	return view('/terceros.terceros', [
             'terceros' => $terceros,
+            'dataUsu' => $usu
         ]);
     }
 

@@ -6,7 +6,11 @@ function cargando() {
     }
 }
 $(document).ready(function() {
-    $('#ubicaciones').DataTable();
+    $('#ubicaciones').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.22/i18n/Spanish.json'
+        }
+    });
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

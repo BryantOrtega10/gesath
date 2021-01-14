@@ -1,8 +1,11 @@
 @extends('layouts.admin')
 @section('title', 'Grupo concepto')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
+
 
 @section('contenido')
 <h1>Grupo conceptos</h1>

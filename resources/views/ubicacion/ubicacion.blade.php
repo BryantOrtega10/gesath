@@ -1,8 +1,11 @@
 @extends('layouts.admin')
 @section('title', 'Ubicación')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
+
 
 @section('contenido')
 <div class="cajaGeneral">

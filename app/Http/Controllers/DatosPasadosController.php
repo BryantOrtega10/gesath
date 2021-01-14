@@ -13,12 +13,16 @@ class DatosPasadosController extends Controller
 {
     
     public function index(Request $req){
+        $usu = UsuarioController::dataAdminLogueado();
         $cargasDatosPasados = DB::table("carga_datos_pasados","cdp")
         ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
         ->orderBy("cdp.idCargaDatosPasados", "desc")
         ->get();
 
-        return view('/datosPasados.index', ["cargasDatosPasados" => $cargasDatosPasados]);
+        return view('/datosPasados.index', [
+            "cargasDatosPasados" => $cargasDatosPasados,
+            'dataUsu' => $usu
+        ]);
     }
     public function subirArchivo(Request $req){
     

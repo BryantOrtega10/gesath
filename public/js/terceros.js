@@ -6,7 +6,11 @@ function cargando() {
     }
 }
 $(document).ready(function() {
-    $('#terceros').DataTable();
+    $('#terceros').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.22/i18n/Spanish.json'
+        }
+    });
     $(document).on('show.bs.modal', '.modal', function(event) {
         var zIndex = 1040 + (10 * $('.modal:visible').length);
         $(this).css('z-index', zIndex);

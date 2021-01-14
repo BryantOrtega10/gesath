@@ -28,8 +28,15 @@ class ConceptoController extends Controller
         $naturalezas = DB::table('naturalezaconcepto')->get();
         $conceptos = $conceptos->orderBy("concepto.nombre")->get();
 
+        $usu = UsuarioController::dataAdminLogueado();
 
-    	return view('/concepto.concepto', ['conceptos' => $conceptos, 'naturalezas' => $naturalezas, 'req' => $req, 'arrConsulta' => $arrConsulta]);
+    	return view('/concepto.concepto', [
+            'conceptos' => $conceptos, 
+            'naturalezas' => $naturalezas, 
+            'req' => $req, 
+            'arrConsulta' => $arrConsulta,
+            'dataUsu' => $usu
+        ]);
     }
     
     public function getFormAdd(){

@@ -13,14 +13,15 @@ use DateInterval;
 class NovedadesController extends Controller
 {
     public function index(){
-        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $nominas = DB::table("nomina")->get();
         $tipos_novedades = DB::table("tiponovedad")->get();
         $fechaMinima = date('Y-m-01');
-        
+        $usu = UsuarioController::dataAdminLogueado();
         return view('/novedades.cargarNovedad',[
             'nominas' => $nominas,
             'tipos_novedades' => $tipos_novedades,
-            'fechaMinima' =>  $fechaMinima
+            'fechaMinima' =>  $fechaMinima,
+            'dataUsu' => $dataUsu
         ]);
     }
     public function cargarFormxTipoNov($idTipoNovedad){

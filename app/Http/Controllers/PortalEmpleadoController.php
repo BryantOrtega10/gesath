@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SoloPassRequest;
 use App\EmpleadoModel;
 use App\Ubicacion;
 use App\User;
@@ -290,5 +291,25 @@ class PortalEmpleadoController extends Controller
         $dd = $dd2-$dd1;
     
         return( ($yy*360)+($mm*30)+$dd );
+    }
+    
+    public function actOnlyPass(SoloPassRequest $request, $id) {
+        try {
+            $usuario = User::findOrFail($id);
+            $usuario->password = $request->password;
+            $save = $usuario->save();
+            if ($save) {
+                $success = true;
+                $mensaje = "Contraseña modificada correctamente";
+            } else {
+                $success = false;
+                $mensaje = "Error al modificar contraseña";
+            }
+            return response()->json(["success" => $success, "mensaje" => $mensaje]);
+            }
+		catch (ModelNotFoundException $e)
+		{
+		    return response()->json(["success" => false, "mensaje" => "Error, No existe una usuario con este ID"]);
+		}
     }
 }

@@ -12,10 +12,13 @@ class CentroCostoEmpresaController extends Controller
 {
     public function index($id) {
         $centroCosto = CentroCostoEmpresaModel::where('fkEmpresa', $id)->get();
+        $usu = UsuarioController::dataAdminLogueado();
         return view('/empresas/CentroCostoEmpresa.centroCostoEmpresa', [
-            "centrosCosto" => $centroCosto
+            "centrosCosto" => $centroCosto,
+            'dataUsu' => $usu
         ]);
     }
+
 
     public function getFormAdd($id) {
         return view('/empresas/CentroCostoEmpresa/addCentroCostoEmpresa', [
