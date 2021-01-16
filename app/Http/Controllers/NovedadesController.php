@@ -16,7 +16,7 @@ class NovedadesController extends Controller
         $nominas = DB::table("nomina")->get();
         $tipos_novedades = DB::table("tiponovedad")->get();
         $fechaMinima = date('Y-m-01');
-        $usu = UsuarioController::dataAdminLogueado();
+        $dataUsu = UsuarioController::dataAdminLogueado();
         return view('/novedades.cargarNovedad',[
             'nominas' => $nominas,
             'tipos_novedades' => $tipos_novedades,

@@ -186,6 +186,9 @@ class ReportesNominaController extends Controller
 
     }
     public function documentoNominaFechas(Request $req){
+
+
+        
         $nominas = DB::table("item_boucher_pago", "ibp")
         ->select("c.idconcepto","c.nombre","ln.fechaLiquida","e.idempleado", "e.fechaIngreso", 
         "dp.primerNombre","dp.segundoNombre", 
@@ -217,15 +220,39 @@ class ReportesNominaController extends Controller
        
         foreach($nominas as $nomina){
 
-            $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idconcepto] = $nomina->tipoidentificacion;
-            $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
-            $matrizReporte[$nomina->idempleado]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
-            $matrizReporte[$nomina->idempleado]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
-            $matrizReporte[$nomina->idempleado]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
-            $matrizReporte[$nomina->idempleado]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
-            $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
-            $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
-            $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
+            if($req->tipoReporte=="Mensual"){
+
+                $nomina->fechaLiquida = date("Y-m",strtotime( $nomina->fechaLiquida));
+                if(isset($matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto])){
+                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] = $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] + $nomina->valor;
+                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] + $nomina->cantidad;
+                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
+                }
+                else{
+                    $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idconcepto] = $nomina->tipoidentificacion;
+                    $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
+                    $matrizReporte[$nomina->idempleado]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
+                    $matrizReporte[$nomina->idempleado]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
+                    $matrizReporte[$nomina->idempleado]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
+                    $matrizReporte[$nomina->idempleado]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
+                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
+                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
+                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
+                }
+            }
+            else{
+                $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idconcepto] = $nomina->tipoidentificacion;
+                $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
+                $matrizReporte[$nomina->idempleado]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
+                $matrizReporte[$nomina->idempleado]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
+                $matrizReporte[$nomina->idempleado]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
+                $matrizReporte[$nomina->idempleado]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
+                $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
+                $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
+                $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
+            }
+
+            
 
 
         }
@@ -3840,6 +3867,8 @@ class ReportesNominaController extends Controller
     }
 
     public function documentoProv(Request $req){
+
+        
         $nombreDoc = date("M",strtotime($req->fechaDocumento))."-". date("Y",strtotime($req->fechaDocumento));
         $mesFechaDocumento = date("m",strtotime($req->fechaDocumento));
         $anioFechaDocumento = date("Y",strtotime($req->fechaDocumento));
@@ -3850,12 +3879,14 @@ class ReportesNominaController extends Controller
         ->join("nomina as n", "n.idNomina", "=", "e.fkNomina","left")
         ->join("datospersonales as dp", "dp.idDatosPersonales", "=", "e.fkDatosPersonales")
         ->where("p.anio","=",$anioFechaDocumento)
-        ->where("p.mes","<=",$mesFechaDocumento)
-        ->where("p.fkConcepto","=",$req->provision)
-        ->where("n.fkEmpresa","=",$req->empresa)
+        ->where("p.mes","<=",$mesFechaDocumento);
+        if($req->provision!="Consolidado"){
+            $datosProv = $datosProv->where("p.fkConcepto","=",$req->provision);
+        }
+        $datosProv = $datosProv->where("n.fkEmpresa","=",$req->empresa)
         ->orderBy("p.fkEmpleado")
         ->get();
-
+        
         $arrMeses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
 
 
@@ -3870,16 +3901,39 @@ class ReportesNominaController extends Controller
             "Segundo Nombre",
             "Saldo"
         );
-        for($i=0; $i<$mesFechaDocumento; $i++){
-            array_push($arrTitulo, "PROVISION ".$arrMeses[$i]);
-            array_push($arrTitulo, "PAGO ".$arrMeses[$i]);
+        if($req->provision!="Consolidado"){
+            
+            for($i=0; $i<$mesFechaDocumento; $i++){
+                array_push($arrTitulo, "PROVISION ".$arrMeses[$i]);
+                array_push($arrTitulo, "PAGO ".$arrMeses[$i]);
+            }
+        }
+        else{
+            for($i=0; $i<$mesFechaDocumento; $i++){
+                array_push($arrTitulo, "PRIMA PROVISION ".$arrMeses[$i]);
+                array_push($arrTitulo, "PRIMA PAGO ".$arrMeses[$i]);
+                array_push($arrTitulo, "CESANTIAS PROVISION ".$arrMeses[$i]);
+                array_push($arrTitulo, "CESANTIAS PAGO ".$arrMeses[$i]);
+                array_push($arrTitulo, "INT. CESANTIAS PROVISION ".$arrMeses[$i]);
+                array_push($arrTitulo, "INT. CESANTIAS PAGO ".$arrMeses[$i]);
+                array_push($arrTitulo, "VACACIONES PROVISION ".$arrMeses[$i]);
+                array_push($arrTitulo, "VACACIONES PAGO ".$arrMeses[$i]);
+            }
         }
         array_push($arrDatos, $arrTitulo);
 
         $arrInt = array();
-        for($j = 0; $j <= 29; $j++){
-            if(!isset($arrInt[$j])){
-                $arrInt[$j] = " ";
+        if($req->provision!="Consolidado"){
+            for($j = 0; $j <= 28; $j++){
+                if(!isset($arrInt[$j])){
+                    $arrInt[$j] = " ";
+                }
+            }
+        }else{
+            for($j = 0; $j <= 100; $j++){
+                if(!isset($arrInt[$j])){
+                    $arrInt[$j] = " ";
+                }
             }
         }
         $idEmpleado = 0;
@@ -3896,16 +3950,24 @@ class ReportesNominaController extends Controller
             
             if($idEmpleado != $datoProv->fkEmpleado){
                 
-                if($idEmpleado != 0){
-                
+                if($idEmpleado != 0){                
                     array_push($arrDatos, $arrInt);
                     $arrInt = array();
-                    for($j = 0; $j <= 28; $j++){
-                        if(!isset($arrInt[$j])){
-                            $arrInt[$j] = " ";
+                    if($req->provision!="Consolidado"){
+                        for($j = 0; $j <= 28; $j++){
+                            if(!isset($arrInt[$j])){
+                                $arrInt[$j] = " ";
+                            }
+                        }
+                    }else{
+                        for($j = 0; $j <= 100; $j++){
+                            if(!isset($arrInt[$j])){
+                                $arrInt[$j] = " ";
+                            }
                         }
                     }
                 }
+
                 $arrInt[0]= $datoProv->numeroIdentificacion;
                 $arrInt[1]= $datoProv->primerApellido;
                 $arrInt[2]= $datoProv->segundoApellido;
@@ -3917,7 +3979,7 @@ class ReportesNominaController extends Controller
                 ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
                 ->where("s.mesAnterior","=","12")
                 ->where("s.anioAnterior","=",($anioFechaDocumento - 1))
-                ->where("s.fkConcepto","=",$req->provision)
+                ->where("s.fkConcepto","=",$datoProv->fkConcepto)
                 ->first();
                 if(isset($saldo)){
                     $arrInt[5]= $saldo->valor;
@@ -3926,43 +3988,209 @@ class ReportesNominaController extends Controller
 
             
             }
-            
-            if($datoProv->mes==1){
-                $row = 5;
+            if($req->provision!="Consolidado"){
+                if($datoProv->mes==1){
+                    $row = 5;
+                }
+                if($datoProv->mes==2){
+                    $row = 7;
+                }
+                if($datoProv->mes==3){
+                    $row = 9;
+                }
+                if($datoProv->mes==4){
+                    $row = 11;
+                }
+                if($datoProv->mes==5){
+                    $row = 13;
+                }
+                if($datoProv->mes==6){
+                    $row = 15;
+                }
+                if($datoProv->mes==7){
+                    $row = 17;
+                }
+                if($datoProv->mes==8){
+                    $row = 19;
+                }
+                if($datoProv->mes==9){
+                    $row = 21;
+                }
+                if($datoProv->mes==10){
+                    $row = 23;
+                }
+                if($datoProv->mes==11){
+                    $row = 25;
+                }
+                if($datoProv->mes==12){
+                    $row = 27;
+                }
             }
-            if($datoProv->mes==2){
-                $row = 7;
+            else{
+
+                if($datoProv->mes==1 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 5;
+                }
+                if($datoProv->mes==1 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 7;
+                }
+                if($datoProv->mes==1 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 9;
+                }
+                if($datoProv->mes==1 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 11;
+                }
+
+
+                if($datoProv->mes==2 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 13;
+                }
+                if($datoProv->mes==2 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 15;
+                }
+                if($datoProv->mes==2 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 17;
+                }
+                if($datoProv->mes==2 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 19;
+                }
+
+
+                if($datoProv->mes==3 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 21;
+                }
+                if($datoProv->mes==3 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 23;
+                }
+                if($datoProv->mes==3 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 25;
+                }
+                if($datoProv->mes==3 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 27;
+                }
+
+
+                if($datoProv->mes==4 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 29;
+                }
+                if($datoProv->mes==4 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 31;
+                }
+                if($datoProv->mes==4 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 33;
+                }
+                if($datoProv->mes==4 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 35;
+                }
+
+                if($datoProv->mes==5 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 37;
+                }
+                if($datoProv->mes==5 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 39;
+                }
+                if($datoProv->mes==5 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 41;
+                }
+                if($datoProv->mes==5 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 43;
+                }
+               
+
+                if($datoProv->mes==6 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 45;
+                }
+                if($datoProv->mes==6 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 47;
+                }
+                if($datoProv->mes==6 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 49;
+                }
+                if($datoProv->mes==6 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 51;
+                }
+
+
+                if($datoProv->mes==7 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 53;
+                }
+                if($datoProv->mes==7 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 55;
+                }
+                if($datoProv->mes==7 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 57;
+                }
+                if($datoProv->mes==7 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 59;
+                }
+
+                if($datoProv->mes==8 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 61;
+                }
+                if($datoProv->mes==8 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 63;
+                }
+                if($datoProv->mes==8 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 65;
+                }
+                if($datoProv->mes==8 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 67;
+                }
+
+                if($datoProv->mes==9 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 69;
+                }
+                if($datoProv->mes==9 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 71;
+                }
+                if($datoProv->mes==9 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 73;
+                }
+                if($datoProv->mes==9 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 75;
+                }
+
+                if($datoProv->mes==10 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 77;
+                }
+                if($datoProv->mes==10 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 79;
+                }
+                if($datoProv->mes==10 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 81;
+                }
+                if($datoProv->mes==10 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 83;
+                }
+
+                if($datoProv->mes==11 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 85;
+                }
+                if($datoProv->mes==11 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 87;
+                }
+                if($datoProv->mes==11 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 89;
+                }
+                if($datoProv->mes==11 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 91;
+                }
+
+                if($datoProv->mes==12 && $datoProv->fkConcepto=="73"){//Prima
+                    $row = 93;
+                }
+                if($datoProv->mes==12 && $datoProv->fkConcepto=="71"){//CES
+                    $row = 95;
+                }
+                if($datoProv->mes==12 && $datoProv->fkConcepto=="72"){//Int. CES
+                    $row = 97;
+                }
+                if($datoProv->mes==12 && $datoProv->fkConcepto=="74"){//Vac
+                    $row = 99;
+                }
             }
-            if($datoProv->mes==3){
-                $row = 9;
-            }
-            if($datoProv->mes==4){
-                $row = 11;
-            }
-            if($datoProv->mes==5){
-                $row = 13;
-            }
-            if($datoProv->mes==6){
-                $row = 15;
-            }
-            if($datoProv->mes==7){
-                $row = 17;
-            }
-            if($datoProv->mes==8){
-                $row = 19;
-            }
-            if($datoProv->mes==9){
-                $row = 21;
-            }
-            if($datoProv->mes==10){
-                $row = 23;
-            }
-            if($datoProv->mes==11){
-                $row = 25;
-            }
-            if($datoProv->mes==12){
-                $row = 27;
-            }
+
+
             $row++;
             
 
@@ -3984,7 +4212,7 @@ class ReportesNominaController extends Controller
             
             
             $pago = 0;
-            if($req->provision=="73"){
+            if($datoProv->fkConcepto=="73"){
                 $itemsBoucherPrima = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("Sum(ibp.pago) as suma")
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
@@ -3998,7 +4226,7 @@ class ReportesNominaController extends Controller
                 }
             }
 
-            if($req->provision=="71"){
+            if($datoProv->fkConcepto=="71"){
                 $itemsBoucherCes = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("Sum(ibp.pago) as suma")
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
@@ -4011,7 +4239,7 @@ class ReportesNominaController extends Controller
                     $pago = $itemsBoucherCes->suma;
                 }
             }
-            if($req->provision=="72"){
+            if($datoProv->fkConcepto=="72"){
                 $itemsBoucherIntCes = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("Sum(ibp.pago) as suma")
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
@@ -4024,7 +4252,7 @@ class ReportesNominaController extends Controller
                     $pago = $itemsBoucherIntCes->suma;
                 }
             }
-            if($req->provision=="74"){
+            if($datoProv->fkConcepto=="74"){
 
                 $fechaInicioMesActual = date("Y-m-01",strtotime($datoProv->anio."-".$datoProv->mes."-01"));
                 $fechaFinMesActual = date("Y-m-t",strtotime($datoProv->anio."-".$datoProv->mes."-01"));
@@ -4202,6 +4430,37 @@ class ReportesNominaController extends Controller
             array_push($arrDatos, $arrInt);
         }
         
+        //Colorcar totales por row
+        $totales = array();
+        foreach($arrDatos as $datos){
+            foreach($datos as $row => $dato){
+                if($row > 4){
+                    if(is_numeric($dato)){
+                        $totales[$row] = (isset($totales[$row]) ? $totales[$row] : 0) + $dato;
+                    }
+                }
+            }            
+        }
+        $arrInt = array();
+        if($req->provision!="Consolidado"){
+            for($j = 0; $j <= 28; $j++){
+                if(!isset($arrInt[$j])){
+                    $arrInt[$j] = " ";
+                }
+            }
+        }else{
+            for($j = 0; $j <= 100; $j++){
+                if(!isset($arrInt[$j])){
+                    $arrInt[$j] = " ";
+                }
+            }
+        }
+        
+        foreach($totales as $row => $total){
+            $arrInt[$row] = $total; 
+        }        
+        array_push($arrDatos, $arrInt);
+
 
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Description: File Transfer');
@@ -5631,4 +5890,307 @@ class ReportesNominaController extends Controller
 
    
     }
+
+    public function reporteador(){
+
+
+        $reportes = DB::table("reporte", "r")
+        ->orderBy("r.nombre")->get();
+
+        return view("/reportes.reporteador", ["reportes" => $reportes]);
+
+
+        
+        //Tercero Compañia
+
+    }
+    public function reporteadorGetFormAdd(){
+        $tipo_reportes = DB::table("tipo_reporte", "tr")
+        ->orderBy("tr.nombre")->get();
+
+        return view("/reportes.reporteadorAdd", ["tipo_reportes" => $tipo_reportes]);
+    }
+    public function reporteadorGetItemsxReporte($idTipoReporte){
+
+        $items_tipo_reporte = DB::table("item_tipo_reporte", "itr")
+        ->where("itr.fkTipoReporte","=",$idTipoReporte)
+        ->get();
+
+        return view("/reportes.reporteadorSelect", ["items_tipo_reporte" => $items_tipo_reporte]);
+        
+    }
+    public function crearReporte(Request $req){
+        $idReporte = DB::table("reporte")->insertGetId([
+            "nombre" => $req->nombre,
+            "fkTipoReporte" => $req->tipoReporte,
+        ], "idReporte");
+
+
+        $pos = 0;
+        if(isset($req->opcionesSeleccionadas)){
+            foreach($req->opcionesSeleccionadas as $opcionesS){
+                DB::table("reporte_item")->insert([
+                    "fkReporte" => $idReporte,
+                    "fkItemTipoReporte" => $opcionesS,
+                    "posicion" => $pos
+                ]);
+                $pos++;
+            }
+        }
+        
+        return response()->json([
+            "success" => true
+        ]);
+
+    }
+
+    public function reporteadorGenerar($idReporte){
+
+        $reporte = DB::table("reporte", "r")
+        ->select("r.*","tr.nombre as tipo_reporte")
+        ->join("tipo_reporte as tr", "tr.idTipoReporte", "=","r.fkTipoReporte")
+        ->where("r.idReporte","=",$idReporte)->first();
+        $itemsReporte = DB::table("reporte_item", "ir")
+        ->join("item_tipo_reporte as itr","itr.IdItemTipoReporte", "=", "ir.fkItemTipoReporte")
+        ->where("ir.fkReporte","=",$idReporte)->orderBy("ir.posicion")->get();
+        
+        return view('/reportes.generarReporte', [
+            "reporte" => $reporte,
+            "itemsReporte" => $itemsReporte
+        ]);
+
+    }
+    public function reporteadorGetFormFiltro($idReporteItem){
+        $itemReporte = DB::table("item_tipo_reporte","itr")
+        ->join("reporte_item as ri", "ri.fkItemTipoReporte", "=","itr.IdItemTipoReporte")
+        ->where("ri.idReporteItem","=",$idReporteItem)->first();
+        
+        $OperadorComparacion = array();
+         if($itemReporte->tipo == "texto"){
+            $OperadorComparacion = [
+                "LIKE",
+                "=",
+                ">",
+                ">=",
+                "<",
+                "<=",
+                "<>"
+            ];
+        }
+        else if($itemReporte->tipo == "fecha"){
+            $OperadorComparacion = [
+                "=",
+                ">",
+                ">=",
+                "<",
+                "<=",
+                "<>"
+            ];
+        }
+        else if($itemReporte->tipo == "bool"){
+            $OperadorComparacion = [
+                "=",
+                "<>"
+            ];
+        }
+        return view("/reportes.reporteadorFiltro",[
+            "OperadorComparacion" => $OperadorComparacion,
+            "itemReporte" => $itemReporte
+        ]);
+
+
+    }
+    public function reporteadorGetFormEdit($idReporte){
+        $tipo_reportes = DB::table("tipo_reporte", "tr")
+        ->orderBy("tr.nombre")->get();
+
+        $reporte = DB::table("reporte", "r")
+        ->select("r.*","tr.nombre as tipo_reporte")
+        ->join("tipo_reporte as tr", "tr.idTipoReporte", "=","r.fkTipoReporte")
+        ->where("r.idReporte","=",$idReporte)->first();
+
+        $items_tipo_reporte = DB::table("item_tipo_reporte", "itr")
+        ->where("itr.fkTipoReporte","=",$reporte->fkTipoReporte)
+        ->whereRaw("itr.IdItemTipoReporte not in(select ri.fkItemTipoReporte from reporte_item as ri WHERE ri.fkReporte = ".$idReporte.")")
+        ->get();
+
+        $itemsReporte = DB::table("reporte_item", "ir")
+        ->join("item_tipo_reporte as itr","itr.IdItemTipoReporte", "=", "ir.fkItemTipoReporte")
+        ->where("ir.fkReporte","=",$idReporte)
+        ->orderBy("ir.posicion")->get();
+
+
+        return view("/reportes.reporteadorEdit", [
+            "tipo_reportes" => $tipo_reportes, 
+            "reporte" => $reporte,
+            "items_tipo_reporte" => $items_tipo_reporte,
+            "items_tipo_reporte_select" => $itemsReporte
+        ]);
+    }
+
+    
+    public function modificarReporte(Request $req){
+
+        $idReporte = $req->idReporte;
+
+        DB::table("reporte")->where("idReporte","=",$idReporte)->update([
+            "nombre" => $req->nombre,
+            "fkTipoReporte" => $req->tipoReporte,
+        ]);
+
+
+        $pos = 0;
+        if(isset($req->opcionesSeleccionadas)){
+            DB::table("reporte_item")->where("fkReporte", "=", $idReporte)->delete();
+
+            foreach($req->opcionesSeleccionadas as $opcionesS){
+                DB::table("reporte_item")->insert([
+                    "fkReporte" => $idReporte,
+                    "fkItemTipoReporte" => $opcionesS,
+                    "posicion" => $pos
+                ]);
+                $pos++;
+            }
+        }
+        
+        return response()->json([
+            "success" => true
+        ]);
+    }
+
+    public function generarFinalReporteador(Request $req){
+
+
+        $reporte = DB::table("reporte", "r")->where("r.idReporte","=",$req->idReporte)->first();
+
+
+        if($reporte->fkTipoReporte == "1"){
+            $consulta = DB::table("empleado", "e");
+            
+            $itemsReporte = DB::table("reporte_item", "ir")
+            ->join("item_tipo_reporte as itr","itr.IdItemTipoReporte", "=", "ir.fkItemTipoReporte")
+            ->where("ir.fkReporte","=",$reporte->idReporte)
+            ->orderBy("ir.posicion")->get();
+            $arrSelect = [];
+            foreach($itemsReporte as $itemReporte){
+                array_push($arrSelect, $itemReporte->campo." as '".$itemReporte->nombre."'");
+            }
+            $sql = implode(",",$arrSelect);
+            $consulta = $consulta->selectRaw($sql);
+            $consulta = $consulta->join("cargo","cargo.idCargo", "=","e.fkCargo","left")
+            ->join("tipoidentificacion as tio","tio.idtipoIdentificacion", "=", "e.fkTipoOtroDocumento","left")
+            ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
+            ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
+            ->join("genero as g","g.idGenero", "=", "dp.fkGenero","left")
+            ->join("estadocivil as estCiv","estCiv.idEstadoCivil", "=", "dp.fkEstadoCivil","left")
+            ->join("tipo_vivienda","tipo_vivienda.idTipoVivienda", "=", "dp.fkTipoVivienda","left")       
+            ->join("nomina as n","n.idNomina", "=","e.fkNomina","left")
+            ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa","left")
+            //->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
+            ->join('estado AS est','est.idestado', '=', 'e.fkEstado', "left")
+            ->join('ubicacion AS uLabora','uLabora.idubicacion', '=', 'e.fkUbicacionLabora',"left")
+            ->join('ubicacion AS uExpDoc','uExpDoc.idubicacion', '=', 'dp.fkUbicacionExpedicion',"left")
+            ->join('ubicacion AS uNacimiento','uNacimiento.idubicacion', '=', 'dp.fkUbicacionNacimiento',"left")
+            ->join('ubicacion AS uResidencia','uResidencia.idubicacion', '=', 'dp.fkUbicacionResidencia',"left")        
+            ->join('tercero AS terceroEntidad','terceroEntidad.idTercero', '=', 'e.fkEntidad',"left")
+            ->join('centrotrabajo AS ct','ct.idCentroTrabajo', '=', 'e.fkCentroTrabajo',"left")
+            ->join('gruposanguineo AS gs','gs.idGrupoSanguineo', '=', 'dp.fkGrupoSanguineo',"left")
+            ->join('rh','rh.idRh', '=', 'dp.fkRh',"left")
+            ->join('nivel_estudio as ne','ne.idNivelEstudio', '=', 'dp.fkNivelEstudio',"left")
+            ->join('etnia','etnia.idEtnia', '=', 'dp.fkEtnia',"left")
+            ->leftJoin('afiliacion as afPension', function ($join) {
+                $join->on('afPension.fkEmpleado', '=', 'e.idempleado')
+                     ->where('afPension.fkTipoAfilicacion', '=', 4);
+            })
+            ->join('tercero AS terceroPension','terceroPension.idTercero', '=', 'afPension.fkTercero',"left")
+            ->leftJoin('afiliacion as afSalud', function ($join) {
+                $join->on('afSalud.fkEmpleado', '=', 'e.idempleado')
+                     ->where('afSalud.fkTipoAfilicacion', '=', 3);
+            })
+            ->join('tercero AS terceroSalud','terceroSalud.idTercero', '=', 'afSalud.fkTercero',"left")
+            ->leftJoin('afiliacion as afCCF', function ($join) {
+                $join->on('afCCF.fkEmpleado', '=', 'e.idempleado')
+                     ->where('afCCF.fkTipoAfilicacion', '=', 2);
+            })
+            ->join('tercero AS terceroCCF','terceroCCF.idTercero', '=', 'afCCF.fkTercero',"left")
+            ->leftJoin('afiliacion as afCes', function ($join) {
+                $join->on('afCes.fkEmpleado', '=', 'e.idempleado')
+                     ->where('afCes.fkTipoAfilicacion', '=', 2);
+            })
+            ->join('tercero AS terceroCes','terceroCes.idTercero', '=', 'afCes.fkTercero',"left")
+            ->leftJoin('conceptofijo as cf', function ($join) {
+                $join->on('cf.fkEmpleado', '=', 'e.idempleado')
+                     ->whereIn('cf.fkConcepto', ["1","2"]);
+            })
+            ->leftJoin('novedad AS nRet', function ($join) {
+                $join->on('nRet.fkEmpleado', '=', 'e.idempleado')
+                    ->whereNotNull('nRet.fkRetiro')
+                    ->where('nRet.fkEstado',"=","8");
+            })
+            ->join('retiro AS r','r.idRetiro', '=', 'nRet.fkRetiro',"left")
+            ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro","left");
+
+            $existeFiltroEstado = false;
+            if(isset($req->filtro)){
+                
+                foreach($req->filtro as $row => $filtro){
+                    if($req->campoId[$row] == "41"){
+                        $existeFiltroEstado = true; 
+                    }
+
+                    if($req->operador[$row] == "LIKE"){
+                        $filtro = "%".$filtro."%";
+                    }
+
+                    $item_tipo_reportes = DB::table("item_tipo_reporte")->where("IdItemTipoReporte","=",$req->campoId[$row])->first();
+                    if($req->concector[$row]=="AND"){
+                        $consulta = $consulta->where($item_tipo_reportes->campo,$req->operador[$row],$filtro);
+                    }
+                    else if($req->concector[$row]=="OR"){
+                        $consulta = $consulta->orWhere($item_tipo_reportes->campo,$req->operador[$row],$filtro);
+                    }
+
+                }
+            }
+            if(!$existeFiltroEstado){
+                $consulta = $consulta->where("e.fkEstado","=","1");
+            }
+            $consulta = $consulta->get();
+            
+
+            
+            $arrDef = array();
+            $arrTitulos = array();
+            foreach($consulta[0] as $row => $con){
+                array_push($arrTitulos, $row);
+            }
+            array_push($arrDef, $arrTitulos);
+            foreach($consulta as $con){
+                $arrayFila = array();
+                foreach($con as $row => $dat){
+                    array_push($arrayFila, $dat);
+                }
+                array_push($arrDef, $arrayFila);
+            }
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Description: File Transfer');
+            header('Content-Disposition: attachment; filename=ReporteNovedades.csv');
+
+            $csv = Writer::createFromFileObject(new SplTempFileObject());
+            $csv->setDelimiter(';');
+            $csv->insertAll($arrDef);
+            $csv->setOutputBOM(Reader::BOM_UTF8);
+            $csv->output('Reporteador.csv');
+
+        }
+
+        
+
+
+
+
+        
+
+    }
 }
+

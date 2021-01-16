@@ -69,7 +69,16 @@
                             </div>
                         </div>
                     </div>
-                    
+                    <div class="col-3">
+                        <div class="form-group hasText">
+                            <label for="tipoReporte" class="control-label">Tipo Reporte</label>
+                            <select class="form-control" id="tipoReporte" name="tipoReporte">
+                                <option value="Nominas">Nominas</option>        
+                                <option value="Mensual">Mensual</option>        
+                                
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-3">
                         <div class="text-center"><input type="submit" value="Generar reporte" class="btnSubmitGen" /></div>
                     </div>

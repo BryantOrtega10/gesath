@@ -1,7 +1,7 @@
 <div class="interiorMenu">
     <div class="headMenu">
         <div class="openMenu"></div>
-        @if ($dataUsu)
+        @if (isset($dataUsu))
             <div class="perfilPersona">
                 <span class="nombreUsuario">
                     Hola {{ $dataUsu->primerNombre }} {{ $dataUsu->primerApellido }}
@@ -170,6 +170,11 @@
                 <li>
                     <a href="/reportes/novedades/" >
                         <span class="textoMenu">Reporte de novedades</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/reportes/reporteador/" >
+                        <span class="textoMenu">Reporteador</span>
                     </a>
                 </li>
             </ul>

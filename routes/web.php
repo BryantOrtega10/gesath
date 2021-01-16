@@ -220,6 +220,21 @@ Route::group([
 	Route::get('novedades','ReportesNominaController@indexNovedades');
 	Route::post('generarNovedades','ReportesNominaController@generarNovedades');
 	
+	Route::get('reporteador','ReportesNominaController@reporteador');
+	Route::get('reporteador/getForm/add','ReportesNominaController@reporteadorGetFormAdd');
+	Route::get('reporteador/getItemsxReporte/{id}','ReportesNominaController@reporteadorGetItemsxReporte');
+	
+	Route::post('reporteador/crear','ReportesNominaController@crearReporte');
+
+	Route::get('reporteador/generarReporte/{id}','ReportesNominaController@reporteadorGenerar');
+
+	
+	Route::get('reporteador/getForm/filtro/{id}','ReportesNominaController@reporteadorGetFormFiltro');
+	Route::get('reporteador/getForm/edit/{id}','ReportesNominaController@reporteadorGetFormEdit');
+
+	Route::post('reporteador/modificar','ReportesNominaController@modificarReporte');
+	Route::post('reporteador/generarFinalReporteador','ReportesNominaController@generarFinalReporteador');
+	
 	
 });
 

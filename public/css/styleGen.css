@@ -1065,3 +1065,14 @@ select.error {
 .checksCont label{
     user-select: none;
 }
+select.selectMultiple {
+    width: 100%;
+    height: 145px;
+    font-size: 13px;
+}
+
+.selectsMultiples button {
+    font-size: 12px;
+    width: 100%;
+    margin-bottom: 6px;
+}
