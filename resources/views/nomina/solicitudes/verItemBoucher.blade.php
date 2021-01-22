@@ -58,10 +58,14 @@
                             @if($infoBouche->fkConcepto =="76")
                                 <a href="/nomina/verDetalleRetencion/{{$infoBouche->fkBoucherPago}}/INDEMNIZACION" class="verComoCalculo">Ver detalle retención</a>
                             @else
-                                @if($infoBouche->fkConcepto =="28" || $infoBouche->fkConcepto =="29" || $infoBouche->fkConcepto =="30")
-                                    <a href="/nomina/verDetalleVacacion/{{$infoBouche->idItemBoucherPago}}" class="verComoCalculo">Ver detalle vacaciones</a>
+                                @if($infoBouche->fkConcepto =="77")
+                                    <a href="/nomina/verDetalleRetencion/{{$infoBouche->fkBoucherPago}}/PRIMA" class="verComoCalculo">Ver detalle retención</a>
                                 @else
-                                    <a href="/nomina/comoCalculo/{{$infoBouche->idItemBoucherPago}}" class="verComoCalculo">Como se calcula</a>                                
+                                    @if($infoBouche->fkConcepto =="28" || $infoBouche->fkConcepto =="29" || $infoBouche->fkConcepto =="30")
+                                        <a href="/nomina/verDetalleVacacion/{{$infoBouche->idItemBoucherPago}}" class="verComoCalculo">Ver detalle vacaciones</a>
+                                    @else
+                                        <a href="/nomina/comoCalculo/{{$infoBouche->idItemBoucherPago}}" class="verComoCalculo">Como se calcula</a>                                
+                                    @endif 
                                 @endif 
                             @endif 
                            

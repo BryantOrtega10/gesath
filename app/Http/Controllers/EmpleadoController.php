@@ -6,6 +6,7 @@ use App\Ubicacion;
 use App\User;
 use DateInterval;
 use DateTime;
+use ZipArchive;
 use ErrorException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -123,7 +124,7 @@ class EmpleadoController extends Controller
     }
 
 
-
+   
 
     public function formCrear($tipoEmpleado){       
 
@@ -174,16 +175,31 @@ class EmpleadoController extends Controller
         ]);
     }
 
-    public function cargarUpcAdicional($num){
+    public function cargarUpcAdicional($num, $idEmpleado){
         
+
+        $periocidad = array();
+        $periodo = NULL;
+        $nomina = DB::table("nomina","n")
+        ->join("empleado as e","e.fkNomina", "=","n.idNomina")
+        ->where("e.idempleado","=",$idEmpleado)->first();
+        if(isset($nomina)){
+            $periocidad = DB::table("periocidad")->where("per_periodo", "=",$nomina->periodo)->get();
+            $periodo = $nomina->periodo;
+        }
+        
+
         $paises = Ubicacion::where("fkTipoUbicacion", "=" ,'1')->get();
         $generosBen = DB::table("genero")->whereIn("idGenero",["1","2"])->get();
         $tipoidentificacion = DB::table("tipoidentificacion")->where("tipo", "=", "0")->get();
+
 
         return view('/empleado.ajax.upcAdicional', [
             'generosBen' => $generosBen, 
             'tipoidentificacion' => $tipoidentificacion,
             'paises'=>$paises,  
+            "periocidad" => $periocidad,
+            "periodo" => $periodo,
             'idRow' => $num    
         ]);
     }
@@ -324,6 +340,10 @@ class EmpleadoController extends Controller
         $estadoEnCreacion = 3;
         $insertEmpleado = array("tEmpleado" => $req->tEmpleado, "fkDatosPersonales" => $idDatosPersonales, "fkEstado" => $estadoEnCreacion);
         $idempleado = DB::table('empleado')->insertGetId($insertEmpleado, "idempleado");
+        DB::table("periodo")->insert([
+            "fkEmpleado" => $idempleado
+        ]);
+
         return response()->json([
             "success" => true,
             "idempleado" => $idempleado
@@ -553,6 +573,16 @@ class EmpleadoController extends Controller
         $centrosTrabajo = DB::table("centrotrabajo")->get();
 
         $usu = UsuarioController::dataAdminLogueado();
+        $periocidad = array();
+        $periodo = NULL;
+        $nomina = DB::table("nomina","n")
+        ->join("empleado as e","e.fkNomina", "=","n.idNomina")
+        ->where("e.idempleado","=",$idEmpleado)->first();
+        if(isset($nomina)){
+            $periocidad = DB::table("periocidad")->where("per_periodo", "=",$nomina->periodo)->get();
+            $periodo = $nomina->periodo;
+        }
+        
 
         return view('/empleado.editEmpleado', [
             'paises'=>$paises,
@@ -609,6 +639,8 @@ class EmpleadoController extends Controller
             'cambioSalario' => $cambioSalario,
             'subtiposcotizante' => $subtiposcotizante,
             'upcAdicional' => $upcadicional,
+            "periocidad" => $periocidad,
+            "periodo" => $periodo,
             'deptosUpc' => $deptosUpc,
             'ciudadesUpc' => $ciudadesUpc,
             'nivelesEstudios' => $nivelesEstudios,
@@ -619,6 +651,8 @@ class EmpleadoController extends Controller
 
     }
 
+
+    
 
     public function formVer($idEmpleado, Request $req){
         
@@ -803,7 +837,11 @@ class EmpleadoController extends Controller
         $generosBen = DB::table("genero")->whereIn("idGenero",["1","2"])->get();
         $tipobeneficio = DB::table("tipobeneficio")->orderBy("nombre")->get();
 
-        return view('/empleado.verEmpleado', ['paises'=>$paises, 
+        $usu = UsuarioController::dataAdminLogueado();
+
+        return view('/empleado.verEmpleado', [
+            'dataUsu' => $usu,
+            'paises'=>$paises, 
         'generos' => $generos, 
         'estadosCivil' => $estadosCivil, 
         'tipo_vivienda' => $tipo_vivienda,
@@ -957,6 +995,13 @@ class EmpleadoController extends Controller
             "fkCargo" => $req->infoCargo, "fkUsuario" => $idUsuario,"procedimientoRetencion" => $req->infoProcedimientoRetencion, "porcentajeRetencion" => $req->infoPorcentajeRetencion
         );
 
+        DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")
+        ->update([
+            "fechaInicio" => $req->infoFechaIngreso,
+            "fkNomina" => $req->infoNomina
+        ]);
         
         $insertContrato = array("fechaInicio" => $req->infoFechaIngreso, "fechaFin" => $req->infoFechaFin, 
             "fkEstado" => "4", "fkTipoContrato" => $req->infoTipoContrato, "tipoDuracionContrato" => $req->infoTipoDuracionContrato, "fkEmpleado" => $req->idEmpleado);
@@ -1047,6 +1092,14 @@ class EmpleadoController extends Controller
              "otroDocumento" => $req->infoOtroDocumento, "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
             "porcentajeRetencion" => $req->infoPorcentajeRetencion, "esPensionado" => $req->infoSubTipoCotizante
         );
+        DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")
+        ->update([
+            "fechaInicio" => $req->infoFechaIngreso,
+            "fkNomina" => $req->infoNomina
+        ]);
+
         $affected = DB::table('empleado')
               ->where('idempleado', $req->idEmpleado)
               ->update($updateEmpleado);
@@ -1189,6 +1242,173 @@ class EmpleadoController extends Controller
             "idempleado" => $req->idEmpleado
         ]);
     }
+
+    public function modificarDatosInfoPersonalReintegro(Request $req){
+        $existeUsuario = User::where('fkEmpleado', $req->idEmpleado)->first();
+        if (is_null($existeUsuario)) {
+            $usuarioNuevo = new User;
+            $usuarioNuevo->email = $req->infoUsuario;
+            $usuarioNuevo->username = $req->infoUsuario;
+            $usuarioNuevo->password = $req->password;
+            $usuarioNuevo->fkRol = 1;
+            $usuarioNuevo->estado = 1;
+            $usuarioNuevo->fkEmpleado = $req->idEmpleado;
+            $usuarioNuevo->save();
+        }
+        $updateEmpleado = array("fkEmpresa" => $req->infoEmpresa, "fkNomina" => $req->infoNomina, "fechaIngreso" => $req->infoFechaIngreso,
+            "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora, "sabadoLaborable" => $req->infoSabadoLabora,
+            "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
+            "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,"fkTipoOtroDocumento" => $req->infoOtroTIdentificacion, 
+             "otroDocumento" => $req->infoOtroDocumento, "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
+            "porcentajeRetencion" => $req->infoPorcentajeRetencion, "esPensionado" => $req->infoSubTipoCotizante
+        );
+
+
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
+        if(isset($periodoActivo)){
+            DB::table("periodo")
+            ->where("fkEmpleado","=",$req->idEmpleado)
+            ->where("fkEstado","=","1")
+            ->update([
+                "fechaInicio" => $req->infoFechaIngreso,
+                "fkNomina" => $req->infoNomina
+            ]);
+        }
+        else{
+            DB::table("periodo")->insert([
+                "fkEmpleado" => $req->idEmpleado,
+                "fechaInicio" => $req->infoFechaIngreso,
+                "fkNomina" => $req->infoNomina
+            ]);
+        }
+        
+
+       
+
+        $affected = DB::table('empleado')
+              ->where('idempleado', $req->idEmpleado)
+              ->update($updateEmpleado);
+
+        $modContrato = array(            
+            "fechaFin" => $req->infoFechaFin, 
+            "fkEstado" => "4", 
+            "fkTipoContrato" => $req->infoTipoContrato, 
+            "tipoDuracionContrato" => $req->infoTipoDuracionContrato, 
+            "fkEmpleado" => $req->idEmpleado
+        );
+        
+        if($req->fechaInicioActivoAnt == $req->fechaIngresoAnt){
+            $modContrato["fechaInicio"] = $req->infoFechaIngreso;
+        }
+
+        if($req->infoTipoDuracionContrato == "MES"){ 
+            $meses = $req->infoDuracionContrato;
+            $dias = $req->infoDuracionContrato*30;
+
+            $modContrato["numeroMeses"] = $meses;
+            $modContrato["numeroDias"] = $dias;
+        }
+        else{
+            $meses = $req->infoDuracionContrato / 30;
+            $dias = $req->infoDuracionContrato;
+            $modContrato["numeroMeses"] = $meses;
+            $modContrato["numeroDias"] = $dias;
+        }
+
+        $affected = DB::table('contrato')
+              ->where('idcontrato', $req->idContratoActivo)
+              ->update($modContrato);
+        
+        
+
+       
+
+        
+        
+        
+        DB::table('empleado_centrocosto')->where("fkEmpleado","=",$req->idEmpleado)->delete();
+        /*if($req->idEmpresaAnt != $req->infoEmpresa){
+            
+        }*/
+        
+        
+        foreach ($req->infoCentroCosto as $key => $idCentroCosto) {
+
+            $insertEmpleadoCentroCosto = array("fkEmpleado" => $req->idEmpleado, 
+                    "fkCentroCosto" => $idCentroCosto,
+                    "porcentajeTiempoTrabajado" => substr($req->infoPorcentaje[$key],0,-1));
+
+            DB::table('empleado_centrocosto')->insert($insertEmpleadoCentroCosto);    
+            
+            /*if($req->idEmpleadoCentroCosto[$key]=="-1"){
+                
+                
+            }
+            else{
+                $affected = DB::table('empleado_centrocosto')
+                ->where('idEmpleadoCentroCosto', $req->idEmpleadoCentroCosto[$key])
+                ->update($insertEmpleadoCentroCosto);
+            }*/
+           
+        }
+
+        $arrBeneficiosNotIn = array();
+        if(isset($req->infoTipoBeneficio)){
+            foreach ($req->infoTipoBeneficio as $key => $tipoBeneficio) {
+                $insertBeneficioTributario = array( "fkTipoBeneficio" => $tipoBeneficio, 
+                                                    "valorMensual" => $req->infoValorMensual[$key],
+                                                    "fechaVigencia" => $req->infoFechaVigencia[$key],
+                                                    "numMeses" => $req->infoNumMeses[$key],
+                                                    "valorTotal" => $req->infoValorTotal[$key],
+                                                    "fkEmpleado" => $req->idEmpleado);
+                if($tipoBeneficio == "4"){
+                    $insertBeneficioTributario["fkNucleoFamiliar"] = $req->infoPersonaVive[$key];
+                    
+                    $arrNucleoFamiliar = [
+                        "fkTipoIdentificacion" => $req->infoTIdentificacion[$key],
+                        "numIdentificacion" => $req->infoNumIdentificacion[$key],
+                    ];
+
+                    DB::table('nucleofamiliar')
+                    ->where('idNucleoFamiliar', $req->infoPersonaVive[$key])
+                    ->update($arrNucleoFamiliar);
+                }
+
+
+                if($req->idBeneficioTributario[$key]=="-1"){
+                    $idBeneficioTributario = DB::table('beneficiotributario')->insertGetId($insertBeneficioTributario, "idBeneficioTributario");
+                    array_push($arrBeneficiosNotIn, $idBeneficioTributario);
+                }
+                else{
+                    DB::table('beneficiotributario')
+                    ->where('idBeneficioTributario', $req->idBeneficioTributario[$key])
+                    ->update($insertBeneficioTributario);
+                    array_push($arrBeneficiosNotIn, $req->idBeneficioTributario[$key]);
+                }
+                
+            }
+            
+        }
+
+
+        DB::table('beneficiotributario')
+                ->whereNotIn("idBeneficioTributario", $arrBeneficiosNotIn)
+                ->where("fkEmpleado","=", $req->idEmpleado)
+                ->delete();
+
+
+        DB::table('conceptofijo')->where("fkEmpleado","=", $req->idEmpleado)->delete();
+
+        $this->validarEstadoEmpleado($req->idEmpleado);
+
+        return response()->json([
+            "success" => true,
+            "idempleado" => $req->idEmpleado
+        ]);
+    }
+
     public function cargarAfiliaciones($num){
         $tipoafilicaciones = DB::table("tipoafilicacion")->get();
         
@@ -1765,6 +1985,470 @@ class EmpleadoController extends Controller
         
 
     }
+    public function validarConceptosFijosReintegro(Request $req){
+        
+        $diasxmes = DB::table('variable')->where("idVariable","=","4")->first();
+        $horasxmes = DB::table('variable')->where("idVariable","=","6")->first();
+
+
+        foreach($req->conFiConcepto as $key => $concepto) {
+            $condiciones = DB::table("condicion")->where("fkConcepto", "=", $concepto)->get();
+            foreach($condiciones as $condicion){
+                $itemsCondicion = DB::table("itemcondicion")->where("fkCondicion", "=", $condicion->idcondicion)->get();
+                $arrCondicion = array();
+                $posArr = 0;
+               
+                foreach($itemsCondicion as $itemCondicion){
+                    if($itemCondicion->fkTipoCondicion == "1"){//Inicial
+                        if(sizeof($arrCondicion)>0){
+                            foreach($arrCondicion as $llave => $arrItemCond){                                
+                                if(isset($arrItemCond['inicio']) && isset($arrItemCond['final1'])){
+                                    if($arrItemCond["fkOperadorComparacion"]=="1"){
+                                        if($arrItemCond['inicio'] > $arrItemCond['final1']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                    else if($arrItemCond["fkOperadorComparacion"]=="2"){
+                                        if($arrItemCond['inicio'] < $arrItemCond['final1']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                    else if($arrItemCond["fkOperadorComparacion"]=="3"){
+                                        if($arrItemCond['inicio'] == $arrItemCond['final1']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                    else if($arrItemCond["fkOperadorComparacion"]=="4"){
+                                        if($arrItemCond['inicio'] >= $arrItemCond['final1']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                    else if($arrItemCond["fkOperadorComparacion"]=="5"){
+                                        if($arrItemCond['inicio'] <= $arrItemCond['final1']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                    else if($arrItemCond["fkOperadorComparacion"]=="6"){
+                                        if($arrItemCond['inicio'] != $arrItemCond['final1']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                }
+                                if(isset($arrItemCond['inicio']) && isset($arrItemCond['final1']) && isset($arrItemCond['final2'])){
+                                    if($arrItemCond["fkOperadorComparacion"]=="7"){
+                                        if($arrItemCond['inicio'] >= $arrItemCond['final1'] && $arrItemCond['inicio'] <= $arrItemCond['final2']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                    else if($arrItemCond["fkOperadorComparacion"]=="8"){
+                                        if($arrItemCond['inicio'] < $arrItemCond['final1'] && $arrItemCond['inicio'] > $arrItemCond['final2']){
+                                            $arrCondicion[$llave]["valido"] = true;
+                                        }
+                                    }
+                                }
+
+                                if($arrItemCond["tipoCondicion"] == "or" && isset($arrCondicion[$llave]["valido"]) && $arrCondicion[$llave]["valido"] == true){
+                                    
+                                    return response()->json([
+                                        "success" => false,
+                                        "respuesta" => $condicion->mensajeMostrar
+                                    ]);
+                                }
+
+
+                            }
+
+
+                            $cuentaValidos = 0;
+                            foreach($arrCondicion as $arrItemCond){
+                                if(isset($arrCondicion["valido"]) &&  $arrItemCond["valido"] == true){
+                                    $cuentaValidos++;
+                                }
+                            }
+                            if(sizeof($arrCondicion) == $cuentaValidos && sizeof($arrCondicion)!=0){
+                                return response()->json([
+                                    "success" => false,
+                                    "respuesta" => $condicion->mensajeMostrar
+                                ]);
+                            }
+                        }
+                        array_push($arrCondicion, array("tipoCondicion" => "Inicial"));
+                        $posArr=0;
+                    }
+                    else if($itemCondicion->fkTipoCondicion == "2"){//and
+                        array_push($arrCondicion, array("tipoCondicion" => "and"));
+                        $posArr++;
+                    }
+                    else if($itemCondicion->fkTipoCondicion == "3"){//or
+                        array_push($arrCondicion, array("tipoCondicion" => "or"));
+                        $posArr++;
+                    }
+
+
+
+
+
+
+
+
+
+
+                    $multiplicadorInicial = 1;
+                    if(isset($itemCondicion->multiplicadorInicial)){
+                        $multiplicadorInicial = $itemCondicion->multiplicadorInicial;
+                    }
+                    $arrCondicionActual = $arrCondicion[$posArr];
+
+                    if(isset($itemCondicion->fkConceptoInicial)){
+                        if($itemCondicion->fkConceptoInicial == $concepto){
+                            
+                            $arrCondicionActual["inicio"]= intval($req->conFiValor[$key])*$multiplicadorInicial;
+                        }
+                        else{
+                            $conceptoCalculo = DB::table("conceptofijo")->where("fkEmpleado","=",$req->idEmpleado)
+                                                     ->where("fkEstado","=", "1")
+                                                     ->where("fkConcepto","=", $itemCondicion->fkConceptoInicial)->first();
+                            if(isset($conceptoCalculo->valor)){                                
+                                $arrCondicionActual["inicio"]= intval($conceptoCalculo->valor)*$multiplicadorInicial;
+                            }
+                            else{
+                                $arrCondicionActual["inicio"]=0;
+                            }
+                        }
+                    }
+                    else if(isset($itemCondicion->fkGrupoConceptoInicial)){
+                        $grupoConceptoCalculo = DB::table("conceptofijo")->select(DB::raw('SUM(conceptofijo.valor) as totalValor'))
+                        ->join("grupoconcepto_concepto as gcc", "gcc.fkConcepto","=","conceptofijo.fkConcepto")
+                        ->where("conceptofijo.fkEmpleado","=", $req->idEmpleado)
+                        ->where("conceptofijo.fkEstado","=","1")
+                        ->where("gcc.fkGrupoConcepto", "=", $itemCondicion->fkGrupoConceptoInicial)                       
+                        ->first();
+
+                        $arrCondicionActual["inicio"]= intval($grupoConceptoCalculo->totalValor)*$multiplicadorInicial;
+                        
+                        $conceptosNoInculidos = DB::table("grupoconcepto_concepto","gcc")
+                            ->join("conceptofijo as c","gcc.fkConcepto","=","c.fkConcepto","LEFT")
+                            ->where("c.fkEmpleado","=", $req->idEmpleado)
+                            ->where("c.fkEstado","=","1")
+                            ->where("gcc.fkGrupoConcepto", "=", $itemCondicion->fkGrupoConceptoInicial)    
+                            ->whereNull("c.fkConcepto")->get();
+                        foreach($conceptosNoInculidos as $conceptoNoInculido){
+                            if($conceptoNoInculido->fkConcepto == $concepto){
+                                $arrCondicionActual["inicio"] = $arrCondicionActual["inicio"] + (intval($req->conFiValor[$key])*$multiplicadorInicial);
+                            }
+                        }
+                    }
+                    $arrCondicionActual["fkOperadorComparacion"] = $itemCondicion->fkOperadorComparacion;
+                    $multiplicador1 = 1;
+                    if(isset($itemCondicion->multiplicador1)){
+                        $multiplicador1 = $itemCondicion->multiplicador1;
+                    }
+
+                    if(isset($itemCondicion->fkConceptoFinal1)){
+                        if($itemCondicion->fkConceptoFinal1 == $concepto){
+                            
+                            $arrCondicionActual["final1"]= intval($req->conFiValor[$key])*$multiplicador1;
+                        }
+                        else{
+                            $conceptoCalculo = DB::table("conceptofijo")->where("fkEmpleado","=",$req->idEmpleado)
+                                                     ->where("fkEstado","=", "1")
+                                                     ->where("fkConcepto","=", $itemCondicion->fkConceptoFinal1)->first();
+                            if(isset($conceptoCalculo->valor)){                                
+                                $arrCondicionActual["final1"]= intval($conceptoCalculo->valor)*$multiplicador1;
+                            }
+                            else{
+                                $arrCondicionActual["final1"]=0;
+                            }
+                        }
+                    }
+                    else if(isset($itemCondicion->fkGrupoConceptoFinal1)){
+                        $grupoConceptoCalculo = DB::table("conceptofijo")->select(DB::raw('SUM(conceptofijo.valor) as totalValor'))
+                        ->join("grupoconcepto_concepto as gcc", "gcc.fkConcepto","=","conceptofijo.fkConcepto")
+                        ->where("conceptofijo.fkEmpleado","=", $req->idEmpleado)
+                        ->where("conceptofijo.fkEstado","=","1")
+                        ->where("gcc.fkGrupoConcepto", "=", $itemCondicion->fkGrupoConceptoFinal1)                       
+                        ->first();
+
+                        $arrCondicionActual["final1"]= intval($grupoConceptoCalculo->totalValor)*$multiplicador1;
+                        
+                        $conceptosNoInculidos = DB::table("grupoconcepto_concepto","gcc")
+                            ->join("conceptofijo as c","gcc.fkConcepto","=","c.fkConcepto","LEFT")
+                            ->where("c.fkEmpleado","=", $req->idEmpleado)
+                            ->where("c.fkEstado","=","1")
+                            ->where("gcc.fkGrupoConcepto", "=", $itemCondicion->fkGrupoConceptoFinal1)           
+                            ->whereNull("c.fkConcepto")->get();
+                        foreach($conceptosNoInculidos as $conceptoNoInculido){
+                            if($conceptoNoInculido->fkConcepto == $concepto){
+                                $arrCondicionActual["final1"] = $arrCondicionActual["final1"] + (intval($req->conFiValor[$key])*$multiplicador1);
+                            }
+                        }
+                    }
+                    else if(isset($itemCondicion->fkVariableFinal1)){
+                        $variableFinal1 = DB::table('variable')->where("idVariable","=",$itemCondicion->fkVariableFinal1)->first();
+                        $arrCondicionActual["final1"] = intval($variableFinal1->valor)*$multiplicador1;
+                    }
+                    else if(isset($itemCondicion->valorCampo1)){
+                        $arrCondicionActual["final1"] = intval($itemCondicion->valorCampo1)*$multiplicador1;
+                    }
+                    else{
+                        $arrCondicionActual["final1"] = 0;
+                    }
+                    
+
+
+
+
+
+
+
+                    $multiplicador2 = 1;
+                    if(isset($itemCondicion->multiplicador2)){
+                        $multiplicador2 = $itemCondicion->multiplicador2;
+                    }
+
+                    if(isset($itemCondicion->fkConceptoFinal2)){
+                        if($itemCondicion->fkConceptoFinal2 == $concepto){
+                            
+                            $arrCondicionActual["final2"]= intval($req->conFiValor[$key])*$multiplicador2;
+                        }
+                        else{
+                            $conceptoCalculo = DB::table("conceptofijo")->where("fkEmpleado","=",$req->idEmpleado)
+                                                     ->where("fkEstado","=", "1")
+                                                     ->where("fkConcepto","=", $itemCondicion->fkConceptoFinal2)->first();
+                            if(isset($conceptoCalculo->valor)){                                
+                                $arrCondicionActual["final2"]= intval($conceptoCalculo->valor)*$multiplicador2;
+                            }
+                            else{
+                                $arrCondicionActual["final2"]=0;
+                            }
+                        }
+                    }
+                    else if(isset($itemCondicion->fkGrupoConceptoFinal2)){
+                        $grupoConceptoCalculo = DB::table("conceptofijo")->select(DB::raw('SUM(conceptofijo.valor) as totalValor'))
+                        ->join("grupoconcepto_concepto as gcc", "gcc.fkConcepto","=","conceptofijo.fkConcepto")
+                        ->where("conceptofijo.fkEmpleado","=", $req->idEmpleado)
+                        ->where("conceptofijo.fkEstado","=","1")
+                        ->where("gcc.fkGrupoConcepto", "=", $itemCondicion->fkGrupoConceptoFinal2)                       
+                        ->first();
+
+                        $arrCondicionActual["final2"]= intval($grupoConceptoCalculo->totalValor)*$multiplicador2;
+                        
+                        $conceptosNoInculidos = DB::table("grupoconcepto_concepto","gcc")
+                            ->join("conceptofijo as c","gcc.fkConcepto","=","c.fkConcepto","LEFT")
+                            ->where("c.fkEmpleado","=", $req->idEmpleado)
+                            ->where("c.fkEstado","=","1")
+                            ->where("gcc.fkGrupoConcepto", "=", $itemCondicion->fkGrupoConceptoFinal2)           
+                            ->whereNull("c.fkConcepto")->get();
+                        foreach($conceptosNoInculidos as $conceptoNoInculido){
+                            if($conceptoNoInculido->fkConcepto == $concepto){
+                                $arrCondicionActual["final2"] = $arrCondicionActual["final2"] + (intval($req->conFiValor[$key])*$multiplicador2);
+                            }
+                        }
+                    }
+                    else if(isset($itemCondicion->fkVariableFinal2)){
+                        $variableFinal2 = DB::table('variable')->where("idVariable","=",$itemCondicion->fkVariableFinal2)->first();
+                        $arrCondicionActual["final2"] = intval($variableFinal2->valor)*$multiplicador2;
+                    }
+                    else if(isset($itemCondicion->valorCampo2)){
+                        $arrCondicionActual["final2"] = intval($itemCondicion->valorCampo2)*$multiplicador2;
+                    }
+                    else{
+                        $arrCondicionActual["final2"] = 0;
+                    }
+
+
+                    $arrCondicion[$posArr] = $arrCondicionActual;
+
+
+                }
+                
+                foreach($arrCondicion as $llave => $arrItemCond){                                
+                    if(isset($arrItemCond['inicio']) && isset($arrItemCond['final1'])){
+                        if($arrItemCond["fkOperadorComparacion"]=="1"){
+                            if($arrItemCond['inicio'] > $arrItemCond['final1']){
+                                $arrCondicion[$llave]["valido"] = true;
+                            }
+                        }
+                        else if($arrItemCond["fkOperadorComparacion"]=="2"){
+                            if($arrItemCond['inicio'] < $arrItemCond['final1']){
+                                $arrCondicion[$llave]["valido"] = true;
+                            }
+                        }
+                        else if($arrItemCond["fkOperadorComparacion"]=="3"){
+                            if($arrItemCond['inicio'] == $arrItemCond['final1']){
+                                $arrCondicion[$llave]["valido"] = true;
+                            }
+                        }
+                        else if($arrItemCond["fkOperadorComparacion"]=="4"){
+                            
+                            if($arrItemCond['inicio'] >= $arrItemCond['final1']){
+                                $arrCondicion[$llave]["valido"] = true;
+                               
+                            }
+                        }
+                        else if($arrItemCond["fkOperadorComparacion"]=="5"){
+                            if($arrItemCond['inicio'] <= $arrItemCond['final1']){
+                                $arrCondicion[$llave]["valido"] = true;
+                            }
+                        }
+                        else if($arrItemCond["fkOperadorComparacion"]=="6"){
+                            if($arrItemCond['inicio'] != $arrItemCond['final1']){
+                                $arrCondicion[$llave]["valido"] = true;
+                            }
+                        }
+                    }
+                    if(isset($arrItemCond['inicio']) && isset($arrItemCond['final1']) && isset($arrItemCond['final2'])){
+                        if($arrItemCond["fkOperadorComparacion"]=="7"){
+                            if($arrItemCond['inicio'] >= $arrItemCond['final1'] && $arrItemCond['inicio'] <= $arrItemCond['final2']){
+                                $arrCondicion[$llave]["valido"] = true;
+                            }
+                        }
+                        else if($arrItemCond["fkOperadorComparacion"]=="8"){
+                            if($arrItemCond['inicio'] < $arrItemCond['final1'] && $arrItemCond['inicio'] > $arrItemCond['final2']){
+                                $arrCondicion[$llave]["valido"] = true;
+                            }
+                        }
+                    }
+
+                    if($arrItemCond["tipoCondicion"] == "or" && isset($arrCondicion[$llave]["valido"]) && $arrCondicion[$llave]["valido"] == true){
+                        
+                        return response()->json([
+                            "success" => false,
+                            "respuesta" => $condicion->mensajeMostrar,
+                            "idcondicion" => $condicion->idcondicion,
+                            "tipoRestriccion" => $condicion->fkTipoResultado
+                        ]);
+                    }
+                }
+                $cuentaValidos = 0;
+                
+                foreach($arrCondicion as $arrItemCond){
+                    
+                    if(isset($arrItemCond["valido"]) &&  $arrItemCond["valido"] == true){
+                        $cuentaValidos++;
+                    }
+                }
+                
+                if(sizeof($arrCondicion) == $cuentaValidos && sizeof($arrCondicion)!=0){
+                    if(!isset($req->pasarAlerta)){
+                        return response()->json([
+                            "success" => false,                            
+                            "respuesta" => $condicion->mensajeMostrar,
+                            "idcondicion" => $condicion->idcondicion,
+                            "tipoRestriccion" => $condicion->fkTipoResultado
+                        ]);
+                    }                    
+                    else{
+                        $pasarAlertas = explode(",",$req->pasarAlerta);
+                        if(!in_array($condicion->idcondicion, $pasarAlertas)){
+                            return response()->json([
+                                "success" => false,
+                                "idcondicion" => $condicion->idcondicion,
+                                "respuesta" => $condicion->mensajeMostrar,
+                                "tipoRestriccion" => $condicion->fkTipoResultado
+                            ]);
+                        }
+                    }
+                }                
+            }
+        }
+
+        DB::table('conceptofijo')->where("fkEmpleado","=", $req->idEmpleado)->delete();
+
+        
+        
+        foreach($req->conFiConcepto as $key => $concepto) {            
+            $insertConceptoFijo = array(
+                "unidad" => $req->conFiUnidad[$key],
+                "valor" => $req->conFiValor[$key],
+                "porcentaje" => $req->conFiPorcentaje[$key],
+                "fechaInicio" => $req->conFiFechaInicio[$key],
+                "fechaFin" => $req->conFiFechaFin[$key],
+                "fkEmpleado" => $req->idEmpleado,
+                "fkEstado" => 1,
+                "fkConcepto" => $concepto                
+            );
+            DB::table('conceptofijo')->insert($insertConceptoFijo);
+        }
+        
+
+       
+        if(isset($req->conFiFechaInicioCambio) and !empty($req->conFiFechaInicioCambio) and isset($req->conValorCambio) and !empty($req->conValorCambio)){
+            $arrCambioSalario = array(
+                "fechaCambio" => $req->conFiFechaInicioCambio,
+                "fkEmpleado" => $req->idEmpleado,
+                "valorNuevo" => $req->conValorCambio,
+                "valorAnterior" => $req->conFiValor[0]
+            );
+            $cambioSalario = DB::table("cambiosalario","cs")
+            ->where("cs.fkEmpleado","=",$req->idEmpleado)
+            ->where("cs.fkEstado","=","4")
+            ->whereRaw("MONTH(cs.fechaCambio) = MONTH(".$req->conFiFechaInicioCambio.")")->get();
+
+            $idCambioSalario = 0;
+            if(sizeof($cambioSalario)>0){
+                $idCambioSalario = $cambioSalario[0]->idCambioSalario;
+                DB::table("cambiosalario")
+                ->where("idCambioSalario", "=",$cambioSalario[0]->idCambioSalario)
+                ->update($arrCambioSalario);
+            }
+            else{
+                
+                $idCambioSalario = DB::table("cambiosalario")
+                ->insertGetId($arrCambioSalario,"idCambioSalario");
+            }
+
+
+            if(strtotime($req->conFiFechaInicioCambio) <= strtotime("now")){
+
+                
+
+                $conceptoSalario = DB::table("conceptofijo", "cf")
+                ->whereIn("cf.fkConcepto",["1","2"])
+                ->where("cf.fkEmpleado", "=", $req->idEmpleado)
+                ->first();
+                
+                $updateConceptoFijo = array(
+                    "valor"=> $req->conValorCambio,
+                    "fechaInicio"=> $req->conFiFechaInicioCambio,
+                    "fkEstado" => 1,                
+                );
+
+
+
+                DB::table('cambiosalario')
+                ->where("idCambioSalario","=",$idCambioSalario)
+                ->update(array("fkEstado" => "5"));
+
+                DB::table('conceptofijo')
+                ->where("idConceptoFijo","=",$conceptoSalario->idConceptoFijo)
+                ->update($updateConceptoFijo);
+            }
+            
+
+        }
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
+        if(isset($periodoActivo)){
+            DB::table("empleado")->where("idempleado" ,"=", $req->idEmpleado)
+            ->update(["fkEstado" => "3"]);
+        }
+        
+       
+        
+        
+
+
+
+
+        $this->validarEstadoEmpleado($req->idEmpleado);
+        return response()->json([
+            "success" => true
+        ]);
+        
+
+    }
     public function validarEstadoEmpleado($idEmpleado){
         //Consultar que tenga todos los datos basicos
         DB::table("empleado","e")->where("e.idempleado","=",$idEmpleado)->update(["fkEstado" => "3"]);
@@ -2005,12 +2689,16 @@ class EmpleadoController extends Controller
             ->update($updateContrato);
             
 
+
+
+      
         $updateEmpleado = array(
             "fkEstado" => "1"
         );
 
         $affected = DB::table('empleado')
               ->where('idempleado', $idEmpleado)
+              ->where("fkEstado","=","3")
               ->update($updateEmpleado);
         return true;
     }
@@ -2288,8 +2976,9 @@ class EmpleadoController extends Controller
         ->join("estado as e", "e.idEstado", "=", "ce.fkEstado")
         ->orderBy("idCargaEmpleado", "desc")
         ->get();
+        $usu = UsuarioController::dataAdminLogueado();
 
-        return view('empleado.cargarEmpleadosMasiva', ["cargaEmpleados" => $cargaEmpleados] );
+        return view('empleado.cargarEmpleadosMasiva', ["cargaEmpleados" => $cargaEmpleados, "dataUsu" => $usu] );
     }
     public function cargaEmpleados($idCargaEmpleado){
         $cargaEmpleado = DB::table("carga_empleado","ce")
@@ -2305,11 +2994,14 @@ class EmpleadoController extends Controller
         ->join("tipoidentificacion AS ti","ti.idtipoIdentificacion", "=","dp.fkTipoIdentificacion")
         ->where("fkCargaEmpleado","=",$idCargaEmpleado)->get();
 
+        $usu = UsuarioController::dataAdminLogueado();
+
         return view(
             'empleado.cargaEnProceso',
             [
                 "cargaEmpleado" => $cargaEmpleado,
-                "cargaEmpleado_Empleados" => $cargaEmpleado_Empleados
+                "cargaEmpleado_Empleados" => $cargaEmpleado_Empleados,
+                "dataUsu" => $usu
             ]
         );
     }
@@ -2398,9 +3090,9 @@ class EmpleadoController extends Controller
                             return response()->json([
                                 "success" => true,
                                 "seguirSubiendo" => true,
-                                "numActual" =>  ($i),
+                                "numActual" =>  (($i-1)),
                                 "mensaje" => $mensaje,
-                                "porcentaje" => ceil(($i / $cargaEmpleado->numRegistros)*100)."%"
+                                "porcentaje" => ceil((($i-1) / $cargaEmpleado->numRegistros)*100)."%"
                             ]);
                         }
 
@@ -2531,6 +3223,11 @@ class EmpleadoController extends Controller
                     
                     try{
                         $idempleado = DB::table('empleado')->insertGetId($insertEmpleado, "idempleado");
+                        DB::table("periodo")->insert([
+                            "fkEmpleado" => $idempleado,
+                            "fkNomina" => $row[3],
+                            "fechaInicio" => $row[4]
+                        ]);
                     }
                     catch(QueryException $e){
                         dd($e);
@@ -2985,6 +3682,7 @@ class EmpleadoController extends Controller
                                             "fkTipoIdentificacion" => $req->tIdentificacionUpc[$key],
                                             "numIdentificacion" => $req->numIdentificacionUpc[$key],
                                             "fechaNacimiento" => $req->fechaNacimientoUpc[$key],
+                                            "fkPeriocidad" => $req->periocidad[$key],
 
                 );
                 
@@ -3031,10 +3729,27 @@ class EmpleadoController extends Controller
         ]);
 
     }
+
+
+
+
+    
     public function desactivarEmpleado($idEmpleado){
+
+
         $affected = DB::table('empleado')
                     ->where('idempleado', $idEmpleado)
                     ->update(["fkEstado" => "2"]); 
+
+        DB::table("periodo")
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkEstado","=","1")
+        ->update([
+            "fkEstado" => "2"
+        ]);
+
+
+
         return response()->json([
             "success" => true
         ]);
@@ -3371,10 +4086,456 @@ class EmpleadoController extends Controller
         }
         return response()->json(['success' => $success, 'info' => $info]);
     }
+
+    public function indexSubirFotos(){
+        $usu = UsuarioController::dataAdminLogueado();
+        return view('/empleado.subirFotosMasivamente',[
+            "dataUsu" => $usu
+        ]);
+    }
+    public function cargaMasivaFotosEmpleados(Request $req){
+        if ($req->hasFile('archivoZip')) {
+            $rutaArchivoZip = $req->archivoZip->path();
+            $zip = new ZipArchive();
+            $zip->open($rutaArchivoZip);
+            $registroExtraer = array();
+            for ($i=0; $i<$zip->numFiles;$i++) {
+                $registro = $zip->statIndex($i);
+                $nombreR = explode(".",$registro["name"]);
+                $extenciones = array("jpg", "jpeg", "png");
+
+                if(sizeof($nombreR)>0 && in_array(last($nombreR), $extenciones)){
+                    $empleado = DB::table("datospersonales", "dp")->where('dp.numeroIdentificacion', "=", $nombreR[0])->first();
+
+                    if(isset($empleado)){
+                        DB::table("datospersonales", "dp")->where('dp.numeroIdentificacion', "=", $nombreR[0])
+                        ->update([
+                            "foto" => "public/imgEmpleados/".$registro["name"]
+                        ]);
+                        array_push($registroExtraer, $registro["name"]);
+                    }    
+
+                }
+                
+                
+                
+            }
+            
+            
+
+            $zip->extractTo(storage_path("app/public/imgEmpleados"), $registroExtraer);
+            $zip->close();
+            $usu = UsuarioController::dataAdminLogueado();
+            return view("/layouts.respuestaGen",[
+                "dataUsu" => $usu,
+                "titulo" => "Imagenes modificadas",
+                "mensaje" => "Se subieron ".sizeof($registroExtraer)." Fotos"
+            ]);
+        }
+    }
+
+
+    public function indexReintegro(Request $req){
+        $empleados = DB::table('empleado')->select( 'empleado.idempleado',
+                                                    'empleado.tEmpleado',
+                                                    'est.nombre AS estado',
+                                                    'est.clase AS claseEstado',
+                                                    'empleado.fkEstado',
+                                                    'n.nombre as nombreNomina',
+                                                    'u.nombre as ciudad',
+                                                    'dp.*')
+                                        ->selectRaw('(select cc2.nombre from centrocosto as cc2 where cc2.idcentroCosto 
+                                                        in(Select ecc.fkCentroCosto from empleado_centrocosto as ecc where 
+                                                        ecc.fkEmpleado = empleado.idempleado)
+                                                        limit 0,1) as centroCosto ')
+                                        ->join('datospersonales AS dp','empleado.fkDatosPersonales', '=', 'dp.idDatosPersonales')
+                                        ->join('nomina AS n','empleado.fkNomina', '=', 'n.idNomina',"left")
+                                        ->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
+                                        ->join('ubicacion AS u','u.idubicacion', '=', 'empleado.fkUbicacionLabora',"left")
+                                        ->join('estado AS est','empleado.fkEstado', '=', 'est.idestado');
+        $arrConsulta = array();
+
+        if(isset($req->nombre)){
+            $empleados->where(function($query) use($req){
+                $query->where("dp.primerNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.primerApellido","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoApellido","LIKE","%".$req->nombre."%");
+            });
+            $arrConsulta["nombre"] = $req->nombre;
+        }
+        if(isset($req->numDoc)){
+            $empleados->where("dp.numeroIdentificacion", "LIKE", $req->numDoc."%");
+            $arrConsulta["numDoc"] = $req->numDoc;
+        }
+
+        if(isset($req->empresa)){
+            $empleados->where("empleado.fkEmpresa", "=", $req->empresa);
+            $arrConsulta["empresa"] = $req->empresa;
+        }
+        else{
+            $req->centroCosto = NULL;
+        }
+
+        if(isset($req->centroCosto)){
+            $empleados->where("cc.idcentroCosto", "=", $req->centroCosto);
+            $arrConsulta["centroCosto"] = $req->centroCosto;
+        }
+
+
+        if(isset($req->tipoPersona)){
+            $empleados->where("empleado.tipoPersona", "=", $req->tipoPersona);
+            $arrConsulta["tipoPersona"] = $req->tipoPersona;
+        }
+        if(isset($req->ciudad)){
+            $empleados->where("empleado.fkUbicacionLabora", "=", $req->ciudad);
+            $arrConsulta["ciudad"] = $req->ciudad;
+        }
+        if(isset($req->estado)){
+            $empleados->where("empleado.fkEstado", "=", $req->estado);
+        }
+        else{
+            $empleados->whereIn("empleado.fkEstado", ["2"]);
+        }
+        
+        if(isset($req->centroCosto)){
+            $empleados->join("empleado_centrocosto AS ec", "ec.fkEmpleado","=","empleado.idempleado");
+            $empleados->where("ec.fkCentroCosto","=",$req->centroCosto);
+            $arrConsulta["centroCosto"] = $req->centroCosto;
+        }
+
+        $empleados = $empleados->distinct()->get();
+        $numResultados = sizeof($empleados);
+        $empleados = $this->paginate($empleados, 15);
+        $empleados->withPath("empleado");
+
+        
+        
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+
+        $centrosDeCosto = array();
+        
+        if(isset($req->empresa)){
+            $centrosDeCosto = DB::table("centrocosto")->where("fkEmpresa","=",$req->empresa)->orderBy("nombre")->get();
+        }
+        
+        $ciudades = DB::table("ubicacion")->where("fkTipoUbicacion","=","3")->orderBy("nombre")->get();
+        $estados = DB::table("estado","e")->whereIn('e.idestado',[1,2,3])->get();
+        $usu = UsuarioController::dataAdminLogueado();
+
+        return view('/empleado.verEmpleadosReintegro',['empleados'=> $empleados, 
+        'ciudades' => $ciudades,
+         "req" => $req, 
+         "arrConsulta" => $arrConsulta,
+         "estados" => $estados,
+         "numResultados" => $numResultados,
+         "empresas" => $empresas,
+         "centrosDeCosto" => $centrosDeCosto,
+         'dataUsu' => $usu
+        ]);
+    }
+
+    public function formReintegro($idEmpleado, Request $req){        
+        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.usuario as usuarioTxt',
+                                                    'ubi_dep_exp.idubicacion AS ubi_depto_exp', 'ubi_pa_exp.idubicacion AS ubi_pais_exp',
+                                                    'ubi_dep_nac.idubicacion AS ubi_depto_nac', 'ubi_pa_nac.idubicacion AS ubi_pais_nac',
+                                                    'ubi_dep_res.idubicacion AS ubi_depto_res', 'ubi_pa_res.idubicacion AS ubi_pais_res',
+                                                    'ubi_dep_tra.idubicacion AS ubi_depto_tra', 'ubi_pa_tra.idubicacion AS ubi_pais_tra')
+                                        ->join('datospersonales AS dp','empleado.fkDatosPersonales', '=', 'dp.idDatosPersonales',"left")                                        
+                                        ->join("ubicacion AS ubi_ciud_exp", 'dp.fkUbicacionExpedicion', '=', 'ubi_ciud_exp.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_dep_exp", 'ubi_ciud_exp.fkUbicacion', '=', 'ubi_dep_exp.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_pa_exp", 'ubi_dep_exp.fkUbicacion', '=', 'ubi_pa_exp.idubicacion',"left")
+
+                                        ->join("ubicacion AS ubi_ciud_nac", 'dp.fkUbicacionNacimiento', '=', 'ubi_ciud_nac.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_dep_nac", 'ubi_ciud_nac.fkUbicacion', '=', 'ubi_dep_nac.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_pa_nac", 'ubi_dep_nac.fkUbicacion', '=', 'ubi_pa_nac.idubicacion',"left")
+
+                                        ->join("ubicacion AS ubi_ciud_res", 'dp.fkUbicacionResidencia', '=', 'ubi_ciud_res.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_dep_res", 'ubi_ciud_res.fkUbicacion', '=', 'ubi_dep_res.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_pa_res", 'ubi_dep_res.fkUbicacion', '=', 'ubi_pa_res.idubicacion',"left")
+                                        
+                                        ->join("ubicacion AS ubi_ciud_tra", 'empleado.fkUbicacionLabora', '=', 'ubi_ciud_tra.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_dep_tra", 'ubi_ciud_tra.fkUbicacion', '=', 'ubi_dep_tra.idubicacion',"left")
+                                        ->join("ubicacion AS ubi_pa_tra", 'ubi_dep_tra.fkUbicacion', '=', 'ubi_pa_tra.idubicacion',"left")
+
+                                        ->join("usuario AS u", 'u.idusuario','=','empleado.fkUsuario',"left")
+
+                                        ->where('idempleado', $idEmpleado)
+                                        ->first();
+        
+
+
+        $paises = Ubicacion::where("fkTipoUbicacion", "=" ,'1')->get();
+        $deptosExp = array();
+        $ciudadesExp= array();
+
+        if(isset($empleado->ubi_pais_exp)){
+            $deptosExp = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_pais_exp)->get();
+            $ciudadesExp = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_depto_exp)->get();    
+        }
+        
+        $deptosNac = array();
+        $ciudadesNac= array();
+        if(isset($empleado->ubi_pais_nac)){
+            $deptosNac = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_pais_nac)->get();
+            $ciudadesNac = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_depto_nac)->get();
+        }
+
+        $deptosRes = array();
+        $ciudadesRes= array();
+        if(isset($empleado->ubi_pais_res)){
+            $deptosRes = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_pais_res)->get();
+            $ciudadesRes = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_depto_res)->get();
+        }
+
+        $deptosTra = array();
+        $ciudadesTra= array();
+
+        if(isset($empleado->ubi_pais_tra)){
+            $deptosTra = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_pais_tra)->get();
+            $ciudadesTra = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_depto_tra)->get();    
+        }
+
+
+
+
+        $generos = DB::table("genero")->get();
+        $estadosCivil = DB::table("estadocivil")->get();
+        $tipo_vivienda = DB::table("tipo_vivienda")->get();
+        $grupoSanguineo = DB::table("gruposanguineo")->get();
+        $rhs = DB::table("rh")->get();
+        $tipoidentificacion = DB::table("tipoidentificacion")->where("tipo", "=", "0")->get();
+
+        $contactosEmergencia = DB::table("contactoemergencia")->select(
+            "contactoemergencia.*",
+            'ubi_dep_emer.idubicacion AS ubi_depto_emer', 
+            'ubi_pa_emer.idubicacion AS ubi_pais_emer'
+        )
+        ->join("ubicacion AS ubi_ciud_emer", 'contactoemergencia.fkUbicacion', '=', 'ubi_ciud_emer.idubicacion')
+        ->join("ubicacion AS ubi_dep_emer", 'ubi_ciud_emer.fkUbicacion', '=', 'ubi_dep_emer.idubicacion')
+        ->join("ubicacion AS ubi_pa_emer", 'ubi_dep_emer.fkUbicacion', '=', 'ubi_pa_emer.idubicacion')
+        ->where("fkDatosEmpleado", "=", $empleado->idDatosPersonales)->get();
+        $deptosContactosEmergencia = array();
+        $ciudadesContactosEmergencia = array();
+        foreach($contactosEmergencia as $contactoEmergencia){
+            
+            $deptosEmer = Ubicacion::where("fkUbicacion", "=", $contactoEmergencia->ubi_pais_emer)->get();
+            $ciudadesEmer = Ubicacion::where("fkUbicacion", "=", $contactoEmergencia->ubi_depto_emer)->get();
+
+            array_push($deptosContactosEmergencia, $deptosEmer);
+            array_push($ciudadesContactosEmergencia, $ciudadesEmer);
+
+        }
+
+        $nucleofamiliar = DB::table("nucleofamiliar")->where("fkDatosEmpleado", "=", $empleado->idDatosPersonales)->get();
+        
+
+        
+        $parentescos = DB::table("parentesco")->get();
+        $escolaridades = DB::table("escolaridad")->get();
+
+
+
+        $empresas = DB::table("empresa")->get();
+        $centrosCosto = array();
+        if(isset($empleado->fkEmpresa)){
+            $centrosCosto = DB::table("centrocosto")->where("fkEmpresa","=",$empleado->fkEmpresa)->get();
+        }
+
+        $tipoContratos = DB::table('tipocontrato')->get();
+        $cargos = DB::table("cargo")->get();
+        $entidadesFinancieras = DB::table("tercero")->where("fk_actividad_economica", "=", "4")->get();
+        
+        $afiliaciones = DB::table("afiliacion")->where('fkEmpleado', "=", $idEmpleado)->get();
+
+        $tipoafilicaciones = DB::table('tipoafilicacion')->get();
+        $entidadesAfiliacion = array();
+        foreach($afiliaciones as $afiliacion){
+            $afiliacionesEnt = DB::table("tercero")
+                    ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
+                    ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->get();
+
+            $entidadesAfiliacion[$afiliacion->idAfiliacion] = $afiliacionesEnt;
+        }
+
+
+        $nivelesArl = DB::table('nivel_arl')->get();
+
+        $afiliacionesEnt1 = DB::table("tercero")
+                    ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
+                    ->where("ta.idTipoAfiliacion", "=", '1')->get();
+        $afiliacionesEnt2 = DB::table("tercero")
+                    ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
+                    ->where("ta.idTipoAfiliacion", "=", '2')->get();
+        $afiliacionesEnt3 = DB::table("tercero")
+                    ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
+                    ->where("ta.idTipoAfiliacion", "=", '3')->get();
+        $afiliacionesEnt4 = DB::table("tercero")
+                    ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
+                    ->where("ta.idTipoAfiliacion", "=", '4')->get();
+        $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
+        ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
+        ->where("cf.fkEmpleado", "=", $idEmpleado)->get();
+        $contratoActivo = DB::table('contrato')->where("fkEmpleado","=",$idEmpleado)->whereIn("fkEstado",array("1","4"))->first();
+
+        $conceptos = DB::table("concepto")->whereNotIn("idconcepto", [1,2])->orderBy("nombre")->get();
+
+        $centrosCostoxEmpleado = DB::table("empleado_centrocosto")->where("fkEmpleado","=", $idEmpleado)->get();
+        $centrosCostos = array();
+        $nominas = array();
+
+        if(isset($empleado->fkEmpresa)){
+            $centrosCostos = DB::table("centrocosto")->where("fkEmpresa","=", $empleado->fkEmpresa)->get();
+            $nominas = DB::table("nomina")->where("fkEmpresa","=", $empleado->fkEmpresa)->orderBy("nombre")->get();
+            
+            
+        }
+        $beneficiosTributarios = DB::table("beneficiotributario", "bt")
+        ->select('bt.*', 'nf.*', 'ubi_dep_benef.idubicacion AS ubi_depto_benef', 'ubi_pa_benef.idubicacion AS ubi_pais_benef')
+            ->join("nucleofamiliar AS nf", 'nf.idNucleoFamiliar', '=', 'bt.fkNucleoFamiliar', 'left')
+            ->join("ubicacion AS ubi_ciud_benef", 'nf.fkUbicacion', '=', 'ubi_ciud_benef.idubicacion', 'left')
+            ->join("ubicacion AS ubi_dep_benef", 'ubi_ciud_benef.fkUbicacion', '=', 'ubi_dep_benef.idubicacion', 'left')
+            ->join("ubicacion AS ubi_pa_benef", 'ubi_dep_benef.fkUbicacion', '=', 'ubi_pa_benef.idubicacion', 'left')
+        ->where("fkEmpleado", "=", $idEmpleado)->get();
+        
+        
+        $deptosBeneficiosTributarios = array();
+        $ciudadesBeneficiosTributarios = array();
+        foreach($beneficiosTributarios as $beneficioTributario){            
+            $deptosBen = Ubicacion::where("fkUbicacion", "=", $beneficioTributario->ubi_pais_benef)->get();
+            $ciudadesBen = Ubicacion::where("fkUbicacion", "=", $beneficioTributario->ubi_depto_benef)->get();
+            array_push($deptosBeneficiosTributarios, $deptosBen);
+            array_push($ciudadesBeneficiosTributarios, $ciudadesBen);
+        }
+
+
+        $destino = "infoLab";
+        if(isset($req->destino)){
+            $destino = $req->destino;
+        }
+
+        $generosBen = DB::table("genero")->whereIn("idGenero",["1","2"])->get();
+        $tipobeneficio = DB::table("tipobeneficio")->orderBy("nombre")->get();
+
+        $cambiosAfiliacion = DB::table("cambioafiliacion","ca")
+        ->where("ca.fkEmpleado", "=", $empleado->idempleado)->get();
+
+        $afiliacionesNuevas = array();
+        foreach($cambiosAfiliacion as $cambioAfiliacion){
+            $afiliacionesNuevas[$cambioAfiliacion->fkAfiliacion] = $cambioAfiliacion;
+        }
+
+        $cambioSalario = DB::table("cambiosalario","cs")
+        ->where('cs.fkEmpleado', "=", $empleado->idempleado)
+        ->where('cs.fkEstado', "=", "4")
+        ->orderBy("idCambioSalario","desc")->first();
+
+        $subtiposcotizante = DB::table("subtipocotizante")->get();
+        
+        $upcadicional = DB::table("upcadicional", 'nf')
+        ->select('nf.*', 'ubi_dep_upc.idubicacion AS ubi_depto_upc', 'ubi_pa_upc.idubicacion AS ubi_pais_upc')
+        ->join("ubicacion AS ubi_ciud_upc", 'nf.fkUbicacion', '=', 'ubi_ciud_upc.idubicacion', 'left')
+        ->join("ubicacion AS ubi_dep_upc", 'ubi_ciud_upc.fkUbicacion', '=', 'ubi_dep_upc.idubicacion', 'left')
+        ->join("ubicacion AS ubi_pa_upc", 'ubi_dep_upc.fkUbicacion', '=', 'ubi_pa_upc.idubicacion', 'left')
+        ->where("nf.fkEmpleado", "=", $empleado->idempleado)->get();
+        $deptosUpc = array();
+        $ciudadesUpc = array();
+        foreach($upcadicional as $row => $upc){
+            $deptosBen = Ubicacion::where("fkUbicacion", "=", $upc->ubi_pais_upc)->get();
+            $ciudadesBen = Ubicacion::where("fkUbicacion", "=", $upc->ubi_depto_upc)->get();
+            $deptosUpc[$row] = $deptosBen;
+            $ciudadesUpc[$row] = $ciudadesBen;
+        }
+        $existe = false;
+        $existeUsuario = User::where('fkEmpleado', $idEmpleado)->first();
+        if ($existeUsuario) {
+            $existe = true;
+        }
+        $nivelesEstudios = DB::table("nivel_estudio")->get();
+        $etnias = DB::table("etnia")->get();
+
+        $centrosTrabajo = DB::table("centrotrabajo")->get();
+
+        $usu = UsuarioController::dataAdminLogueado();
+
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
+
+
+        return view('/empleado.reintegroEmpleado', [
+            'paises'=>$paises,
+            'dataUsu' => $usu,
+            'usuExiste' => $existe,
+            'generos' => $generos, 
+            'estadosCivil' => $estadosCivil, 
+            'tipo_vivienda' => $tipo_vivienda,
+            'grupoSanguineo' => $grupoSanguineo,
+            'rhs' => $rhs,
+            'tipoidentificacion' => $tipoidentificacion,
+            'empleado' => $empleado,
+            'deptosExp' => $deptosExp,
+            'ciudadesExp' => $ciudadesExp,
+            'deptosNac' => $deptosNac,
+            'ciudadesNac' => $ciudadesNac,
+            'deptosRes' => $deptosRes,
+            'ciudadesRes' => $ciudadesRes,
+            'contactosEmergencia' => $contactosEmergencia,
+            'deptosContactosEmergencia' => $deptosContactosEmergencia,
+            'ciudadesContactosEmergencia' => $ciudadesContactosEmergencia,
+            'nucleofamiliar' => $nucleofamiliar,
+            'parentescos' => $parentescos,
+            'escolaridades' => $escolaridades,
+            'empresas' => $empresas,
+            'centrosCosto' => $centrosCosto,
+            'tipoContratos' => $tipoContratos,
+            'idEmpleado' => $idEmpleado, 
+            'cargos' => $cargos, 
+            'entidadesFinancieras' => $entidadesFinancieras,
+            'afiliaciones' => $afiliaciones,
+            'tipoafilicaciones' => $tipoafilicaciones,
+            'nivelesArl' => $nivelesArl,
+            'afiliacionesEnt1' => $afiliacionesEnt1,
+            'afiliacionesEnt2' => $afiliacionesEnt2,
+            'afiliacionesEnt3' => $afiliacionesEnt3,
+            'afiliacionesEnt4' => $afiliacionesEnt4,
+            'entidadesAfiliacion' => $entidadesAfiliacion,
+            'conceptosFijos' => $conceptosFijos,
+            'contratoActivo' => $contratoActivo,
+            'conceptos' => $conceptos,
+            'destino' => $destino,
+            'centrosCostoxEmpleado' => $centrosCostoxEmpleado,
+            'centrosCostos' => $centrosCostos,
+            'nominas' => $nominas,
+            'deptosTra' => $deptosTra,
+            'ciudadesTra' =>$ciudadesTra,
+            'beneficiosTributarios' => $beneficiosTributarios,
+            'generosBen' => $generosBen,
+            'tipobeneficio' => $tipobeneficio,
+            'deptosBeneficiosTributarios' => $deptosBeneficiosTributarios,
+            'ciudadesBeneficiosTributarios' => $ciudadesBeneficiosTributarios,
+            'afiliacionesNuevas' => $afiliacionesNuevas,
+            'cambioSalario' => $cambioSalario,
+            'subtiposcotizante' => $subtiposcotizante,
+            'upcAdicional' => $upcadicional,
+            'deptosUpc' => $deptosUpc,
+            'ciudadesUpc' => $ciudadesUpc,
+            'nivelesEstudios' => $nivelesEstudios,
+            'etnias' => $etnias,
+            "centrosTrabajo" => $centrosTrabajo,
+            "periodoActivo" => $periodoActivo
+        ]);
+
+
+    }
+
+
     public function paginate($items, $perPage = 5, $page = null, $options = [])
     {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
+
+
 }

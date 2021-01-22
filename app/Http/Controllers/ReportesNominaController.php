@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use stdClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use League\Csv\Writer;
@@ -31,6 +31,7 @@ class ReportesNominaController extends Controller
     }
     
     public function documentoNominaHorizontal($idLiquidacionNomina){
+
         $nominas = DB::table("item_boucher_pago", "ibp")
         ->select("c.idconcepto","c.nombre","ln.fechaLiquida","e.idempleado", 
         "dp.primerNombre","dp.segundoNombre", 
@@ -569,6 +570,54 @@ class ReportesNominaController extends Controller
         ->where("bp.idBoucherPago","=",$idBoucherPago)
         ->first();
        
+        $userSolicita = "";
+        if(isset($empresayLiquidacion->fkUserSolicita)){
+            $usuario = DB::table('users')->select(
+                'users.username',
+                'users.email',
+                'datospersonales.primerNombre',
+                'datospersonales.primerApellido',
+                'datospersonales.foto',
+                'empleado.idempleado'
+            )->leftJoin('empleado', 'users.fkEmpleado', 'empleado.idempleado',"left")
+            ->leftJoin('empresa', 'empresa.idempresa', 'empleado.fkEmpresa',"left")
+            ->leftJoin('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales',"left")
+            ->where('users.id', $empresayLiquidacion->fkUserSolicita)
+            ->first();
+            
+            if(isset($usuario->primerNombre)){
+                $userSolicita = $usuario->primerNombre." ".$usuario->primerApellido;
+            }
+            else{
+                $userSolicita = $usuario->username;
+            }
+        }
+
+        $userAprueba = "";
+        if(isset($empresayLiquidacion->fkUserAprueba)){
+            $usuario = DB::table('users')->select(
+                'users.username',
+                'users.email',
+                'datospersonales.primerNombre',
+                'datospersonales.primerApellido',
+                'datospersonales.foto',
+                'empleado.idempleado'
+            )
+            ->leftJoin('empleado', 'users.fkEmpleado', 'empleado.idempleado')
+            ->leftJoin('empresa', 'empresa.idempresa', 'empleado.fkEmpresa')
+            ->leftJoin('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
+            ->where('users.id',"=", $empresayLiquidacion->fkUserAprueba)
+            ->first();
+            
+            if(isset($usuario->primerNombre)){
+                $userAprueba = $usuario->primerNombre." ".$usuario->primerApellido;
+            }
+            else{
+                $userAprueba = $usuario->username;
+            }
+        }
+
+
         
         $empleado = DB::table("empleado","e")
         ->select("e.idempleado", "e.fechaIngreso","e.tipoRegimen", "e.fkNomina",
@@ -618,9 +667,25 @@ class ReportesNominaController extends Controller
        ->where("ibp.fkBoucherPago","=",$idBoucherPago)
        ->get();
 
-       $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
-        ->whereIn("fkConcepto",[1,2])->first();
+       $periodoPasadoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","2")
+        ->where("fkEmpleado", "=", $empleado->idempleado)
+        ->where("fechaFin",">=",$empresayLiquidacion->fechaInicio)
+        ->where("fkNomina","=",$empresayLiquidacion->fkNomina)
+        ->first();
         
+        if(isset($periodoPasadoReintegro)){
+            $conceptoSalario = new stdClass;
+            $conceptoSalario->valor = $periodoPasadoReintegro->salario;
+        }
+        else{
+            $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
+            ->whereIn("fkConcepto",[1,2])->first();
+        }
+        
+
+
+
         //VACACIONES
         $novedadesVacacionActual = DB::table("novedad","n")
         ->select("v.*", "c.nombre","c.idconcepto", "ibpn.valor")
@@ -694,6 +759,16 @@ class ReportesNominaController extends Controller
         
             </style>
             ';
+            $novedadesRetiro = DB::table("novedad","n")
+            ->select("r.fecha", "r.fechaReal","mr.nombre as motivoRet")
+            ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+            ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro")
+            ->where("n.fkEmpleado", "=", $empleado->idempleado)
+            ->whereIn("n.fkEstado",["7", "8"])
+            ->whereNotNull("n.fkRetiro")
+            ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
+
+
             if($empresayLiquidacion->fkTipoLiquidacion == "7"){
                 $html.='<div class="page liquida">
                 <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
@@ -857,16 +932,8 @@ class ReportesNominaController extends Controller
                     </div>
                 </div>';
             }
-            else if($empresayLiquidacion->fkTipoLiquidacion == "2" || $empresayLiquidacion->fkTipoLiquidacion == "3"){
-                $novedadesRetiro = DB::table("novedad","n")
-                ->select("r.fecha", "r.fechaReal","mr.nombre as motivoRet")
-                ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
-                ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro")
-                ->where("n.fkEmpleado", "=", $empleado->idempleado)
-                ->whereIn("n.fkEstado",["7", "8"])
-                ->whereNotNull("n.fkRetiro")
-                ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
-
+            else if(($empresayLiquidacion->fkTipoLiquidacion == "2" || $empresayLiquidacion->fkTipoLiquidacion == "3") && isset($novedadesRetiro->fecha)){
+           
                 $contrato = DB::table("contrato","c")
                 ->join("tipocontrato as tc","tc.idtipoContrato", "=","c.fkTipoContrato")
                 ->where("c.fkEmpleado","=",$empleado->idempleado)
@@ -1164,9 +1231,9 @@ class ReportesNominaController extends Controller
                         </table>
                         <table style="width: 100%;">
                             <tr>
-                                <th style="border: 1px solid #000;">ELABORÓ:</th>
-                                <th style="border: 1px solid #000;">REVISÓ:</th>
-                                <th style="border: 1px solid #000;">APROBÓ:</th>
+                                <th style="border: 1px solid #000; width:33%;">ELABORÓ: '.$userSolicita.'</th>
+                                <th style="border: 1px solid #000; width:33%;">REVISÓ: '.$userAprueba.'</th>
+                                <th style="border: 1px solid #000; width:33%;">APROBÓ:</th>
                             </tr>
                         </table>
                     </div>
@@ -1373,7 +1440,10 @@ class ReportesNominaController extends Controller
                 $novedadesRetiro = DB::table("novedad","n")
                 ->select("r.fecha")
                 ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
-                    ->where("n.fkEmpleado", "=", $empleado->idempleado)
+                ->where("n.fkEmpleado", "=", $empleado->idempleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                )")
                 ->whereIn("n.fkEstado",["7", "8"])
                 ->whereNotNull("n.fkRetiro")
                 ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
@@ -1395,6 +1465,9 @@ class ReportesNominaController extends Controller
                 ->join("item_boucher_pago_novedad as ibpn","ibpn.fkNovedad","=","n.idNovedad")
                 ->join("item_boucher_pago as ibp","ibp.idItemBoucherPago","=","ibpn.fkItemBoucher")
                 ->where("n.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                )")
                 ->where("ibp.fkBoucherPago","<>",$idBoucherPago)
                 ->whereIn("n.fkEstado",["7"]) // Pagada o sin pagar-> no que este eliminada
                 ->whereNotNull("n.fkVacaciones")
@@ -1534,9 +1607,9 @@ class ReportesNominaController extends Controller
                     </table>
                     <table style="width: 100%;">
                         <tr>
-                            <th style="border: 1px solid #000;">ELABORÓ:</th>
-                            <th style="border: 1px solid #000;">REVISÓ:</th>
-                            <th style="border: 1px solid #000;">APROBÓ:</th>
+                            <th style="border: 1px solid #000; width:33%;">ELABORÓ: '.$userSolicita.'</th>
+                            <th style="border: 1px solid #000; width:33%;">REVISÓ: '.$userAprueba.'</th>
+                            <th style="border: 1px solid #000; width:33%;">APROBÓ:</th>
                         </tr>
                     </table>
                 </div>
@@ -1570,6 +1643,9 @@ class ReportesNominaController extends Controller
         ->select("r.fecha")
         ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
         ->where("n.fkEmpleado", "=", $empleado->idempleado)
+        ->whereRaw("n.fkPeriodoActivo in(
+            SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+        )")
         ->whereIn("n.fkEstado",["7","8"])
         ->whereNotNull("n.fkRetiro")
         ->first();
@@ -1587,6 +1663,9 @@ class ReportesNominaController extends Controller
         $novedadesVacacion = DB::table("novedad","n")
         ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
         ->where("n.fkEmpleado","=",$empleado->idempleado)
+        ->whereRaw("n.fkPeriodoActivo in(
+            SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+        )")
         ->whereIn("n.fkEstado",["7", "8"]) // Pagada o sin pagar-> no que este eliminada
         ->whereNotNull("n.fkVacaciones")
         ->get();
@@ -1743,10 +1822,14 @@ class ReportesNominaController extends Controller
             ->whereIn("cf.fkConcepto",["1","2"])
             ->where("cf.fkEmpleado", "=", $empleado->idempleado)
             ->first();
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $empleado->idempleado)->first();
 
             $ultimoBoucher = DB::table("boucherpago", "bp")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->orderBy("bp.idBoucherPago","desc")
             ->first();
@@ -1805,6 +1888,9 @@ class ReportesNominaController extends Controller
                 ->select("r.fecha")
                 ->join("retiro as r", "r.idRetiro", "=","n.fkRetiro")
                 ->where("n.fkEmpleado","=", $empleado->idempleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                )")
                 ->whereIn("n.fkEstado",["8"]) // Pagada-> no que este eliminada
                 ->whereNotNull("n.fkRetiro")
                 ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -1920,6 +2006,7 @@ class ReportesNominaController extends Controller
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("gcc.fkGrupoConcepto","=","10") //10 - CONCEPTOS QUE GENERAN VST	
             ->get();
@@ -1938,6 +2025,9 @@ class ReportesNominaController extends Controller
             ->join("ausencia AS a","a.idAusencia", "=", "n.fkAusencia")
             ->where("a.cantidadDias",">=", "1")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
+            ->whereRaw("n.fkPeriodoActivo in(
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+            )")
             ->whereIn("n.fkEstado",["7", "8"]) // Pagada o sin pagar-> no que este eliminada
             ->whereNotNull("n.fkAusencia")
             ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -1989,6 +2079,9 @@ class ReportesNominaController extends Controller
             ->where("i.fkTipoAfilicacion","=","3") //3- Salud
             ->whereNotIn("i.tipoIncapacidad",["Maternidad", "Paternidad"])
             ->where("n.fkEmpleado","=", $empleado->idempleado)
+            ->whereRaw("n.fkPeriodoActivo in(
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+            )")
             ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
             ->whereNotNull("n.fkIncapacidad")
             ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -2054,6 +2147,9 @@ class ReportesNominaController extends Controller
             ->join("incapacidad as i","i.idIncapacidad","=", "n.fkIncapacidad")
             ->whereIn("i.tipoIncapacidad",["Maternidad", "Paternidad"])
             ->where("n.fkEmpleado","=", $empleado->idempleado)
+            ->whereRaw("n.fkPeriodoActivo in(
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+            )")
             ->whereIn("n.fkEstado",["8"]) // Pagada-> no que este eliminada
             ->whereNotNull("n.fkIncapacidad")
             ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -2129,6 +2225,9 @@ class ReportesNominaController extends Controller
             $novedadesVac = DB::table("novedad","n")
             ->join("vacaciones as v","v.idVacaciones","=", "n.fkVacaciones")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
+            ->whereRaw("n.fkPeriodoActivo in(
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+            )")
             ->whereIn("n.fkEstado",["8","16"]) // Pagada-> no que este eliminada o parcialmente paga (para las de pago parcial)
             ->whereNotNull("n.fkVacaciones")
             ->where("n.fkConcepto","=", "29")
@@ -2314,6 +2413,9 @@ class ReportesNominaController extends Controller
             $novedadesLIC = DB::table("novedad","n")
             ->join("licencia as l","l.idLicencia","=", "n.fkLicencia")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
+            ->whereRaw("n.fkPeriodoActivo in(
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+            )")
             ->whereIn("n.fkEstado",["8"]) // Pagada-> no que este eliminada
             ->whereNotNull("n.fkLicencia")
             ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -2385,6 +2487,7 @@ class ReportesNominaController extends Controller
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("gcc.fkGrupoConcepto","=","6") //6 - APORTE VOLUNTARIO PENSION	
             ->get();
@@ -2431,6 +2534,9 @@ class ReportesNominaController extends Controller
             ->whereNull("i.fkTipoAfilicacion") // NULL - Accidente laboral
             ->whereNotIn("i.tipoIncapacidad",["Maternidad", "Paternidad"])
             ->where("n.fkEmpleado","=", $empleado->idempleado)
+            ->whereRaw("n.fkPeriodoActivo in(
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+            )")
             ->whereIn("n.fkEstado",["8"]) // Pagada o sin pagar-> no que este eliminada
             ->whereNotNull("n.fkIncapacidad")
             ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -2613,6 +2719,7 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","p.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->get();
 
@@ -2621,6 +2728,7 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("ibp.fkConcepto","=","19") //19 - PENSION
             ->get();
@@ -2682,6 +2790,7 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("ibp.fkConcepto","=","33") //33 - FPS
             ->get();
@@ -2764,6 +2873,7 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
+            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("ibp.fkConcepto","=","18") //18 - SALUD
             ->get();
@@ -3004,6 +3114,9 @@ class ReportesNominaController extends Controller
             $novedadesHorasExtras = DB::table("novedad","n")
             ->join("horas_extra as h","h.idHoraExtra","=", "n.fkHorasExtra")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
+            ->whereRaw("n.fkPeriodoActivo in(
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+            )")
             ->whereIn("n.fkEstado",["8"]) // Pagada o sin pagar-> no que este eliminada
             ->whereNotNull("n.fkHorasExtra")
             ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -3180,6 +3293,7 @@ class ReportesNominaController extends Controller
                 $ultimoBoucher = DB::table("boucherpago", "bp")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->orderBy("bp.idBoucherPago","desc")
                 ->first();
@@ -3267,6 +3381,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","p.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->get();
     
@@ -3275,6 +3390,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->where("ibp.fkConcepto","=","19") //19 - PENSION
                 ->get();
@@ -3334,6 +3450,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->where("ibp.fkConcepto","=","33") //33 - FPS
                 ->get();
@@ -3408,6 +3525,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->where("ibp.fkConcepto","=","18") //19 - PENSION
                 ->get();
@@ -3879,7 +3997,10 @@ class ReportesNominaController extends Controller
         ->join("nomina as n", "n.idNomina", "=", "e.fkNomina","left")
         ->join("datospersonales as dp", "dp.idDatosPersonales", "=", "e.fkDatosPersonales")
         ->where("p.anio","=",$anioFechaDocumento)
-        ->where("p.mes","<=",$mesFechaDocumento);
+        ->where("p.mes","<=",$mesFechaDocumento)
+        ->whereRaw("p.fkPeriodoActivo in(
+            SELECT per.idPeriodo from periodo as per where per.fkEstado = '1'
+        )");
         if($req->provision!="Consolidado"){
             $datosProv = $datosProv->where("p.fkConcepto","=",$req->provision);
         }
@@ -3898,17 +4019,20 @@ class ReportesNominaController extends Controller
             "Primer Apellido",
             "Segundo Apellido",
             "Primer Nombre",
-            "Segundo Nombre",
-            "Saldo"
+            "Segundo Nombre"
         );
         if($req->provision!="Consolidado"){
-            
+            array_push($arrTitulo, "SALDO");
             for($i=0; $i<$mesFechaDocumento; $i++){
                 array_push($arrTitulo, "PROVISION ".$arrMeses[$i]);
                 array_push($arrTitulo, "PAGO ".$arrMeses[$i]);
             }
         }
         else{
+            array_push($arrTitulo, "PRIMA SALDO");
+            array_push($arrTitulo, "CESANTIAS SALDO");
+            array_push($arrTitulo, "INT. CESANTIAS SALDO");
+            array_push($arrTitulo, "VACACIONES SALDO");
             for($i=0; $i<$mesFechaDocumento; $i++){
                 array_push($arrTitulo, "PRIMA PROVISION ".$arrMeses[$i]);
                 array_push($arrTitulo, "PRIMA PAGO ".$arrMeses[$i]);
@@ -3930,7 +4054,7 @@ class ReportesNominaController extends Controller
                 }
             }
         }else{
-            for($j = 0; $j <= 100; $j++){
+            for($j = 0; $j <= 103; $j++){
                 if(!isset($arrInt[$j])){
                     $arrInt[$j] = " ";
                 }
@@ -3942,12 +4066,15 @@ class ReportesNominaController extends Controller
             dd($dato);
         }*/
     
-
+       
 
 
 
         foreach($datosProv as $datoProv){
-            
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
+
             if($idEmpleado != $datoProv->fkEmpleado){
                 
                 if($idEmpleado != 0){                
@@ -3960,7 +4087,7 @@ class ReportesNominaController extends Controller
                             }
                         }
                     }else{
-                        for($j = 0; $j <= 100; $j++){
+                        for($j = 0; $j <= 103; $j++){
                             if(!isset($arrInt[$j])){
                                 $arrInt[$j] = " ";
                             }
@@ -3975,17 +4102,87 @@ class ReportesNominaController extends Controller
                 $arrInt[4]= $datoProv->segundoNombre;
             
                 $idEmpleado = $datoProv->fkEmpleado;
-                $saldo = DB::table("saldo","s")
-                ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("s.mesAnterior","=","12")
-                ->where("s.anioAnterior","=",($anioFechaDocumento - 1))
-                ->where("s.fkConcepto","=",$datoProv->fkConcepto)
-                ->first();
-                if(isset($saldo)){
-                    $arrInt[5]= $saldo->valor;
-                }
-                
 
+
+                
+                if($req->provision!="Consolidado"){
+
+
+                    $arrBusqueda = array();
+                    if($datoProv->fkConcepto=="74"){
+                        $arrBusqueda = [74];
+                    }
+                    if($datoProv->fkConcepto=="73"){
+                        $arrBusqueda = [73];
+                    }
+                    if($datoProv->fkConcepto=="71"){
+                        $arrBusqueda = [67,71];
+                    }
+                    if($datoProv->fkConcepto=="72"){
+                        $arrBusqueda = [68,72];
+                    }
+                 - 
+
+                    $saldo = DB::table("saldo","s")
+                    ->selectRaw("sum(s.valor) as suma")
+                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                    ->where("s.anioAnterior","=",($anioFechaDocumento))
+                    ->whereIn("s.fkConcepto",$arrBusqueda)
+                    ->first();
+                    if(isset($saldo)){
+                        $arrInt[5]= $saldo->suma;
+                    }
+
+
+                }else{
+                  
+                    
+                    $arrBusquedaVac = [74];
+                    $arrBusquedaPrima = [73];
+                    $arrBusquedaCes = [67,71];            
+                    $arrBusquedaIntCes = [68,72];
+                                      
+
+                    $saldoPrima = DB::table("saldo","s")
+                    ->selectRaw("sum(s.valor) as suma")
+                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                    ->where("s.anioAnterior","=",($anioFechaDocumento))
+                    ->whereIn("s.fkConcepto",$arrBusquedaPrima)
+                    ->first();
+                    if(isset($saldoPrima)){
+                        $arrInt[5]= $saldoPrima->suma;
+                    }
+
+                    $saldoCes = DB::table("saldo","s")
+                    ->selectRaw("sum(s.valor) as suma")
+                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                    ->where("s.anioAnterior","=",($anioFechaDocumento))
+                    ->whereIn("s.fkConcepto",$arrBusquedaCes)
+                    ->first();
+                    if(isset($saldoCes)){
+                        $arrInt[6]= $saldoCes->suma;
+                    }
+
+                    $saldoIntCes = DB::table("saldo","s")
+                    ->selectRaw("sum(s.valor) as suma")
+                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                    ->where("s.anioAnterior","=",($anioFechaDocumento))
+                    ->whereIn("s.fkConcepto",$arrBusquedaIntCes)
+                    ->first();
+                    if(isset($saldoIntCes)){
+                        $arrInt[7]= $saldoIntCes->suma;
+                    }
+
+                    $saldoVac = DB::table("saldo","s")
+                    ->selectRaw("sum(s.valor) as suma")
+                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                    ->where("s.anioAnterior","=",($anioFechaDocumento))
+                    ->whereIn("s.fkConcepto",$arrBusquedaVac)
+                    ->first();
+                    if(isset($saldoVac)){
+                        $arrInt[8]= $saldoVac->suma;
+                    }
+                }
             
             }
             if($req->provision!="Consolidado"){
@@ -4025,6 +4222,7 @@ class ReportesNominaController extends Controller
                 if($datoProv->mes==12){
                     $row = 27;
                 }
+                $row++;
             }
             else{
 
@@ -4188,10 +4386,11 @@ class ReportesNominaController extends Controller
                 if($datoProv->mes==12 && $datoProv->fkConcepto=="74"){//Vac
                     $row = 99;
                 }
+                $row =  $row + 4;
             }
 
 
-            $row++;
+           
             
 
             /*$datosProvResta = DB::table('provision','p')
@@ -4218,6 +4417,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."'")
                 ->where("ibp.fkConcepto","=","58") //19 - PENSION
                 ->first();
@@ -4232,8 +4432,9 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."'")
-                ->where("ibp.fkConcepto","=","66") //19 - PENSION
+                ->whereIn("ibp.fkConcepto",["66","67"]) //66 - CES . 67 - CES AÑO ANTERIOR
                 ->first();
                 if(isset($itemsBoucherCes)){
                     $pago = $itemsBoucherCes->suma;
@@ -4245,8 +4446,9 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."'")
-                ->where("ibp.fkConcepto","=","69") //19 - PENSION
+                ->whereIn("ibp.fkConcepto",["69","68"]) //69 - INT . 68 - INT AÑO ANTERIOR
                 ->first();
                 if(isset($itemsBoucherIntCes)){
                     $pago = $itemsBoucherIntCes->suma;
@@ -4271,6 +4473,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."' ")
                 ->where("ibp.fkConcepto","=","30") //30 - RETIRO
                 ->first();
@@ -4287,6 +4490,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."' ")
                 ->where("ibp.fkConcepto","=","28") //28 - compensadas
                 ->first();
@@ -4299,6 +4503,9 @@ class ReportesNominaController extends Controller
                 $novedadesVac = DB::table("novedad","n")
                 ->join("vacaciones as v","v.idVacaciones","=", "n.fkVacaciones")
                 ->where("n.fkEmpleado","=", $datoProv->fkEmpleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$datoProv->idempleado."' and p.fkEstado = '1'
+                )")
                 ->whereIn("n.fkEstado",["8","16"]) // Pagada-> no que este eliminada o parcialmente paga (para las de pago parcial)
                 ->whereNotNull("n.fkVacaciones")
                 ->where("n.fkConcepto","=", "29")
@@ -4411,6 +4618,9 @@ class ReportesNominaController extends Controller
                     ->where("p.anio","=",$datoProv->anio)
                     ->where("p.mes","<=",$datoProv->mes)
                     ->where("p.fkEmpleado","=",$datoProv->fkEmpleado)
+                    ->whereRaw("p.fkPeriodoActivo in(
+                        SELECT per.idPeriodo from periodo as per where per.fkEmpleado = '".$datoProv->fkEmpleado."' and per.fkEstado = '1'
+                    )")
                     ->where("p.fkConcepto","=",$datoProv->fkConcepto)
                     ->first();
                     
@@ -4831,7 +5041,10 @@ class ReportesNominaController extends Controller
                         <?php 
                             foreach($empleados as $empleado){
                                
-                                    
+                                $periodoActivoReintegro = DB::table("periodo")
+                                ->where("fkEstado","=","1")
+                                ->where("fkEmpleado", "=", $empleado->idempleado)->first();
+
                                 $fechaInicio = $empleado->fechaIngreso;
                                 $fechaFinGen = date("Y-m-t",strtotime($req->fechaFin));
                                 
@@ -4844,7 +5057,8 @@ class ReportesNominaController extends Controller
                                 //Obtener la primera liquidacion de nomina de la persona 
                                 $primeraLiquidacion = DB::table("liquidacionnomina", "ln")
                                 ->selectRaw("min(ln.fechaInicio) as primeraFecha")
-                                ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")                
+                                ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")   
+                                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                                 ->where("bp.fkEmpleado","=",$empleado->idempleado)->first();
                     
                                 $minimaFecha = date("Y-m-d");
@@ -4861,6 +5075,7 @@ class ReportesNominaController extends Controller
                                 ->selectRaw("sum(bp.periodoPago) as periodPago, sum(bp.salarioPeriodoPago) as salarioPago")
                                 ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")                
                                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                                 ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])         
                                 ->first();
 
@@ -4873,6 +5088,9 @@ class ReportesNominaController extends Controller
                                 ->selectRaw("sum(a.cantidadDias) as suma")
                                 ->join("ausencia as a","a.idAusencia","=","n.fkAusencia")
                                 ->where("n.fkEmpleado","=",$empleado->idempleado)
+                                ->whereRaw("n.fkPeriodoActivo in(
+                                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                                )")
                                 ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
                                 ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinGen])
                                 ->where("a.cantidadDias",">","0")
@@ -4890,6 +5108,9 @@ class ReportesNominaController extends Controller
                                 ->selectRaw("sum(v.diasCompletos) as suma")
                                 ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
                                 ->where("n.fkEmpleado","=",$empleado->idempleado)
+                                ->whereRaw("n.fkPeriodoActivo in(
+                                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                                )")
                                 ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
                                 ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinGen])
                                 ->whereNotNull("n.fkVacaciones")
@@ -4913,6 +5134,9 @@ class ReportesNominaController extends Controller
                                     $novedadesVacacion = DB::table("novedad","n")
                                     ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
                                     ->where("n.fkEmpleado","=",$empleado->idempleado)
+                                    ->whereRaw("n.fkPeriodoActivo in(
+                                        SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                                    )")
                                     ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
                                     ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinInt])
                                     ->whereNotNull("n.fkVacaciones")
@@ -5108,6 +5332,10 @@ class ReportesNominaController extends Controller
 
                     foreach($empleados as $row => $empleado){
 
+                        
+                        $periodoActivoReintegro = DB::table("periodo")
+                        ->where("fkEstado","=","1")
+                        ->where("fkEmpleado", "=", $empleado->idempleado)->first();
 
                         $fechaPeriodoCer = $req->anio."-01-01";
                         if(strtotime($fechaPeriodoCer) < strtotime($empleado->fechaIngreso)){
@@ -5134,77 +5362,103 @@ class ReportesNominaController extends Controller
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","30")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","30")
+                        ->first();
+
                         $sumaItems40 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","31")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","31")->first();
+
                         $sumaItems41 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","32")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","32")->first();
+
                         $sumaItems42 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","33")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","33")->first();
                         $sumaItems45 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","34")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","34")->first();
                         $sumaItems46 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","35")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","35")->first();
                         $sumaItems49 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","36")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","36")->first();
                         $sumaItems50 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","37")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","37")->first();
                         $sumaItems51 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","38")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","38")->first();
                         $sumaItems52 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","39")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","39")->first();
                         $sumaItems53 = DB::table("item_boucher_pago","ibp")
                         ->selectRaw("sum(ibp.valor) as suma")
                         ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                         ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                         ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                        ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","40")->first();
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("gcc.fkGrupoConcepto","=","40")->first();
                         
 
 
@@ -5558,6 +5812,10 @@ class ReportesNominaController extends Controller
             
             foreach($empleados as $row => $empleado){
 
+                $periodoActivoReintegro = DB::table("periodo")
+                ->where("fkEstado","=","1")
+                ->where("fkEmpleado", "=", $empleado->idempleado)->first();
+
 
                 $fechaPeriodoCer = $req->anio."-01-01";
                 if(strtotime($fechaPeriodoCer) < strtotime($empleado->fechaIngreso)){
@@ -5584,77 +5842,111 @@ class ReportesNominaController extends Controller
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","30")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","30")->first();
+
+
                 $sumaItems40 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","31")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","31")
+                ->first();
+                
                 $sumaItems41 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","32")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","32")->first();
+
                 $sumaItems42 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","33")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","33")->first();
+
                 $sumaItems45 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","34")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","34")->first();
+                
                 $sumaItems46 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","35")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","35")->first();
+                
                 $sumaItems49 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","36")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","36")->first();
+                
                 $sumaItems50 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","37")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","37")->first();
+                
                 $sumaItems51 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","38")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","38")->first();
+
                 $sumaItems52 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","39")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","39")->first();
+
                 $sumaItems53 = DB::table("item_boucher_pago","ibp")
                 ->selectRaw("sum(ibp.valor) as suma")
                 ->join("boucherpago as bp","ibp.fkBoucherPago", "=","bp.idBoucherPago")
                 ->join("liquidacionnomina as ln","bp.fkLiquidacion", "=","ln.idLiquidacionNomina")
                 ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto", "=","ibp.fkConcepto")
                 ->whereRaw("YEAR(ln.fechaLiquida) = '".$req->anio."'")
-                ->where("bp.fkEmpleado","=",$empleado->idempleado)->where("gcc.fkGrupoConcepto","=","40")->first();
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("gcc.fkGrupoConcepto","=","40")->first();
                 
                 $dependiente = DB::table("beneficiotributario","bt")
                 ->select("nf.numIdentificacion", "p.nombre as paren", "nf.nombre")
@@ -5782,6 +6074,9 @@ class ReportesNominaController extends Controller
         ->join("empresa as emp","emp.idEmpresa","=", "nom.fkEmpresa","left")
         ->whereBetween("n.fechaRegistro",[$req->fechaIni, $req->fechaFin])
         ->where("n.fkEstado","=","8")
+        ->whereRaw("n.fkPeriodoActivo in(
+            SELECT p.idPeriodo from periodo as p where p.fkEstado = '1'
+        )")
         ->where("nom.fkEmpresa", "=",$req->empresa)->get();
 
         
@@ -6168,11 +6463,28 @@ class ReportesNominaController extends Controller
             foreach($consulta as $con){
                 $arrayFila = array();
                 foreach($con as $row => $dat){
-                    array_push($arrayFila, $dat);
+                    array_push($arrayFila, $dat." ");
                 }
                 array_push($arrDef, $arrayFila);
             }
-            header('Content-Type: text/csv; charset=UTF-8');
+
+            $filename = "Reporteador.xls";
+
+            header("Content-Type: application/vnd.ms-excel");
+
+            header("Content-Disposition: attachment; filename=".$filename);
+
+            echo "<table>";
+            foreach($arrDef as $row){
+                echo "<tr>";
+                foreach($row as $data){
+                    echo "<td>".utf8_decode($data)."</td>";
+                }
+                echo "</tr>";
+            }
+            echo "</table>";
+
+         /*   header('Content-Type: text/csv; charset=UTF-8');
             header('Content-Description: File Transfer');
             header('Content-Disposition: attachment; filename=ReporteNovedades.csv');
 
@@ -6180,7 +6492,7 @@ class ReportesNominaController extends Controller
             $csv->setDelimiter(';');
             $csv->insertAll($arrDef);
             $csv->setOutputBOM(Reader::BOM_UTF8);
-            $csv->output('Reporteador.csv');
+            $csv->output('Reporteador.csv');*/
 
         }
 
@@ -6191,6 +6503,1097 @@ class ReportesNominaController extends Controller
 
         
 
+    }
+    public function boucherPdfConsolidado($idLiquidacionNomina){
+
+
+        
+        $empresayLiquidacion = DB::table("empresa", "e")
+        ->select("e.*", "ln.*", "n.nombre as nom_nombre")
+        ->join("nomina as n","n.fkEmpresa", "e.idempresa")
+        ->join("liquidacionnomina as ln","ln.fkNomina", "n.idNomina")
+        ->where("ln.idLiquidacionNomina","=",$idLiquidacionNomina)
+        ->first();
+       
+
+        
+
+
+
+
+        $userSolicita = "";
+        if(isset($empresayLiquidacion->fkUserSolicita)){
+            $usuario = DB::table('users')->select(
+                'users.username',
+                'users.email',
+                'datospersonales.primerNombre',
+                'datospersonales.primerApellido',
+                'datospersonales.foto',
+                'empleado.idempleado'
+            )->leftJoin('empleado', 'users.fkEmpleado', 'empleado.idempleado',"left")
+            ->leftJoin('empresa', 'empresa.idempresa', 'empleado.fkEmpresa',"left")
+            ->leftJoin('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales',"left")
+            ->where('users.id', $empresayLiquidacion->fkUserSolicita)
+            ->first();
+            
+            if(isset($usuario->primerNombre)){
+                $userSolicita = $usuario->primerNombre." ".$usuario->primerApellido;
+            }
+            else{
+                $userSolicita = $usuario->username;
+            }
+        }
+
+        $userAprueba = "";
+        if(isset($empresayLiquidacion->fkUserAprueba)){
+            $usuario = DB::table('users')->select(
+                'users.username',
+                'users.email',
+                'datospersonales.primerNombre',
+                'datospersonales.primerApellido',
+                'datospersonales.foto',
+                'empleado.idempleado'
+            )
+            ->leftJoin('empleado', 'users.fkEmpleado', 'empleado.idempleado')
+            ->leftJoin('empresa', 'empresa.idempresa', 'empleado.fkEmpresa')
+            ->leftJoin('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
+            ->where('users.id',"=", $empresayLiquidacion->fkUserAprueba)
+            ->first();
+            
+            if(isset($usuario->primerNombre)){
+                $userAprueba = $usuario->primerNombre." ".$usuario->primerApellido;
+            }
+            else{
+                $userAprueba = $usuario->username;
+            }
+        }
+
+
+        $bouchersPago = DB::table("boucherpago","bp")->where("fkLiquidacion","=",$idLiquidacionNomina)->get();
+        $base64 = "";
+        if(is_file($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa)){
+            $imagedata = file_get_contents($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa);
+                    // alternatively specify an URL, if PHP settings allow
+            $base64 = base64_encode($imagedata);
+        }
+        
+
+        $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+        $dompdf = new Dompdf();
+        $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
+        $dompdf->getOptions()->setIsPhpEnabled(true);
+        $html='
+        <html>
+        <body>
+            <style>
+            *{
+                -webkit-hyphens: auto;
+                -ms-hyphens: auto;
+                hyphens: auto;
+                font-family: sans-serif;                
+            }
+            td{
+                text-align: left;
+                font-size: 12px;
+            }
+            th{
+                text-align: left;
+                font-size: 12px;
+            }
+            .liquida td, .liquida th{
+                font-size:11px;
+            }
+            
+            @page { 
+                margin: 0in;
+                position: absolute;
+            }
+            .page {
+                top: .3in;
+                right: .3in;
+                bottom: .3in;
+                left: .3in;
+                position: absolute;
+                z-index: -1000;
+                min-width: 7in;
+                min-height: 11.7in;
+                
+            }
+            .page_break { 
+                page-break-before: always; 
+            }
+        
+            </style>
+            ';
+
+        foreach($bouchersPago as $boucherPago){
+            $idBoucherPago = $boucherPago->idBoucherPago;
+            $empleado = DB::table("empleado","e")
+                ->select("e.idempleado", "e.fechaIngreso","e.tipoRegimen", "e.fkNomina",
+                "dp.primerNombre","dp.segundoNombre", 
+                "dp.primerApellido","dp.segundoApellido","ti.nombre as tipoidentificacion", 
+                "dp.numeroIdentificacion", "cargo.nombreCargo")
+                ->join("boucherpago as bp","bp.fkEmpleado", "e.idempleado")
+                ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+                ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
+                ->join("cargo","cargo.idCargo","=","e.fkCargo")
+                ->where("bp.idBoucherPago","=",$idBoucherPago)
+                ->first();
+            $nomina = DB::table("nomina","n")
+            ->where("n.idNomina","=",$empleado->fkNomina)->first();
+            $pension = DB::table("tercero", "t")->
+            select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero", "ti.nombre as tipoidentificacion", "t.digitoVer"])
+            ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+            ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+            ->where("a.fkEmpleado","=",$empleado->idempleado)
+            ->where("a.fkTipoAfilicacion","=","4") //4-Pensión Obligatoria 
+            ->first();
+
+            $salud = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
+            "ti.nombre as tipoidentificacion", "t.digitoVer"])
+            ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+            ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+            ->where("a.fkEmpleado","=",$empleado->idempleado)
+            ->where("a.fkTipoAfilicacion","=","3") //3-Salud
+            ->first();
+
+            $cesantiasEmp = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
+                "ti.nombre as tipoidentificacion", "t.digitoVer"])
+            ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+            ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+            ->where("a.fkEmpleado","=",$empleado->idempleado)
+            ->where("a.fkTipoAfilicacion","=","2") //2-CCF
+            ->first();
+
+            $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
+            ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+            ->join("empleado as e", "e.fkEntidad", "=","t.idTercero")
+            ->where("e.idempleado","=",$empleado->idempleado)
+            ->first();
+
+            $idItemBoucherPago = DB::table("item_boucher_pago","ibp")
+            ->join("concepto AS c","c.idconcepto","=", "ibp.fkConcepto")
+            ->where("ibp.fkBoucherPago","=",$idBoucherPago)
+            ->get();
+
+
+            $periodoPasadoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","2")
+            ->where("fkEmpleado", "=", $empleado->idempleado)
+            ->where("fechaFin",">=",$empresayLiquidacion->fechaInicio)
+            ->where("fkNomina","=",$empresayLiquidacion->fkNomina)
+            ->first();
+
+            if(isset($periodoPasadoReintegro)){
+                $conceptoSalario = new stdClass;
+                $conceptoSalario->valor = $periodoPasadoReintegro->salario;
+            }
+            else{
+                $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
+                ->whereIn("fkConcepto",[1,2])->first();
+            }
+            
+            
+                
+            //VACACIONES
+            $novedadesVacacionActual = DB::table("novedad","n")
+            ->select("v.*", "c.nombre","c.idconcepto", "ibpn.valor")
+            ->join("concepto as c","c.idconcepto", "=","n.fkConcepto")
+            ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
+            ->join("item_boucher_pago_novedad as ibpn","ibpn.fkNovedad","=","n.idNovedad")
+            ->join("item_boucher_pago as ibp","ibp.idItemBoucherPago","=","ibpn.fkItemBoucher")
+            ->where("ibp.fkBoucherPago","=",$idBoucherPago)
+            ->whereIn("n.fkEstado",["8","7"]) // Pagada -> no que este eliminada
+            ->whereNotNull("n.fkVacaciones")
+            ->get();
+            //$diasVac = $totalPeriodoPagoAnioActual * 15 / 360;
+            
+
+
+            $novedadesRetiro = DB::table("novedad","n")
+            ->select("r.fecha", "r.fechaReal","mr.nombre as motivoRet")
+            ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+            ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro")
+            ->where("n.fkEmpleado", "=", $empleado->idempleado)
+            ->whereIn("n.fkEstado",["7", "8"])
+            ->whereNotNull("n.fkRetiro")
+            ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
+            
+
+
+
+            
+        
+            if($empresayLiquidacion->fkTipoLiquidacion == "7"){
+                $html.='<div class="page liquida">
+                <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                    <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                    <b>'.$empresayLiquidacion->razonSocial.'</b>
+                    <br>
+                    <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                    <center>
+                        <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">COMPROBANTE DE PAGO DE NÓMINA</h2><br>
+                    </center>
+                    <table style="width: 100%;">
+                        <tr>
+                            <th>Nómina</th>
+                            <td>'.$empresayLiquidacion->nom_nombre.'</td>
+                            <th>Período liquidación</th>
+                            <td>
+                                '.date("Y",strtotime($empresayLiquidacion->fechaInicio))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaInicio)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaInicio)).' 
+                                a
+                                '.date("Y",strtotime($empresayLiquidacion->fechaFin))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaFin)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaFin)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Empleado</th>
+                            <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                            <th>Salario</th>
+                            <td>$ '.number_format($conceptoSalario->valor,0, ",", ".").'</td>
+                        </tr>
+                        <tr>
+                            <th>Identificación</th>
+                            <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                            <th>Cargo</th>
+                            <td>'.$empleado->nombreCargo.'</td>
+                        </tr>
+                        <tr>
+                            <th>Entidad Bancaria</th>
+                            <td>'.(isset($entidadBancaria->razonSocial) ? $entidadBancaria->razonSocial : "").'</td>
+                            <th>Cuenta</th>
+                            <td>'.(isset($entidadBancaria->numeroCuenta) ? $entidadBancaria->numeroCuenta : "").'</td>
+                        </tr>
+                        <tr>
+                            <th>EPS</th>
+                            <td>'.$salud->razonSocial.'</td>
+                            <th>Fondo Pensiones</th>
+                            <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
+                        </tr>
+                        
+                    </table>
+                    <br>
+                </div>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <th style="background: #d89290; text-align: center;" colspan="2">Devengado</th>
+                                <th style="background: #d89290; text-align: center;">Deducciones</th>                        
+                            </tr>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">Conceptos Liquidados</th>
+                                <th style="background: #CCC; text-align: center;">Cantidad</th>
+                                <th style="background: #CCC; text-align: center;">Unidad</th>
+                                <th style="background: #CCC; text-align: center;">Pagos</th>
+                                <th style="background: #CCC; text-align: center;">Beneficios</th>
+                                <th style="background: #CCC; text-align: center;">Descuentos</th>
+                            </tr>';
+                            $totalDesc = 0;
+                            $totalPag = 0;
+                
+                            foreach($idItemBoucherPago as $itemBoucherPago){
+                                $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                                    <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->nombre.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.((15 / 180) * $itemBoucherPago->cantidad).'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->tipoUnidad.'</td>';
+                                    
+                                    if($itemBoucherPago->valor > 0){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor,0, ",", ".").'</td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                        $totalPag = $totalPag + $itemBoucherPago->valor;
+                                    }
+                                    else{
+                                        $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor*-1,0, ",", ".").'</td>';
+                                        $totalDesc = $totalDesc + $itemBoucherPago->valor;
+                                    }
+
+                                $html.='</tr>';
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;">Totales</th>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;">$'.number_format($totalPag,0, ",", ".").'</td>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;"></td>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" >$'.number_format($totalDesc*-1,0, ",", ".").'</td>
+                                    </tr>
+                            ';
+                            $totalGen = $totalPag + $totalDesc;
+                            if($totalGen<0){
+                                $totalGen=0;
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;" >Neto a pagar en cuenta nómina</th>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" colspan="2">$'.number_format($totalGen,0, ",", ".").'</td>
+                                        
+                                    </tr>
+                            ';
+                            
+                        $html.='</table>
+
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Bases para cálculo de seguridad social</th>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Salud</td><td style="text-align: right;">$'.number_format($boucherPago->ibc_eps,0, ",", ".").'</td>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Pension</td><td style="text-align: right;">$'.number_format($boucherPago->ibc_afp,0, ",", ".").'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Mensaje Empresarial</th>
+                            </tr>
+                            <tr>
+                                <td style="text-align: justify;">Si tienes preguntas acerca de la atención de pacientes con infección respiratoria, comunícate con el Ministerio de Salud y Protección Social al número telefónico: Bogotá (1) 330 50 41 |
+                                Línea gratuita nacional 01 8000 955 590 | Fuera del país +571 330 50 41. Informarnos correctamente es la primera línea de defensa ante el Coronavirus (COVID-19).</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="position: absolute; bottom: 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td>COLABORADOR</td>
+                                <td></td>
+                                <td>LA EMPRESA</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Cédula o NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                                <td>NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"></td>
+                                <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </div>
+                <div class="page_break"></div>';
+            }
+            else if(($empresayLiquidacion->fkTipoLiquidacion == "2" || $empresayLiquidacion->fkTipoLiquidacion == "3") && isset($novedadesRetiro)){
+                
+                $contrato = DB::table("contrato","c")
+                ->join("tipocontrato as tc","tc.idtipoContrato", "=","c.fkTipoContrato")
+                ->where("c.fkEmpleado","=",$empleado->idempleado)
+                ->where("c.fkEstado","=",["1","2"])->first();
+                
+                $cambioSalario = DB::table("cambiosalario","cs")
+                ->where("cs.fkEmpleado","=",$empleado->idempleado)
+                ->where("cs.fkEstado","=","5")
+                ->first();
+                $fechaUltimoCamSal = $empleado->fechaIngreso;
+                if(isset($cambioSalario)){
+                    $fechaUltimoCamSal = $cambioSalario->fechaCambio;
+                }
+              
+                $diasLab = $this->days_360($empleado->fechaIngreso, $novedadesRetiro->fecha);
+                $meses = intval($diasLab/30);
+                $diasDemas = $diasLab - ($meses * 30);
+                $tiempoTrabTxt = $meses." Meses ".$diasDemas." días";
+
+                $html.='                    
+                <div class="page liquida">
+                    <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                        <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                        <b>'.$empresayLiquidacion->razonSocial.'</b>
+                        <br>
+                        <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                        <center>
+                            <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">LIQUIDACIÓN DE CONTRATO</h2>
+                        </center>
+                    </div>
+                    <table style="width: 96%; text-align: left;">
+                        <tr>
+                            <th>
+                                Nómina
+                            </th>
+                            <td>
+                                '.$empresayLiquidacion->nom_nombre.'
+                            </td>
+                            <th>
+                                Período liquidación
+                            </th>
+                            <td>
+                                '.date("Y",strtotime($empresayLiquidacion->fechaInicio))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaInicio)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaInicio)).' 
+                                a
+                                '.date("Y",strtotime($empresayLiquidacion->fechaFin))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaFin)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaFin)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Empleado</th>
+                            <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                            <th>Fecha ingreso</th>
+                            <td>'.date("Y",strtotime($empleado->fechaIngreso))."/".$arrMeses[date("m",strtotime($empleado->fechaIngreso)) - 1].'/'.date("d",strtotime($empleado->fechaIngreso)).'</td>
+                        </tr>
+                        <tr>
+                            <th>Identificación</th>
+                            <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                            <th>Fecha Retiro</th>
+                            <td>'.date("Y",strtotime($novedadesRetiro->fecha))."/".$arrMeses[date("m",strtotime($novedadesRetiro->fecha)) - 1].'/'.date("d",strtotime($novedadesRetiro->fecha)).'</td>
+                        </tr>
+                        <tr>
+                            <th>Tipo Contrato</th>
+                            <td>'.$contrato->nombre.'</td>
+                            <th>Fecha Retiro Real</th>
+                            <td>'.date("Y",strtotime($novedadesRetiro->fechaReal))."/".$arrMeses[date("m",strtotime($novedadesRetiro->fechaReal)) - 1].'/'.date("d",strtotime($novedadesRetiro->fechaReal)).'</td>
+                        </tr>
+                        <tr>
+                            <th>Nómina</th>
+                            <td>'.$empresayLiquidacion->nom_nombre.'</td>
+                            <th>Fecha Último Aumento Salario</th>
+                            <td>
+                                '.date("Y",strtotime($fechaUltimoCamSal))."/".$arrMeses[date("m",strtotime($fechaUltimoCamSal)) - 1].'/'.date("d",strtotime($fechaUltimoCamSal)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Régimen</th>
+                            <td>'.$empleado->tipoRegimen.'</td>
+                            <th>Última Nómina Pagada</th>
+                            <td>
+                                '.date("Y",strtotime($empresayLiquidacion->fechaLiquida))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaLiquida)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaLiquida)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Tiempo Trabajado</th>
+                            <td>'.$tiempoTrabTxt.'</td>
+                            <th>Cargo</th>
+                            <td>'.$empleado->nombreCargo.'</td>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Salario</th>
+                            <td>$ '.number_format($conceptoSalario->valor,0, ",", ".").'</td>
+                            <th>EPS</th>
+                            <td>'.$salud->razonSocial.'</td>
+                        </tr>
+                        <tr>
+                            <th>Entidad Bancaria</th>
+                            <td>'.(isset($entidadBancaria->razonSocial) ? $entidadBancaria->razonSocial : "").'</td>
+                            <th>Cuenta</th>
+                            <td>'.(isset($entidadBancaria->numeroCuenta) ? $entidadBancaria->numeroCuenta : "").'</td>
+                        </tr>
+                        <tr>
+                            <th>Fondo Pensiones</th>
+                            <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
+                            <th>IBL Seguridad Social </th>
+                            <td>$ '.number_format($boucherPago->ibc_eps,0, ",", ".").'</td>
+                        </tr>
+                        <tr>
+                            <th>Fondo Cesantías </th>
+                            <td>'.(isset($cesantiasEmp->razonSocial) ? $cesantiasEmp->razonSocial : "").'</td>
+                            <th>Motivo Retiro</th>
+                            <td>'.$novedadesRetiro->motivoRet.'</td>
+                        </tr>
+                    </table>
+                    <br>';
+                    $basePrima = 0;
+                    $baseCes = 0;
+                    $baseVac = 0;
+
+                    $fechaInicioCes = "";
+                    $fechaInicioPrima = "";
+                    $fechaInicioVac = $empleado->fechaIngreso;
+
+                    $fechaFinCes = "";
+                    $fechaFinPrima = "";
+                    $fechaFinVac = $novedadesRetiro->fecha;
+
+                    $diasCes = "";
+                    $diasPrima = "";
+                    $diasVac = "";
+
+                
+                    foreach($idItemBoucherPago as $itemBoucherPago){
+                        if($itemBoucherPago->fkConcepto == 30){
+                            $baseVac = $itemBoucherPago->base;
+                            $diasVac = $itemBoucherPago->cantidad;
+                        }
+
+                        if($itemBoucherPago->fkConcepto == 58){
+                            $basePrima = $itemBoucherPago->base;
+                            $fechaInicioPrima =  $itemBoucherPago->fechaInicio;
+                            $fechaFinPrima =  $itemBoucherPago->fechaFin;                            
+                            $diasPrima = (15 / 180) * $itemBoucherPago->cantidad;
+                        }
+                        
+                        if($itemBoucherPago->fkConcepto == 66){
+                            $baseCes = $itemBoucherPago->base;
+                            $fechaInicioCes =  $itemBoucherPago->fechaInicio;
+                            $fechaFinCes =  $itemBoucherPago->fechaFin;
+                            $diasCes = (($itemBoucherPago->cantidad * $nomina->diasCesantias) / 360);
+                        }
+                        
+                    }
+                    $html.='<div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="6">Promedio Liquidación Prestaciones</th>
+                            </tr>
+                            <tr>
+                                <th>Promedio Cesantías</th>
+                                <td>$'.number_format($baseCes,0, ",", ".").'</td>
+                                <th>Promedio Vacaciones</th>
+                                <td>$'.number_format($baseVac,0, ",", ".").'</td>
+                                <th>Promedio Prima</th>
+                                <td>$'.number_format($basePrima,0, ",", ".").'</td>
+                            </tr>
+                        </table>
+                    </div>';
+                    $html.='<div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="5">Valores Consolidados</th>
+                            </tr>
+                            <tr>
+                                <th  style="background: #CCC; text-align: center;">Tipo Consolidado </th>
+                                <th  style="background: #CCC; text-align: center;">Fecha Inicio</th>
+                                <th  style="background: #CCC; text-align: center;">Fecha Fin</th>
+                                <th  style="background: #CCC; text-align: center;">Total Días</th>
+                            </tr>
+                            <tr>
+                                <th>Cesantías Consolidadas A</th>
+                                <td>'.$fechaInicioCes.'</td>
+                                <td>'.$fechaFinCes.'</td>
+                                <td>'.round($diasCes,2).'</td>
+                            </tr>
+                            <tr>
+                                <th>Ultimo Pago Prima Legal</th>
+                                <td>'.$fechaInicioPrima.'</td>
+                                <td>'.$fechaFinPrima.'</td>
+                                <td>'.round($diasPrima,2).'</td>
+                            </tr>
+                            <tr>
+                                <th>Vacaciones Consolidadas A</th>
+                                <td>'.$fechaInicioVac.'</td>
+                                <td>'.$fechaFinVac.'</td>
+                                <td>'.round($diasVac,2).'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td colspan="4"></td>
+                                <th style="background: #d89290; text-align: center;" colspan="2">Pagos y Descuentos</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">Conceptos Liquidados</th>
+                                <th style="background: #CCC; text-align: center;">Cantidad</th>
+                                <th style="background: #CCC; text-align: center;">Unidad</th>
+                                <th style="background: #CCC; text-align: center;">Base</th>
+                                <th style="background: #CCC; text-align: center;">Pagos</th>
+                                <th style="background: #CCC; text-align: center;">Descuentos</th>
+                                <th style="background: #CCC; text-align: center;">Saldo Cuota</th>                                
+                            </tr>';
+                            $totalDesc = 0;
+                            $totalPag = 0;
+                            foreach($idItemBoucherPago as $itemBoucherPago){
+                                $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                                    <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->nombre.'</td>';
+                                    if($itemBoucherPago->fkConcepto == 58){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.round($diasPrima,2).'</td>';
+                                    }
+                                    else if($itemBoucherPago->fkConcepto == 66 || $itemBoucherPago->fkConcepto == 69){
+                                        
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.round($diasCes,2).'</td>';
+                                    }
+                                    else{
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->cantidad.'</td>';
+                                    }
+
+                                    $html.='
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->tipoUnidad.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->base,0, ",", ".").'</td>';
+
+                                    
+                                    
+                                    if($itemBoucherPago->valor > 0){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor,0, ",", ".").'</td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                        $totalPag = $totalPag + $itemBoucherPago->valor;
+                                    }
+                                    else{
+                                        $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor*-1,0, ",", ".").'</td>';
+                                        $totalDesc = $totalDesc + $itemBoucherPago->valor;
+                                    }
+                                    $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$0</td>';
+
+                                $html.='</tr>';
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="4" style="text-align: right;">Totales</th>
+                                        <th style="text-align: right; border: 1px solid #B0B0B0;">$'.number_format($totalPag,0, ",", ".").'</td>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" >$'.number_format($totalDesc*-1,0, ",", ".").'</td>
+                                    </tr>
+                            ';
+                            $totalGen = $totalPag + $totalDesc;
+                            if($totalGen<0){
+                                $totalGen=0;
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;" >Neto a pagar</th>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" colspan="2">$'.number_format($totalGen,0, ",", ".").'</td>
+                                        
+                                    </tr>
+                            ';
+                            $valorText =$this->convertir(($totalPag + $totalDesc));
+                            
+                        $html.='</table>
+                    </div>
+                    <div style="border: 2px solid #000; padding: 10px 20px; font-size: 10px; font-weight: bold; margin-bottom: 5px;">
+                        El valor neto a pagar es: '.strtoupper($valorText).' PESOS M/CTE
+                    </div>
+                    <div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <center><h4 style="margin:0px;" >Observaciones</h4></center>
+                        <table>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">CONSTANCIAS - Se hace constar expresamente los siguiente:</th>
+                            </tr>
+                            <td style="font-size: 8px; text-align: justify;">
+                            (1) Que el empleador ha incorporado en la anterior liquidación, en lo pertinente, la totalidad de los valores correspondientes a salarios, horas extras, recargos por trabajo noctur
+                            descansos remunerados, cesantía, intereses de cesantía, vacaciones, accidentes de trabajo, primas, calzado y overoles, auxilio de transporte y, en general, todo concepto relacionado
+                            con salarios, descansos, prestaciones, indemnizaciones de toda especie y en general, por toda acreencia laboral que tengan por causa el contrato de trabajo que ha quedado
+                            extinguido. (2) En consideración a que la obtención de los datos contables, elaboración y revisión de la presente liquidación, su aprobación y el giro de cheques, ha exigido varios días,
+                            por lo cual ha sido físicamente imposible pagar en el instante de la terminación del contrato, el trabajador conviene expresamente en que el término transcurrido entre la terminación
+                            del contrato y la fecha de esta liquidación y pago ha sido el necesario razonable y prudencial para éstos efectos y que, en consecuencia, no ha habido mora en el pago. (3) Que no
+                            obstante la anterior declaración, se hace constar por las partes que con el pago de la suma de dinero a que hace referencia la presente liquidación, queda transada cualquier
+                            diferencia relativa al contrato de trabajo que ha quedado terminado, pues ha sido su común ánimo transar definitivamente, como en efecto se transa, todo reclamo pasado, presente o
+                            futuro que le tenga por causa el mencionado contrato. Por consiguiente, esta transacción tiene como efecto la extinción de las obligaciones provenientes de la relación laboral que
+                            existió entre empleador y trabajador, quienes recíprocamente se declaran a Paz y Salvo por los conceptos expresados, excepto en cuanto a derechos ciertos e indiscutibles del
+                            trabajador que, por cualquier circunstancia, estén pendientes de reconocimiento o pago. (Art 15 CST). (4) Se deja constancia, que se entrega orden para examen médico de egreso
+                            </td>
+                        </table>
+                        <table style="width: 100%;">
+                            <tr>
+                                <th style="border: 1px solid #000; width:33%;">ELABORÓ: '.$userSolicita.'</th>
+                                <th style="border: 1px solid #000; width:33%;">REVISÓ: '.$userAprueba.'</th>
+                                <th style="border: 1px solid #000; width:33%;">APROBÓ:</th>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="position: absolute; bottom: 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td>COLABORADOR</td>
+                                <td></td>
+                                <td>LA EMPRESA</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Cédula o NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                                <td>NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"></td>
+                                <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </div>
+                <div class="page_break"></div>
+                ';
+            }
+            else{
+                $html.='<div class="page">
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        ';
+                        
+                        
+                        
+                         $html.='
+                        
+                         <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                        <b>'.$empresayLiquidacion->razonSocial.'</b>
+                        <br>
+                        <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                        <center>
+                            <h2 style="margin:0; margin-bottom: 10px;">Comprobante pago nómina</h2>
+                        </center>
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th>
+                                    Nómina
+                                </th>
+                                <td>
+                                    '.$empresayLiquidacion->nom_nombre.'
+                                </td>
+                                <th>
+                                    Periodo liquidación
+                                </th>
+                                <td>
+                                    '.date("Y",strtotime($empresayLiquidacion->fechaInicio))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaInicio)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaInicio)).' 
+                                    a
+                                    '.date("Y",strtotime($empresayLiquidacion->fechaFin))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaFin)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaFin)).' 
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Empleado</th>
+                                <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                                <th>Salario</th>
+                                <td>$ '.number_format($conceptoSalario->valor,0, ",", ".").'</td>
+                            </tr>
+                            <tr>
+                                <th>Identificación</th>
+                                <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                                <th>Cargo</th>
+                                <td>'.$empleado->nombreCargo.'</td>
+                            </tr>
+                            <tr>
+                                <th>Entidad Bancaria</th>
+                                <td>'.(isset($entidadBancaria->razonSocial) ? $entidadBancaria->razonSocial : "").'</td>
+                                <th>Cuenta</th>
+                                <td>'.(isset($entidadBancaria->numeroCuenta) ? $entidadBancaria->numeroCuenta : "").'</td>
+                            </tr>
+                            <tr>
+                                <th>EPS</th>
+                                <td>'.$salud->razonSocial.'</td>
+                                <th>Fondo Pensiones</th>
+                                <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
+                            </tr>
+                        </table>
+                    </div><br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <th style="background: #d89290; text-align: center;" colspan="2">Devengado</th>
+                                <th style="background: #d89290; text-align: center;">Deducciones</th>                        
+                            </tr>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">Conceptos Liquidados</th>
+                                <th style="background: #CCC; text-align: center;">Cantidad</th>
+                                <th style="background: #CCC; text-align: center;">Unidad</th>
+                                <th style="background: #CCC; text-align: center;">Pagos</th>
+                                <th style="background: #CCC; text-align: center;">Beneficios</th>
+                                <th style="background: #CCC; text-align: center;">Descuentos</th>
+                            </tr>';
+                            $totalDesc = 0;
+                            $totalPag = 0;
+                
+                            foreach($idItemBoucherPago as $itemBoucherPago){
+                                $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                                    <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->nombre.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->cantidad.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->tipoUnidad.'</td>';
+                                    
+                                    if($itemBoucherPago->valor > 0){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor,0, ",", ".").'</td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                        $totalPag = $totalPag + $itemBoucherPago->valor;
+                                    }
+                                    else{
+                                        $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor*-1,0, ",", ".").'</td>';
+                                        $totalDesc = $totalDesc + $itemBoucherPago->valor;
+                                    }
+
+                                $html.='</tr>';
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;">Totales</th>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;">$'.number_format($totalPag,0, ",", ".").'</td>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;"></td>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" >$'.number_format($totalDesc*-1,0, ",", ".").'</td>
+                                    </tr>
+                            ';
+                            $totalGen = $totalPag + $totalDesc;
+                            if($totalGen<0){
+                                $totalGen=0;
+                            }
+                            
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;" >Neto a pagar en cuenta nómina</th>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" colspan="2">$'.number_format($totalGen,0, ",", ".").'</td>
+                                        
+                                    </tr>
+                            ';
+                            
+                        $html.='</table>
+
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Bases para cálculo de seguridad social</th>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Salud</td><td style="text-align: right;">$'.number_format($boucherPago->ibc_eps,0, ",", ".").'</td>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Pension</td><td style="text-align: right;">$'.number_format($boucherPago->ibc_afp,0, ",", ".").'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Mensaje Empresarial</th>
+                            </tr>
+                            <tr>
+                                <td style="text-align: justify;">Si tienes preguntas acerca de la atención de pacientes con infección respiratoria, comunícate con el Ministerio de Salud y Protección Social al número telefónico: Bogotá (1) 330 50 41 |
+                                Línea gratuita nacional 01 8000 955 590 | Fuera del país +571 330 50 41. Informarnos correctamente es la primera línea de defensa ante el Coronavirus (COVID-19).</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="position: absolute; bottom: 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td>COLABORADOR</td>
+                                <td></td>
+                                <td>LA EMPRESA</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Cédula o NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                                <td>NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"></td>
+                                <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </div>
+                <div class="page_break"></div>
+                ';
+            }
+            if(sizeof($novedadesVacacionActual) > 0){
+                
+                $novedadesRetiro = DB::table("novedad","n")
+                ->select("r.fecha")
+                ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+                ->where("n.fkEmpleado", "=", $empleado->idempleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                )")
+                ->whereIn("n.fkEstado",["7", "8"])
+                ->whereNotNull("n.fkRetiro")
+                ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
+                $fechaFinalVaca = $empresayLiquidacion->fechaFin;
+                $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$empresayLiquidacion->fechaFin) + 1 ;
+                if(isset($novedadesRetiro)){
+                    if(strtotime($empresayLiquidacion->fechaFin) > strtotime($novedadesRetiro->fecha)){
+                        $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                        $fechaFinalVaca = $$novedadesRetiro->fecha;
+                    }
+                }
+
+                $diasVac = $periodoPagoVac * 15 / 360;
+
+                $novedadesVacacion = DB::table("novedad","n")
+                ->select("v.*", "c.nombre","c.idconcepto", "ibpn.valor")
+                ->join("concepto as c","c.idconcepto","=","n.fkConcepto")
+                ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
+                ->join("item_boucher_pago_novedad as ibpn","ibpn.fkNovedad","=","n.idNovedad")
+                ->join("item_boucher_pago as ibp","ibp.idItemBoucherPago","=","ibpn.fkItemBoucher")
+                ->where("n.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                )")
+                ->where("ibp.fkBoucherPago","<>",$idBoucherPago)
+                ->whereIn("n.fkEstado",["7"]) // Pagada o sin pagar-> no que este eliminada
+                ->whereNotNull("n.fkVacaciones")
+                ->get();
+                //$diasVac = $totalPeriodoPagoAnioActual * 15 / 360;
+                foreach($novedadesVacacion as $novedadVacacion){
+                    $diasVac = $diasVac - $novedadVacacion->diasCompensar;
+                }
+                if(isset($diasVac) && $diasVac < 0){
+                    $diasVac = 0;
+                }
+
+              
+                
+                $html.='<div class="page_break"></div>
+                    <div class="page">
+                        <div style="border: 2px solid #000; padding: 10px 20px;">
+                            <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                            <b>'.$empresayLiquidacion->razonSocial.'</b>
+                            <br>
+                            <b>'.$empresayLiquidacion->documento.'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                            <center>
+                                <h2 style="margin:0; margin-bottom: 10px;">Comprobante de Pago de Vacaciones</h2>
+                            </center>
+                            <table style="width: 100%; text-align: left;">
+                                <tr>
+                                    <th>Empleado</th>
+                                    <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                                    <th>Fecha ingreso</th>
+                                    <td>'.date("Y",strtotime($empleado->fechaIngreso))."/".$arrMeses[date("m",strtotime($empleado->fechaIngreso)) - 1].'/'.date("d",strtotime($empleado->fechaIngreso)).'</td>
+                                </tr>
+                                <tr>
+                                    <th>Identificación</th>
+                                    <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                                    <th>Cargo</th>
+                                    <td>'.$empleado->nombreCargo.'</td>
+                                </tr>
+                                <tr>
+                                    <th>Días Pendientes Consolidado</th>
+                                    <td>'.round($diasVac,2).'</td>
+                                    <th>Fecha Corte Consolidado:</th>
+                                    <td>'.date("Y",strtotime($fechaFinalVaca))."/".$arrMeses[date("m",strtotime($fechaFinalVaca)) - 1].'/'.date("d",strtotime($fechaFinalVaca)).'</td>
+                                </tr>
+                                
+                            </table>
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                    <table style="width: 100%; text-align: left;">
+                        <tr>
+                            <th style="background: #d89290; text-align: center;" colspan="11">Liquidación de Vacaciones</th>                         
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;" rowspan="2">Tipo Movimiento</th>
+                            <th style="background: #CCC; text-align: center;" colspan="2">Periodo Causación</th>
+                            <th style="background: #CCC; text-align: center;" colspan="4">Periodo Vacaciones</th>
+                            <th style="background: #CCC; text-align: center;" colspan="2">Días Pagados</th>
+                            <th style="background: #CCC; text-align: center;" rowspan="2">Promedio<br>Diario</th>
+                            <th style="background: #CCC; text-align: center;" rowspan="2">Valor<br>Liquidado</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;">Fecha Inicio</th>
+                            <th style="background: #CCC; text-align: center;">Fecha Fin</th>
+                            <th style="background: #CCC; text-align: center;">Fecha Inicio</th>
+                            <th style="background: #CCC; text-align: center;">Fecha Fin</th>
+                            <th style="background: #CCC; text-align: center;">Días</th>
+                            <th style="background: #CCC; text-align: center;">Regreso</th>
+                            <th style="background: #CCC; text-align: center;">Tiempo</th>
+                            <th style="background: #CCC; text-align: center;">Dinero</th>
+                        </tr>
+                        
+                ';
+                $totalVac = 0;
+                foreach($novedadesVacacionActual as $novedadVacacion){
+                    $tipoMov = str_replace("VACACIONES", "", $novedadVacacion->nombre);
+                    $html.='
+                        <tr>
+                            <td style="border-bottom: 1px solid #B0B0B0;">'.$tipoMov.'</td>
+                            <td style="border-bottom: 1px solid #B0B0B0;" width="50">'.$empleado->fechaIngreso.'</td>
+                            <td style="border-bottom: 1px solid #B0B0B0;" width="50">'.$novedadVacacion->fechaInicio.'</td>';
+                        if($novedadVacacion->idconcepto == 29){
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;" width="50">'.$novedadVacacion->fechaInicio.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;" width="50">'.$novedadVacacion->fechaFin.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;" width="50">'.$novedadVacacion->diasCompensar.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;" width="50">'.date("Y-m-d",strtotime($novedadVacacion->fechaFin."+1 day")).'</td>';
+                        }
+                        else{
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;">'.$novedadVacacion->diasCompensar.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                        }
+                        
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;">'.$novedadVacacion->diasCompensar.'</td>';
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;">$'.number_format($novedadVacacion->valor,0, ",", ".").'</td>';
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;">$'.number_format($novedadVacacion->valor/$novedadVacacion->diasCompensar,0, ",", ".").'</td>';
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;">$'.number_format($novedadVacacion->valor,0, ",", ".").'</td>';
+
+                        $html.='</tr>
+                    ';
+                    $totalVac = $totalVac + $novedadVacacion->valor;
+                    if($totalVac<0){
+                        $totalVac=0;
+                    }
+                }    
+                $html.='
+                    <tr>
+                        <th style="text-align: right;" colspan="9">TOTAL LIQUIDADO VACACIONES</th>
+                        <td style="text-align: right; border: 1px solid #B0B0B0;" colspan="2">$'.number_format($totalVac,0, ",", ".").'</td>
+                    </tr>            
+                    </table>
+                </div>
+                <br>
+                    <center><h4>Observaciones</h4></center>
+                <br>
+                <div style="border: 2px solid #000; padding: 10px 20px; min-height: 50px;">
+                <br><br><br>
+                </div>
+                <div style="position: absolute; bottom: 20px;">
+                    <table style="width: 100%; text-align: left;">
+                        <tr>
+                            <td>COLABORADOR</td>
+                            <td></td>
+                            <td>LA EMPRESA</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Cédula o NIT</td>
+                            <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            <td>NIT</td>
+                            <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"></td>
+                            <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                        </tr>
+                    </table>
+                    <table style="width: 100%;">
+                        <tr>
+                            <th style="border: 1px solid #000; width:33%;">ELABORÓ: '.$userSolicita.'</th>
+                            <th style="border: 1px solid #000; width:33%;">REVISÓ: '.$userAprueba.'</th>
+                            <th style="border: 1px solid #000; width:33%;">APROBÓ:</th>
+                        </tr>
+                    </table>
+                </div>
+                <div class="page_break"></div>
+                ';
+            }            
+
+        }
+        
+            
+            $html.='
+            </body>
+        </html>
+        ';
+        
+        $dompdf->loadHtml($html ,'UTF-8');
+
+        // (Optional) Setup the paper size and orientation
+        $dompdf->setPaper('Letter', 'portrait');
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF to Browser
+        $dompdf->stream("Comprobante de Pago ".$idBoucherPago.".pdf", array('compress' => 1, 'Attachment' => 0));
     }
 }
 

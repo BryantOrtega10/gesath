@@ -14,7 +14,7 @@
         <div class="col-9">
             <div class="form-group">
                 <label for="campo" class="control-label">Campos:</label>
-                <select class="form-control" id="campo" name="campo" required="">
+                <select class="form-control" id="campo" name="campo">
                     <option value="">Seleccione uno</option>
                     @foreach($itemsReporte as $itemReporte)
                         <option value="{{$itemReporte->idReporteItem}}">{{$itemReporte->nombre}}</option>

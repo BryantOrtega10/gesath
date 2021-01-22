@@ -49,7 +49,7 @@
                 </form>
             @endif
         </div>
-        <div class="col-3">
+        <div class="col-3 text-center">
             <a href="/nomina/reversar/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Reversar nomina</a><br>
         </div>
         <div class="col-3 text-center">
@@ -57,6 +57,14 @@
         </div>
         <div class="col-3 text-center">
             <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Nomina horizontal</a><br>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3 text-center"><br>
+            <a href="/reportes/boucherPdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Boucher PDF Consolidado</a><br>
+        </div>
+        <div class="col-3 text-center"><br>
+            <a href="#" class="btnSubmitGen" s>Enviar bouchers por email</a><br>
         </div>
     </div>  
     <br>

@@ -437,8 +437,13 @@ class DatosPasadosController extends Controller
                     $salario = 0;
                 }
                 
+                $periodoActivoReintegro = DB::table("periodo")
+                ->where("fkEstado","=","1")
+                ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+                
                 $boucherId = DB::table("boucherpago")->insertGetId([
                     "fkEmpleado" => $datoPasado->fkEmpleado,
+                    "fkPeriodo" => $periodoActivoReintegro->idPeriodo,
                     "fkLiquidacion" => $liquidacionId,
                     "periodoPago" => $periodo,
                     "diasTrabajados" => $periodo,
@@ -576,29 +581,32 @@ class DatosPasadosController extends Controller
 
                 $existeEmpleado = DB::table("empleado","e")
                 ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-                ->where("dp.numeroIdentificacion","=", $row[1])
-                ->where("dp.fkTipoIdentificacion","=", $row[0])
+                ->where("dp.numeroIdentificacion","=", $row[2])
+                ->where("dp.fkTipoIdentificacion","=", $row[1])
                 ->first();
            
                     
                 $row[5] = floatval($row[5]);
+
                 if(isset($existeEmpleado)){
                     DB::table("datos_pasados_vac")->insert([
                         "fkEmpleado" => $existeEmpleado->idempleado,
-                        "fecha" => $row[2],
-                        "fechaInicial" => $row[3],
-                        "fechaFinal" => $row[4],
-                        "dias" => $row[5],
+                        "tipo" => $row[0],
+                        "fecha" => $row[3],
+                        "fechaInicial" => ((isset($row[4]) && !empty($row[4])) ? $row[4] : NULL),
+                        "fechaFinal" => ((isset($row[5]) && !empty($row[5])) ? $row[5] : NULL),
+                        "dias" => $row[6],
                         "fkCargaDatosPasados" => $idCarga,
                         "fkEstado" => "3"
                     ]);
                 }
                 else{
                     DB::table("datos_pasados_vac")->insert([
-                        "fecha" => $row[2],
-                        "fechaInicial" => $row[3],
-                        "fechaFinal" => $row[4],
-                        "dias" => $row[5],
+                        "fecha" => $row[3],
+                        "tipo" => $row[0],
+                        "fechaInicial" => ((isset($row[4]) && !empty($row[4])) ? $row[4] : NULL),
+                        "fechaFinal" => ((isset($row[5]) && !empty($row[5])) ? $row[5] : NULL),
+                        "dias" => $row[6],
                         "fkCargaDatosPasados" => $idCarga,
                         "fkEstado" => "14"
                     ]);
@@ -634,6 +642,7 @@ class DatosPasadosController extends Controller
                         $mensaje.='<tr>
                             <th></th>
                             <td>'.($index + 1).'</td>
+                            <th>'.$datoPasado->tipo.'</th>
                             <td>'.$datoPasado->numeroIdentificacion.'</td>
                             <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
                             <td>'.$datoPasado->fecha.'</td>
@@ -675,28 +684,30 @@ class DatosPasadosController extends Controller
                 if($datosSubidos>3){
                     $existeEmpleado = DB::table("empleado","e")
                     ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-                    ->where("dp.numeroIdentificacion","=", $row[1])
-                    ->where("dp.fkTipoIdentificacion","=", $row[0])
+                    ->where("dp.numeroIdentificacion","=", $row[2])
+                    ->where("dp.fkTipoIdentificacion","=", $row[1])
                     ->first();
             
                         
                     if(isset($existeEmpleado)){
                         DB::table("datos_pasados_vac")->insert([
                             "fkEmpleado" => $existeEmpleado->idempleado,
-                            "fecha" => $row[2],
-                            "fechaInicial" => $row[3],
-                            "fechaFinal" => $row[4],
-                            "dias" => $row[5],
+                            "fecha" => $row[3],
+                            "tipo" => $row[0],
+                            "fechaInicial" => ((isset($row[4]) && !empty($row[4])) ? $row[4] : NULL),
+                            "fechaFinal" => ((isset($row[5]) && !empty($row[5])) ? $row[5] : NULL),
+                            "dias" => $row[6],
                             "fkCargaDatosPasados" => $idCarga,
                             "fkEstado" => "11"
                         ]);
                     }
                     else{
                         DB::table("datos_pasados_vac")->insert([
-                            "fecha" => $row[2],
-                            "fechaInicial" => $row[3],
-                            "fechaFinal" => $row[4],
-                            "dias" => $row[5],
+                            "fecha" => $row[3],
+                            "tipo" => $row[0],
+                            "fechaInicial" => ((isset($row[4]) && !empty($row[4])) ? $row[4] : NULL),
+                            "fechaFinal" => ((isset($row[5]) && !empty($row[5])) ? $row[5] : NULL),
+                            "dias" => $row[6],
                             "fkCargaDatosPasados" => $idCarga,
                             "fkEstado" => "14"
                         ]);
@@ -720,6 +731,7 @@ class DatosPasadosController extends Controller
                 $mensaje.='<tr>
                     <th>'.((isset($datoPasado->primerApellido)) ? '<input type="checkbox" name="idDatosPasados[]" value="'.$datoPasado->idDatosPasados.'" />' : '' ).'</th>
                     <td>'.($index + 1).'</td>
+                    <th>'.$datoPasado->tipo.'</th>
                     <td>'.$datoPasado->numeroIdentificacion.'</td>
                     <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
                     <td>'.$datoPasado->fecha.'</td>
@@ -769,31 +781,72 @@ class DatosPasadosController extends Controller
         ->get();
 
         foreach($datosPasados as $datoPasado){            
+            if($datoPasado->tipo == "VAC"){
+                $arrInsertVac = [
+                    "fechaInicio" => $datoPasado->fechaInicial,
+                    "fechaFin" => $datoPasado->fechaFinal,
+                    "diasCompensar" => $datoPasado->dias,
+                    "diasCompletos" => $datoPasado->dias,
+                    "pagoAnticipado" => "1"
+                ];
+                $idVacaciones = DB::table("vacaciones")->insertGetId($arrInsertVac, "idVacaciones");
+          
+                $periodoActivoReintegro = DB::table("periodo")
+                ->where("fkEstado","=","1")
+                ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+                
+                $arrInsertNovedad =[
+                    "fkTipoNovedad" => 6,
+                    "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                    "fkNomina" => $datoPasado->fkNomina,
+                    "fkEmpleado" => $datoPasado->fkEmpleado,
+                    "fkEstado" => "8",
+                    "fechaRegistro" => $datoPasado->fecha,
+                    "fkConcepto" => "29",
+                    "fkVacaciones" => $idVacaciones,
+                    "fkCargaDatosPasadosVac" => $idCarga
+                ];
 
-            $arrInsertVac = [
-                "fechaInicio" => $datoPasado->fechaInicial,
-                "fechaFin" => $datoPasado->fechaFinal,
-                "diasCompensar" => $datoPasado->dias,
-                "pagoAnticipado" => "1"
-            ];
-            $idVacaciones = DB::table("vacaciones")->insertGetId($arrInsertVac, "idVacaciones");
-      
 
 
-            $arrInsertNovedad =[
-                "fkTipoNovedad" => 6,
-                "fkNomina" => $datoPasado->fkNomina,
-                "fkEmpleado" => $datoPasado->fkEmpleado,
-                "fkEstado" => "8",
-                "fechaRegistro" => $datoPasado->fecha,
-                "fkConcepto" => "29",
-                "fkVacaciones" => $idVacaciones,
-                "fkCargaDatosPasadosVac" => $idCarga
-            ];
-            DB::table("novedad")->insert($arrInsertNovedad);
-            DB::table("datos_pasados_vac")
-                ->where("idDatosPasados","=",$datoPasado->idDatosPasados)
-                ->update(["fkEstado" => "11"]);
+
+                
+                DB::table("novedad")->insert($arrInsertNovedad);
+                DB::table("datos_pasados_vac")
+                    ->where("idDatosPasados","=",$datoPasado->idDatosPasados)
+                    ->update(["fkEstado" => "11"]);
+            }
+            else if($datoPasado->tipo == "LNR"){
+                $arrInsertAus = [
+                    "fechaInicio" => $datoPasado->fechaInicial,
+                    "fechaFin" => $datoPasado->fechaFinal,
+                    "cantidadDias" => $datoPasado->dias
+                ];
+                $idAusencia = DB::table("ausencia")->insertGetId($arrInsertAus, "idAusencia");
+          
+    
+                $periodoActivoReintegro = DB::table("periodo")
+                ->where("fkEstado","=","1")
+                ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+
+                $arrInsertNovedad =[
+                    "fkTipoNovedad" => 1,
+                    "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                    "fkNomina" => $datoPasado->fkNomina,
+                    "fkEmpleado" => $datoPasado->fkEmpleado,
+                    "fkEstado" => "8",
+                    "fechaRegistro" => $datoPasado->fecha,
+                    "fkConcepto" => "24",
+                    "fkAusencia" => $idAusencia,
+                    "fkCargaDatosPasadosVac" => $idCarga
+                ];
+                DB::table("novedad")->insert($arrInsertNovedad);
+                
+                DB::table("datos_pasados_vac")
+                    ->where("idDatosPasados","=",$datoPasado->idDatosPasados)
+                    ->update(["fkEstado" => "11"]);
+            }
+            
 
         }
         DB::table("carga_datos_pasados_vac")
@@ -1033,7 +1086,7 @@ class DatosPasadosController extends Controller
             
                         
             if($datosSubidos!=0){
-                
+                /*
                 $existeEmpleado = DB::table("empleado","e")
                 ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
                 ->where("dp.numeroIdentificacion","=", $row[1])
@@ -1054,7 +1107,7 @@ class DatosPasadosController extends Controller
                     ]);    
                 }
                 else if(isset($existeConcepto)){
-                    DB::table("datos_pasados")->insert([
+                    DB::table("datos_pasados_sal")->insert([
                         "fkConcepto" => $fkConcepto,
                         "valor" => $row[3],
                         "mes" => $row[4],
@@ -1082,9 +1135,11 @@ class DatosPasadosController extends Controller
                         "fkEstado" => "14"
                     ]);
                 }
+                */
                 DB::table("carga_datos_pasados_sal")
                 ->where("idCargaDatosPasados","=",$idCarga)
                 ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+                
 
             }  
             $datosPasados = DB::table("datos_pasados_sal","dp")

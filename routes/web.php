@@ -98,14 +98,21 @@ Route::group([
 	'as' => 'empleado'
 ], function(){
 	Route::get('/', [ 'uses' => 'EmpleadoController@index', 'as' => '/']);
+
+
+	Route::get('/reintegro', [ 'uses' => 'EmpleadoController@indexReintegro', 'as' => '/']);
+	Route::get('formReintegro/{id}','EmpleadoController@formReintegro');
+
 	Route::get('formCrear/{id}','EmpleadoController@formCrear');
 		
 	Route::get('cargarPersonasVive/{id}','EmpleadoController@cargarPersonasVive');
-	Route::get('cargarUpcAdicional/{id}','EmpleadoController@cargarUpcAdicional');
+	Route::get('cargarUpcAdicional/{id}/{idEmpleado}','EmpleadoController@cargarUpcAdicional');
 	
 	Route::get('cargarContactoEmergencia/{id}','EmpleadoController@cargarContactoEmergencia');
 	Route::post('ingresarDatosBasicos','EmpleadoController@insert');
 	Route::get('formModificar/{id}','EmpleadoController@formModificar');
+
+	
 	Route::post('verificarDocumento','EmpleadoController@verificarDocumento');
 	Route::get('cargarCentroCosto/','EmpleadoController@cargarCentroCosto');
 	Route::get('cargarBeneficiosTributarios/{id}/{idEmpleado}','EmpleadoController@cargarBeneficiosTributarios');
@@ -115,7 +122,11 @@ Route::group([
 	Route::get('cargarEntidadesAfiliacion/{id}','EmpleadoController@cargarEntidadesAfiliacion');
 	Route::post('afiliacionesEmpleado','EmpleadoController@ingresarAfiliacionesEmpleado');
 	Route::get('cargarConceptosFijos/{id}','EmpleadoController@cargarConceptosFijos');
+
+
 	Route::post('conceptosFijos','EmpleadoController@validarConceptosFijos');
+	Route::post('conceptosFijosReintegro','EmpleadoController@validarConceptosFijosReintegro');
+	
 	Route::get('validarEstadoEmpleado/{id}','EmpleadoController@validarEstadoEmpleado');
 	Route::get('cargarFormEmpleadosxNomina','EmpleadoController@cargarFormEmpleadosxNomina');
 
@@ -129,12 +140,20 @@ Route::group([
 	Route::get('mostrarPorqueFalla/{id}','EmpleadoController@mostrarPorqueFalla');	
 
 	Route::post('modificarDatosInfoPersonal','EmpleadoController@modificarDatosInfoPersonal');
+	Route::post('modificarDatosInfoPersonalReintegro','EmpleadoController@modificarDatosInfoPersonalReintegro');
 	
+
+
 	Route::get('desactivarEmpleado/{id}','EmpleadoController@desactivarEmpleado');
 	Route::get('reactivarEmpleado/{id}','EmpleadoController@reactivarEmpleado');
 	Route::get('eliminarDefUsuario/{id}','EmpleadoController@eliminarDefUsuario');
 	
 	Route::get('/CSVEmpleados', 'EmpleadoController@CSVEmpleados');
+
+	Route::get('/subirFotos', 'EmpleadoController@indexSubirFotos');
+	Route::post('/cargaMasivaFotosEmpleados', 'EmpleadoController@cargaMasivaFotosEmpleados');
+
+	
 
 	Route::get('/dataEmpContrasenia/{id}', 'EmpleadoController@getDataPass');
 	
@@ -235,6 +254,7 @@ Route::group([
 	Route::post('reporteador/modificar','ReportesNominaController@modificarReporte');
 	Route::post('reporteador/generarFinalReporteador','ReportesNominaController@generarFinalReporteador');
 	
+	Route::get('boucherPdfConsolidado/{idLiquidacion}','ReportesNominaController@boucherPdfConsolidado');	
 	
 });
 
@@ -452,6 +472,30 @@ Route::group([
 	});
 
 });
+Route::group([
+	'prefix' => 'prestamos',
+	'middleware' => ['auth', 'guest:2,3'],
+	'as' => 'prestamos'
+], function(){
+	Route::get('/', 'PrestamosController@index');
+	Route::get('/periocidadxNomina/{idNomina}','PrestamosController@periocidadxNomina');
+	
+	Route::get('/agregar','PrestamosController@getFormAdd');
+	Route::get('/agregarEmbargo','PrestamosController@getFormAddEmbargo');
+	
+
+	
+
+	Route::get('/getForm/edit/{id}','PrestamosController@getFormEdit');
+
+	Route::get('/eliminar/{id}','PrestamosController@eliminar');
+	
+
+	Route::post('/crearEmbargo','PrestamosController@crearEmbargo');
+	Route::post('crear','PrestamosController@crear');
+	Route::post('modificar','PrestamosController@modificar');
+});
+
 
 Route::group([
 	'prefix' => 'cargos',

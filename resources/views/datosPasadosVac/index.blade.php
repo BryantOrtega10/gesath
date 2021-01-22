@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Carga datos pasados vacaciones</h1>
+        <h1>Carga datos pasados VAC/LRN</h1>
     </div>
 </div>
 <div class="row">

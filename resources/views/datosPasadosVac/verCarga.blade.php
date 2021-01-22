@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Carga datos pasados')
+@section('title', 'Carga datos pasados  VAC/LRN ')
 @section('menuLateral')
     @include('layouts.partials.menu')
 @endsection
@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Carga datos pasados</h1>
+        <h1>Carga datos pasados  VAC/LRN </h1>
     </div>
 </div>
 <div class="row">
@@ -56,6 +56,7 @@
                 <tr>
                     <th></th>
                     <th>#</th>
+                    <th>Tipo</th>
                     <th>Documento</th>
                     <th>Empleado</th>
                     <th>Fecha</th>
@@ -71,6 +72,7 @@
                                 <input type="checkbox" name="idDatosPasados[]" value="{{$datoPasado->idDatosPasados}}" /> 
                             @endif</th>
                             <td>{{$index + 1}}</td>
+                            <th>{{$datoPasado->tipo}}</th>
                             <td>{{$datoPasado->numeroIdentificacion}}</td>
                             <td>{{$datoPasado->primerApellido}} {{$datoPasado->segundoApellido}} {{$datoPasado->primerNombre}} {{$datoPasado->segundoNombre}}</td>
                             <td>{{$datoPasado->fecha}}</td>

@@ -65,6 +65,10 @@
         <div class="col-3 text-center"><br>
             <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Nomina horizontal</a><br>
         </div>
+        <div class="col-3 text-center"><br>
+            <a href="/reportes/boucherPdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Boucher PDF Consolidado</a><br>
+        </div>
+    
     </div>
     
 

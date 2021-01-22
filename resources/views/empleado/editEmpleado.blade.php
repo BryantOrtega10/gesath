@@ -555,7 +555,7 @@
                     <div class="col-12">
                         <h4>UPC ADICIONAL</h4>
                         <div class="contMasMenos">
-                        <div class="mas masUpcAdicional" data-num="{{sizeof($upcAdicional)}}" data-para="upcAdicional">+</div>
+                        <div class="mas masUpcAdicional" data-idEmpleado="{{$idEmpleado}}" data-num="{{sizeof($upcAdicional)}}" data-para="upcAdicional">+</div>
                         </div>
                     </div>
                 </div>
@@ -669,7 +669,24 @@
                                     </select>
                                 </div>
                             </div>
-                            
+                            @if (isset($periodo) && $periodo=="15")
+                                <div class="col-3">
+                                    <div class="form-group hasText">
+                                        <label for="periocidad{{$idRow}}" class="control-label">Periocidad</label>
+                                        <select class="form-control periocidad" required id="periocidad{{$idRow}}"  data-id="{{$idRow}}" name="periocidad[]">
+                                            @foreach ($periocidad as $perio)
+                                                <option value="{{$perio->per_id}}" @if ($upcAdic->fkPeriocidad == $perio->per_id)
+                                                    selected
+                                                @endif>{{$perio->per_upc}}</option>
+                                            @endforeach                                      
+                                        </select>
+                                    </div>
+                                </div>
+                            @else
+                                <input type="hidden" name="periocidad[]" value="1" />
+                            @endif
+
+
                         </div>
 
 

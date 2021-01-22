@@ -894,6 +894,9 @@ class CatalogoContableController extends Controller
 
                     $provision = DB::table("provision","p")
                     ->where("p.fkEmpleado","=",$empleado->idempleado)
+                    /*->whereRaw("p.fkPeriodoActivo in(
+                        SELECT per.idPeriodo from periodo as per where per.fkEmpleado = '".$empleado->idempleado."' and per.fkEstado = '1'
+                    )")*/
                     ->where("p.fkConcepto","=",$fkConcepto)
                     ->whereRaw("(p.mes = MONTH('".$req->fechaReporte."') and p.anio= YEAR('".$req->fechaReporte."'))")
                     ->first();

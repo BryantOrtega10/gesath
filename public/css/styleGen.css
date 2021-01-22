@@ -1076,3 +1076,10 @@ select.selectMultiple {
     width: 100%;
     margin-bottom: 6px;
 }
+
+.presCuotas, .presValor, .presPorcentaje{
+    display: none;
+}
+.presCuotas.activo, .presValor.activo, .presPorcentaje.activo{
+    display: block;
+}

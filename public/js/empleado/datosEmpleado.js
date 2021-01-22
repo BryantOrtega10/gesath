@@ -460,11 +460,12 @@ $(document).ready(function() {
     $("body").on("click", ".masUpcAdicional", function() {
         cargando();
         var numPersona = $(this).attr("data-num");
+        const idEmpleado = $(this).attr("data-idEmpleado");
         numPersona++;
         $(this).attr("data-num", numPersona);
         $.ajax({
             type: 'GET',
-            url: "/empleado/cargarUpcAdicional/" + numPersona,
+            url: "/empleado/cargarUpcAdicional/" + numPersona + "/" + idEmpleado,
             success: function(data) {
                 $("#cargando").css("display", "none");
                 $(".upcAdicionalCont").append(data);
@@ -474,6 +475,15 @@ $(document).ready(function() {
                 console.log(data);
             }
         });
+    });
+
+    $("body").on("click", ".quitarUpcAdicional", function(e) {
+        e.preventDefault();
+        cargando();
+        var dataid = $(this).attr("data-id");
+
+        $(this).attr("data-num", dataid);
+        $(".upcAdicionalV[data-id='" + dataid + "']").remove();
     });
 
 
