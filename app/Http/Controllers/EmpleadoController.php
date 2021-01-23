@@ -583,7 +583,7 @@ class EmpleadoController extends Controller
             $periodo = $nomina->periodo;
         }
         
-
+        $tiposcotizante = DB::table("tipo_cotizante")->get();
         return view('/empleado.editEmpleado', [
             'paises'=>$paises,
             'dataUsu' => $usu,
@@ -645,7 +645,8 @@ class EmpleadoController extends Controller
             'ciudadesUpc' => $ciudadesUpc,
             'nivelesEstudios' => $nivelesEstudios,
             'etnias' => $etnias,
-            "centrosTrabajo" => $centrosTrabajo
+            "centrosTrabajo" => $centrosTrabajo,
+            'tiposcotizante' => $tiposcotizante
         ]);
 
 
@@ -1090,7 +1091,7 @@ class EmpleadoController extends Controller
             "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
             "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,"fkTipoOtroDocumento" => $req->infoOtroTIdentificacion, 
              "otroDocumento" => $req->infoOtroDocumento, "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
-            "porcentajeRetencion" => $req->infoPorcentajeRetencion, "esPensionado" => $req->infoSubTipoCotizante
+            "porcentajeRetencion" => $req->infoPorcentajeRetencion, "fkTipoCotizante" => $req->infoTipoCotizante, "esPensionado" => $req->infoSubTipoCotizante
         );
         DB::table("periodo")
         ->where("fkEmpleado","=",$req->idEmpleado)
@@ -1260,7 +1261,7 @@ class EmpleadoController extends Controller
             "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
             "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,"fkTipoOtroDocumento" => $req->infoOtroTIdentificacion, 
              "otroDocumento" => $req->infoOtroDocumento, "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
-            "porcentajeRetencion" => $req->infoPorcentajeRetencion, "esPensionado" => $req->infoSubTipoCotizante
+            "porcentajeRetencion" => $req->infoPorcentajeRetencion, "fkTipoCotizante" => $req->infoTipoCotizante, "esPensionado" => $req->infoSubTipoCotizante
         );
 
 
@@ -2454,7 +2455,7 @@ class EmpleadoController extends Controller
         DB::table("empleado","e")->where("e.idempleado","=",$idEmpleado)->update(["fkEstado" => "3"]);
 
         $camposOpcionalesDatPer = array(
-            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia"],
+            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia","correo", "celular"],
             "cambiantes" => []            
         );
         $datosPersonales = DB::table("datospersonales", "dp")->select('dp.*')
@@ -2483,6 +2484,8 @@ class EmpleadoController extends Controller
         }
         
         $infoLaboral = DB::table("empleado", "e")->where('e.idempleado', $idEmpleado)->first();
+        $empleado = DB::table("empleado", "e")->where("idempleado", "=",$idEmpleado)->first();
+        
         $camposOpcionalesInfoLab = array(
             "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo","fkTipoOtroDocumento"],
             "cambiantes" => [
@@ -2517,6 +2520,9 @@ class EmpleadoController extends Controller
             )            
             ]            
         );
+        if($empleado->fkTipoCotizante == 12){
+            array_push($camposOpcionalesInfoLab["fijos"], "fkNivelArl");
+        }
         
         foreach($infoLaboral as $key => $valor){
             if(!isset($valor)){
@@ -2595,12 +2601,19 @@ class EmpleadoController extends Controller
         $afiliaciones = DB::table("afiliacion")
             ->where('fkEmpleado', $idEmpleado)
             ->get();
-        $arrTipoAfiliacion = array("1","2","3");
-        $empleado = DB::table("empleado", "e")->where("idempleado", "=",$idEmpleado)->first();
-        if($empleado->esPensionado == 0){
-            array_push($arrTipoAfiliacion, "4");
-        }
+        $arrTipoAfiliacion = array("3");
         
+       
+        if($empleado->fkTipoCotizante == 1){
+            
+            array_push($arrTipoAfiliacion, "1");
+            array_push($arrTipoAfiliacion, "2");
+            if($empleado->esPensionado == 0){
+                array_push($arrTipoAfiliacion, "4");
+            }
+        }
+
+
 
         $camposOpcionalesAfiliaciones = array(
             "fijos" => ["documento"],
@@ -2707,7 +2720,7 @@ class EmpleadoController extends Controller
     public function mostrarPorqueFalla($idEmpleado){
         //Consultar que tenga todos los datos basicos
         $camposOpcionalesDatPer = array(
-            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia"],
+            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia","correo", "celular"],
             "cambiantes" => []            
         );
         $datosPersonales = DB::table("datospersonales", "dp")->select('dp.*')
@@ -2769,6 +2782,10 @@ class EmpleadoController extends Controller
             )            
             ]            
         );
+        $empleado = DB::table("empleado", "e")->where("idempleado", "=",$idEmpleado)->first();
+        if($empleado->fkTipoCotizante == 12){
+            array_push($camposOpcionalesInfoLab["fijos"], "fkNivelArl");
+        }
         
         foreach($infoLaboral as $key => $valor){
             if(!isset($valor)){
@@ -2847,11 +2864,22 @@ class EmpleadoController extends Controller
         $afiliaciones = DB::table("afiliacion")
             ->where('fkEmpleado', $idEmpleado)
             ->get();
-        $arrTipoAfiliacion = array("1","2","3");
-        $empleado = DB::table("empleado", "e")->where("idempleado", "=",$idEmpleado)->first();
-        if($empleado->esPensionado == 0){
-            array_push($arrTipoAfiliacion, "4");
+        $arrTipoAfiliacion = array("3");
+        
+
+        
+        
+        if($empleado->fkTipoCotizante == 1){
+            
+            array_push($arrTipoAfiliacion, "1");
+            array_push($arrTipoAfiliacion, "2");
+            if($empleado->esPensionado == 0){
+                array_push($arrTipoAfiliacion, "4");
+            }
         }
+
+        
+        
 
         $camposOpcionalesAfiliaciones = array(
             "fijos" => ["documento"],
@@ -3064,7 +3092,7 @@ class EmpleadoController extends Controller
 
                             DB::table('carga_empleado',"ce")
                             ->where("ce.idCargaEmpleado","=",$idCargaEmpleado)
-                            ->update(["numActual" => ($i+1)]);
+                            ->update(["numActual" => ($i)]);
                             
                             $cargaEmpleado_Empleados = DB::table("carga_empleado_empleado", "cee")
                             ->select('ti.nombre as tipoDocumento', "dp.*", "est.nombre as estado")
@@ -3211,8 +3239,10 @@ class EmpleadoController extends Controller
                         "otraFormaPago" => $row[14],
                         "fkTipoOtroDocumento" => $row[15],
                         "otroDocumento" => $row[16],
-                        "fkNivelArl" => $row[17],
+                        "fkNivelArl" => ((isset($row[17]) && !empty($row[17])) ? $row[17] : NULL),
                         "fkCentroTrabajo" => $row[18],
+                        "fkTipoCotizante" => $row[19],
+                        "esPensionado" => $row[20],
                         "procedimientoRetencion" => "TABLA",
                         "fkEstado" => 3
                     );
@@ -3293,47 +3323,56 @@ class EmpleadoController extends Controller
                     if(isset($row[5])){
                         $fechaAfiliacion = $row[5];
                     }
+                    if(isset($row[1]) && !empty($row[1])){
+                        $insertAfiliacion1 = array(
+                            "fkTipoAfilicacion" => "1",
+                            "fkTercero" => $row[1],
+                            "fechaAfiliacion" => $fechaAfiliacion,
+                            "fkEmpleado" => $idempleado
+                        );
+                        DB::table('afiliacion')->insert($insertAfiliacion1);
+                    }
 
-                    $insertAfiliacion1 = array(
-                        "fkTipoAfilicacion" => "1",
-                        "fkTercero" => $row[1],
-                        "fechaAfiliacion" => $fechaAfiliacion,
-                        "fkEmpleado" => $idempleado
-                    );
+                    if(isset($row[2]) && !empty($row[2])){
+                        $insertAfiliacion2 = array(
+                            "fkTipoAfilicacion" => "2",
+                            "fkTercero" => $row[2],
+                            "fechaAfiliacion" => $fechaAfiliacion,
+                            "fkEmpleado" => $idempleado
+                        );
 
-                    DB::table('afiliacion')->insert($insertAfiliacion1);
-
-
-
-                    $insertAfiliacion2 = array(
-                        "fkTipoAfilicacion" => "2",
-                        "fkTercero" => $row[2],
-                        "fechaAfiliacion" => $fechaAfiliacion,
-                        "fkEmpleado" => $idempleado
-                    );
-
-                    DB::table('afiliacion')->insert($insertAfiliacion2);
-
-
+                        DB::table('afiliacion')->insert($insertAfiliacion2);
+                    }
 
 
-                    $insertAfiliacion3 = array(
-                        "fkTipoAfilicacion" => "3",
-                        "fkTercero" => $row[3],
-                        "fechaAfiliacion" => $fechaAfiliacion,
-                        "fkEmpleado" => $idempleado
-                    );
+                    if(isset($row[3]) && !empty($row[3])){
+                        $insertAfiliacion3 = array(
+                            "fkTipoAfilicacion" => "3",
+                            "fkTercero" => $row[3],
+                            "fechaAfiliacion" => $fechaAfiliacion,
+                            "fkEmpleado" => $idempleado
+                        );
 
-                    DB::table('afiliacion')->insert($insertAfiliacion3);
+                        DB::table('afiliacion')->insert($insertAfiliacion3);
+                    }
 
-                    $insertAfiliacion4 = array(
-                        "fkTipoAfilicacion" => "4",
-                        "fkTercero" => $row[4],
-                        "fechaAfiliacion" => $fechaAfiliacion,
-                        "fkEmpleado" => $idempleado
-                    );
+                    if(isset($row[4]) && !empty($row[4])){
+                        $insertAfiliacion4 = array(
+                            "fkTipoAfilicacion" => "4",
+                            "fkTercero" => $row[4],
+                            "fechaAfiliacion" => $fechaAfiliacion,
+                            "fkEmpleado" => $idempleado
+                        );
+    
+                        DB::table('afiliacion')->insert($insertAfiliacion4);
+                    }
 
-                    DB::table('afiliacion')->insert($insertAfiliacion4);
+                    
+
+
+
+
+
                 }
                 else if($row[0]=="6" && $idempleado!=0){//AgregarConceptosFijos
                     $insertConceptoFijo = array(
@@ -3454,10 +3493,6 @@ class EmpleadoController extends Controller
     public function cargaMasivaEmpleados(Request $req){
         
         $csvEmpleados = $req->file("archivoCSV");
-        
-
-
-        
         $reader = Reader::createFromFileObject($csvEmpleados->openFile());
         $reader->setDelimiter(';');
         $csvEmpleados = $csvEmpleados->store("public/csvFiles");
@@ -4462,8 +4497,10 @@ class EmpleadoController extends Controller
         ->where("fkEmpleado","=",$req->idEmpleado)
         ->where("fkEstado","=","1")->first();
 
+        $tiposcotizante = DB::table("tipo_cotizante")->get();
 
         return view('/empleado.reintegroEmpleado', [
+            'tiposcotizante' => $tiposcotizante,
             'paises'=>$paises,
             'dataUsu' => $usu,
             'usuExiste' => $existe,

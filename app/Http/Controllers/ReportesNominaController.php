@@ -46,7 +46,7 @@ class ReportesNominaController extends Controller
         ->join("conceptofijo as ccfijo","ccfijo.fkEmpleado", "=", "e.idempleado")
         ->join("cargo","cargo.idCargo","=","e.fkCargo")
         ->where("ln.idLiquidacionNomina","=",$idLiquidacionNomina)
-        ->whereIn("ccfijo.fkConcepto",["1","2"])
+        ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
         ->orderBy("e.idempleado")
         ->orderBy("c.idconcepto")
         ->get();
@@ -77,7 +77,7 @@ class ReportesNominaController extends Controller
   
             foreach($matriz as $row => $datoInt){
         
-                if(!is_int($datoInt) || $row=="Sueldo"){
+                if(!is_int($datoInt) || $row=="Sueldo" || $row == "Dias"){
                     if(!in_array($row, $arrDefLinea1)){
                         array_push($arrDefLinea1, $row);
                     }
@@ -354,7 +354,7 @@ class ReportesNominaController extends Controller
         ->join("nomina as nom","nom.idNomina", "=", "e.fkNomina")
         ->whereBetween("ln.fechaLiquida",[$req->fechaInicio, $req->fechaFin])
         ->where("n.fkEmpresa", "=", $req->empresa)
-        ->whereIn("ccfijo.fkConcepto",["1","2"])
+        ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
         ->orderBy("ln.fechaLiquida")
         ->orderBy("e.idempleado")
         ->orderBy("c.idconcepto")
@@ -376,7 +376,7 @@ class ReportesNominaController extends Controller
             $matrizReporte[$nomina->idempleado]["Centro costo"][$nomina->idBoucherPago] = $nomina->centroCosto;     
             
             
-            if($nomina->idconcepto == "1" || $nomina->idconcepto == "2"){
+            if($nomina->idconcepto == "1" || $nomina->idconcepto == "2" || $nomina->idconcepto == "53" || $nomina->idconcepto == "54" ){
                 $matrizReporte[$nomina->idempleado]["Dias"][$nomina->idBoucherPago] = intval($nomina->cantidad);
             }
             $matrizReporte[$nomina->idempleado]["Sueldo"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
@@ -1757,7 +1757,7 @@ class ReportesNominaController extends Controller
         ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
         ->join("nomina as n","n.idNomina", "=","ln.fkNomina")
         ->where("n.fkEmpresa","=",$idEmpresa)
-        ->whereIn("ln.fkTipoLiquidacion",["1","2","3","4","5","6"]) //1 - Normal, 2- Retiro
+        ->whereIn("ln.fkTipoLiquidacion",["1","2","3","4","5","6","9"]) //1 - Normal, 2- Retiro
         ->where("ln.fkEstado","=","5")
         ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
         ->distinct()->get();
@@ -1773,7 +1773,7 @@ class ReportesNominaController extends Controller
             $arrayFila[1] = $this->plantillaTxt($contador,5,"0","right");
             $arrayFila[2] = $this->plantillaTxt($empleado->siglaPila,2," ","right");
             $arrayFila[3] = $this->plantillaTxt($empleado->numeroIdentificacion,16," ","left");
-            $arrayFila[4] = $this->plantillaTxt("1",2,"0","right");//Tipo cotizante
+            $arrayFila[4] = $this->plantillaTxt($empleado->fkTipoCotizante,2,"0","right");//Tipo cotizante
             $arrayFila[5] = $this->plantillaTxt($empleado->esPensionado,2,"0","right");//Subtipo de cotizante
 
             //Extranjero no obligado a cotizar a pensiones
@@ -1819,17 +1819,13 @@ class ReportesNominaController extends Controller
             $periodoTrabajado = 30;
             //Salario
             $conceptoFijoSalario = DB::table("conceptofijo", "cf")
-            ->whereIn("cf.fkConcepto",["1","2"])
+            ->whereIn("cf.fkConcepto",["1","2","53","54"])
             ->where("cf.fkEmpleado", "=", $empleado->idempleado)
             ->first();
-            $periodoActivoReintegro = DB::table("periodo")
-            ->where("fkEstado","=","1")
-            ->where("fkEmpleado", "=", $empleado->idempleado)->first();
-
+         
             $ultimoBoucher = DB::table("boucherpago", "bp")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
-            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->orderBy("bp.idBoucherPago","desc")
             ->first();
@@ -2006,7 +2002,6 @@ class ReportesNominaController extends Controller
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
-            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("gcc.fkGrupoConcepto","=","10") //10 - CONCEPTOS QUE GENERAN VST	
             ->get();
@@ -2044,7 +2039,7 @@ class ReportesNominaController extends Controller
 
 
                 
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $arrayPlace[35] = $this->plantillaTxt($novedadSancion->cantidadDias,2,"0","right");
                 }
                 else{
@@ -2094,7 +2089,7 @@ class ReportesNominaController extends Controller
                 $novedadIncapacidadNoLab->numDias = intval($novedadIncapacidadNoLab->numDias);
 
                 $periodoTrabajado = $periodoTrabajado - $novedadIncapacidadNoLab->numDias;
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $arrayPlace[35] = $this->plantillaTxt($novedadIncapacidadNoLab->numDias,2,"0","right");
                 }
                 else{
@@ -2162,7 +2157,7 @@ class ReportesNominaController extends Controller
                 $novedadIncapacidadNoLaMat->numDias = intval( $novedadIncapacidadNoLaMat->numDias);
 
                 $periodoTrabajado = $periodoTrabajado - $novedadIncapacidadNoLaMat->numDias;
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $arrayPlace[35] = $this->plantillaTxt($novedadIncapacidadNoLaMat->numDias,2,"0","right");
                 }
                 else{
@@ -2312,7 +2307,7 @@ class ReportesNominaController extends Controller
                 $novedadVac->diasCompensar = intval( $diasCompensar);
 
                 $periodoTrabajado = $periodoTrabajado - $novedadVac->diasCompensar;
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $arrayPlace[35] = $this->plantillaTxt($novedadVac->diasCompensar,2,"0","right");
                 }
                 else{
@@ -2428,7 +2423,7 @@ class ReportesNominaController extends Controller
                 $novedadLIC->numDias = intval( $novedadLIC->numDias);
 
                 $periodoTrabajado = $periodoTrabajado - $novedadLIC->numDias;
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $arrayPlace[35] = $this->plantillaTxt($novedadLIC->numDias,2,"0","right");
                 }
                 else{
@@ -2487,7 +2482,6 @@ class ReportesNominaController extends Controller
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
-            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("gcc.fkGrupoConcepto","=","6") //6 - APORTE VOLUNTARIO PENSION	
             ->get();
@@ -2548,7 +2542,7 @@ class ReportesNominaController extends Controller
                 $novedadIncapacidadLab->numDias = intval( $novedadIncapacidadLab->numDias);
 
                 $periodoTrabajado = $periodoTrabajado - $novedadIncapacidadLab->numDias;
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $arrayPlace[35] = $this->plantillaTxt($novedadIncapacidadLab->numDias,2,"0","right");
                 }
                 else{
@@ -2593,7 +2587,7 @@ class ReportesNominaController extends Controller
 
 
             //Codigo Pension
-            if($empleado->esPensionado == 0){
+            if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                 $pension = DB::table("afiliacion","a")
                 ->join("tercero as t", "t.idTercero", "=", "a.fkTercero")
                 ->where("a.fkEmpleado", "=", $empleado->idempleado)
@@ -2617,18 +2611,21 @@ class ReportesNominaController extends Controller
             
             
             //CCF
-            $ccf = DB::table("afiliacion","a")
-            ->join("tercero as t", "t.idTercero", "=", "a.fkTercero")
-            ->where("a.fkEmpleado", "=", $empleado->idempleado)
-            ->where("a.fkTipoAfilicacion", "=", "2") // 2 - Tipo Afiliacion = Caja de compensacion
-            ->first();
-            $arrayFila[34] = $this->plantillaTxt($ccf->codigoTercero,6," ","left");
+            if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                $ccf = DB::table("afiliacion","a")
+                ->join("tercero as t", "t.idTercero", "=", "a.fkTercero")
+                ->where("a.fkEmpleado", "=", $empleado->idempleado)
+                ->where("a.fkTipoAfilicacion", "=", "2") // 2 - Tipo Afiliacion = Caja de compensacion
+                ->first();
+                $arrayFila[34] = $this->plantillaTxt($ccf->codigoTercero,6," ","left");
+            }
+            else{
+                $arrayFila[34] = $this->plantillaTxt("",6," ","left");
+            }
+            
             
             //AFP días
-
-            
-            
-            if($empleado->esPensionado == 0){
+            if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                 $arrayFila[35] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
             }
             else{
@@ -2637,9 +2634,18 @@ class ReportesNominaController extends Controller
             //EPS días
             $arrayFila[36] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
             //ARL días
-            $arrayFila[37] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+            if($empleado->fkTipoCotizante != "12"){
+                $arrayFila[37] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+            }
+            else{
+                $arrayFila[37] = $this->plantillaTxt("0",2,"0","right");
+            }
             //CCF días
-            $arrayFila[38] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+            if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                $arrayFila[38] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+            }else{
+                $arrayFila[38] = $this->plantillaTxt("",2,"0","right");   
+            }
 
             
             
@@ -2653,7 +2659,13 @@ class ReportesNominaController extends Controller
                     $arrayFila[40] = $this->plantillaTxt(" ",1," ","left");
                 }
                 else{
-                    $arrayFila[40] = $this->plantillaTxt("F",1," ","left");
+                    if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                        $arrayFila[40] = $this->plantillaTxt("",1," ","left");
+                    }
+                    else{
+                        $arrayFila[40] = $this->plantillaTxt("F",1," ","left");
+                    }
+                    
                 }
                 
                 
@@ -2675,7 +2687,9 @@ class ReportesNominaController extends Controller
             if($ibcAFP < $minimosRedondeo->ibc && $ibcAFP > 0){
                 $ibcAFP = $minimosRedondeo->ibc;
             }
-
+            if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                $ibcAFP = 0;
+            }
 
             $arrayFila[41] = $this->plantillaTxt(round($ibcAFP),9,"0","right");
 
@@ -2696,6 +2710,9 @@ class ReportesNominaController extends Controller
             if($ibcARL < $minimosRedondeo->ibc && $ibcARL > 0){
                 $ibcARL = $minimosRedondeo->ibc;
             }
+            if($empleado->fkTipoCotizante == "12"){
+                $ibcARL = 0;
+            }
 
             $arrayFila[43] = $this->plantillaTxt(round($ibcARL),9,"0","right");
 
@@ -2708,7 +2725,9 @@ class ReportesNominaController extends Controller
             if($ibcCCF < $minimosRedondeo->ibc && $ibcCCF > 0){
                 $ibcCCF = $minimosRedondeo->ibc;
             }
-
+            if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                $ibcCCF = 0;
+            }
             $arrayFila[44] = $this->plantillaTxt(round($ibcCCF),9,"0","right");
             $totalNomina = $totalNomina + $ibcCCF;
 
@@ -2719,7 +2738,6 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","p.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
-            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->get();
 
@@ -2728,7 +2746,6 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
-            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("ibp.fkConcepto","=","19") //19 - PENSION
             ->get();
@@ -2790,7 +2807,6 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
-            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("ibp.fkConcepto","=","33") //33 - FPS
             ->get();
@@ -2856,7 +2872,7 @@ class ReportesNominaController extends Controller
             $varsEPS = DB::table("variable", "v")->whereIn("v.idVariable",["49","50"])->get();
             $totalPorcentajeEPS = 0;
             foreach($varsEPS as $varEPS){
-                if($ultimoBoucher->ibc_otros==0 && $varEPS->idVariable == "50"){
+                if($ultimoBoucher->ibc_otros==0 && $varEPS->idVariable == "50" && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                     
                 }
                 else{
@@ -2873,7 +2889,6 @@ class ReportesNominaController extends Controller
             ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
-            ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
             ->where("ibp.fkConcepto","=","18") //18 - SALUD
             ->get();
@@ -2929,17 +2944,28 @@ class ReportesNominaController extends Controller
 
 
             //TARIFA RIESGOS
-            $nivelesArl = DB::table("nivel_arl","na")
-            ->where("na.idnivel_arl","=",$empleado->fkNivelArl)
-            ->first();
-            $arrayFila[60] = $this->plantillaTxt(($nivelesArl->porcentaje / 100),9,"0","left");
+            if($empleado->fkTipoCotizante != "12"){
+                $nivelesArl = DB::table("nivel_arl","na")
+                ->where("na.idnivel_arl","=",$empleado->fkNivelArl)
+                ->first();
+                $arrayFila[60] = $this->plantillaTxt(($nivelesArl->porcentaje / 100),9,"0","left");
+            }
+            else{
+                $arrayFila[60] = $this->plantillaTxt("0.0",9,"0","left");
+            }
+            
             
             //Centro de Trabajo
-            $centroTrabajo = DB::table("centrotrabajo","ct")
-            ->where("ct.idCentroTrabajo","=",$empleado->fkCentroTrabajo)
-            ->first();
+            if(isset($empleado->fkCentroTrabajo)){
+                $centroTrabajo = DB::table("centrotrabajo","ct")
+                ->where("ct.idCentroTrabajo","=",$empleado->fkCentroTrabajo)
+                ->first();
 
-            $arrayFila[61] = $this->plantillaTxt($centroTrabajo->codigo,9,"0","right");
+                $arrayFila[61] = $this->plantillaTxt($centroTrabajo->codigo,9,"0","right");
+            }
+            else{
+                $arrayFila[61] = $this->plantillaTxt("",9,"0","right");
+            }
 
 
             $cotizacionArl = 0;
@@ -2948,7 +2974,12 @@ class ReportesNominaController extends Controller
             }
 
             //$cotizacionArl = round(($cotizacionArl/30) * $periodoTrabajadoSinNov, -2);
-            $cotizacionArl = $ibcARL*($nivelesArl->porcentaje / 100);
+            if(isset($nivelesArl)){
+                $cotizacionArl = $ibcARL*($nivelesArl->porcentaje / 100);
+            }else{
+                $cotizacionArl = 0;
+            }
+            
 
             
             $cotizacionArl = $this->roundSup($cotizacionArl, -2);
@@ -2983,11 +3014,17 @@ class ReportesNominaController extends Controller
 
 
             //TARIFA CCF
-            $varsCCF = DB::table("variable", "v")->whereIn("v.idVariable",["53"])->get();
-            $totalPorcentajeCCF = 0;
-            foreach($varsCCF as $varCCF){
-                $totalPorcentajeCCF = $totalPorcentajeCCF + floatval($varCCF->valor);
+            if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                $varsCCF = DB::table("variable", "v")->whereIn("v.idVariable",["53"])->get();
+                $totalPorcentajeCCF = 0;
+                foreach($varsCCF as $varCCF){
+                    $totalPorcentajeCCF = $totalPorcentajeCCF + floatval($varCCF->valor);
+                }
             }
+            else{
+                $totalPorcentajeCCF = "0.0";
+            }
+           
             $arrayFila[63] = $this->plantillaTxt($totalPorcentajeCCF,7,"0","left");    
 
             //VALOR CCF
@@ -3018,6 +3055,11 @@ class ReportesNominaController extends Controller
             if($ultimoBoucher->ibc_otros==0){
                 $totalPorcentajeSENA = "0.0";
             }
+
+            if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                $totalPorcentajeSENA = "0.0";
+            }
+
 
             $arrayFila[65] = $this->plantillaTxt($totalPorcentajeSENA,7,"0","left");  
 
@@ -3052,6 +3094,10 @@ class ReportesNominaController extends Controller
             if($ultimoBoucher->ibc_otros==0){
                 $totalPorcentajeICBF = "0.0";
             }
+
+            if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                $totalPorcentajeICBF = "0.0";
+            }
             $arrayFila[67] = $this->plantillaTxt($totalPorcentajeICBF,7,"0","left");  
 
             //VALOR ICBF
@@ -3065,7 +3111,7 @@ class ReportesNominaController extends Controller
             $ICBFFinal = $this->roundSup($ICBFFinal, -2);
 
 
-            if($ICBFFinal < $minimosRedondeo->icbf && $ICBFFinal > 0){
+            if($ICBFFinal < $minimosRedondeo->icbf && $ICBFFinal > 0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                 $ICBFFinal = $minimosRedondeo->icbf;
             }
    
@@ -3082,21 +3128,27 @@ class ReportesNominaController extends Controller
             $arrayFila[73] = $this->plantillaTxt("",2," ","right");
             $arrayFila[74] = $this->plantillaTxt("",16," ","right");
 
-            if($ultimoBoucher->ibc_otros==0){
+            if($ultimoBoucher->ibc_otros==0  && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                 $arrayFila[75] = $this->plantillaTxt("S",1,"","left");
             }
             else{
                 $arrayFila[75] = $this->plantillaTxt("N",1,"","left");
             }
+            if($empleado->fkTipoCotizante != "12"){
+                $arrayFila[76] = $this->plantillaTxt($empresa->codigoArl,6," ","left");
+                $arrayFila[77] = $this->plantillaTxt($empleado->fkNivelArl,1,"","left");
+            }
+            else{
+                $arrayFila[76] = $this->plantillaTxt("",6," ","left");
+                $arrayFila[77] = $this->plantillaTxt(" ",1,"","left");
+            }
 
-            $arrayFila[76] = $this->plantillaTxt($empresa->codigoArl,6," ","left");
-
-            $arrayFila[77] = $this->plantillaTxt($empleado->fkNivelArl,1,"","left");
+            
 
             $arrayFila[78] = $this->plantillaTxt("",1," ","left");
 
             //$arrayFila[94] = $this->plantillaTxt($ultimoBoucher->ibc_otros,9,"0","right");
-            if($ultimoBoucher->ibc_otros!=0){
+            if($ultimoBoucher->ibc_otros!=0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                 //$ibcOtros = ($ultimoBoucher->ibc_otros/30) * $periodoTrabajado;
           
                 //$ibcOtros = $this->roundSup($ibcOtros, -2);
@@ -3129,7 +3181,12 @@ class ReportesNominaController extends Controller
             if($horasTrabajadas > 300){
                 $horasTrabajadas = 300;
             }
-            
+            if($empleado->fkTipoCotizante == "12"){
+                $horasTrabajadas = 0;
+            }
+
+
+
             $arrayFila[95] = $this->plantillaTxt($horasTrabajadas,3,"0","right");
             $arrayFila[96] = $this->plantillaTxt("",10," ","right");
             $arrayFila = $this->upperCaseAllArray($arrayFila);
@@ -3225,7 +3282,7 @@ class ReportesNominaController extends Controller
                     $arrayFila2[93] = $this->plantillaTxt("",10," ","left");
                 }
 
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $pension = DB::table("afiliacion","a")
                     ->join("tercero as t", "t.idTercero", "=", "a.fkTercero")
                     ->where("a.fkEmpleado", "=", $empleado->idempleado)
@@ -3247,15 +3304,20 @@ class ReportesNominaController extends Controller
                 
                 
                 //CCF
-                $ccf = DB::table("afiliacion","a")
-                ->join("tercero as t", "t.idTercero", "=", "a.fkTercero")
-                ->where("a.fkEmpleado", "=", $empleado->idempleado)
-                ->where("a.fkTipoAfilicacion", "=", "2") // 2 - Tipo Afiliacion = Caja de compensacion
-                ->first();
-                $arrayFila2[34] = $this->plantillaTxt($ccf->codigoTercero,6," ","left");;
+                if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                    $ccf = DB::table("afiliacion","a")
+                    ->join("tercero as t", "t.idTercero", "=", "a.fkTercero")
+                    ->where("a.fkEmpleado", "=", $empleado->idempleado)
+                    ->where("a.fkTipoAfilicacion", "=", "2") // 2 - Tipo Afiliacion = Caja de compensacion
+                    ->first();
+                    $arrayFila2[34] = $this->plantillaTxt($ccf->codigoTercero,6," ","left");
+                }else{
+                    $arrayFila2[34] = $this->plantillaTxt($ccf->codigoTercero,6," ","left");
+                }
+                
                 
                 //AFP días
-                if($empleado->esPensionado == 0){
+                if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $arrayFila2[35] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
                 }
                 else{
@@ -3264,13 +3326,23 @@ class ReportesNominaController extends Controller
                 //EPS días
                 $arrayFila2[36] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
                 //ARL días
-                $arrayFila2[37] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+                if($empleado->fkTipoCotizante != "12"){
+                    $arrayFila2[37] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+                }
+                else{
+                    $arrayFila2[37] = $this->plantillaTxt("0",2,"0","right");
+                }
                 //CCF días
-                $arrayFila2[38] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+                if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                    $arrayFila2[38] = $this->plantillaTxt($periodoTrabajado,2,"0","right");
+                }
+                else{
+                    $arrayFila2[38] = $this->plantillaTxt("0",2,"0","right");
+                }
     
                 //Salario
                 $conceptoFijoSalario = DB::table("conceptofijo", "cf")
-                ->whereIn("cf.fkConcepto",["1","2"])
+                ->whereIn("cf.fkConcepto",["1","2","53","54"])
                 ->where("cf.fkEmpleado", "=", $empleado->idempleado)
                 ->first();
                 
@@ -3284,7 +3356,14 @@ class ReportesNominaController extends Controller
                         $arrayFila2[40] = $this->plantillaTxt(" ",1," ","left");
                     }
                     else{
-                        $arrayFila2[40] = $this->plantillaTxt("F",1," ","left");
+                        if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                            $arrayFila2[40] = $this->plantillaTxt(" ",1," ","left");
+                        }
+                        else{
+                            $arrayFila2[40] = $this->plantillaTxt("F",1," ","left");
+                        }
+
+                        
                     }
                     //$arrayFila2[40] = $this->plantillaTxt("F",1," ","left");
                     //$arrayFila2[40] = $this->plantillaTxt(" ",1," ","left");
@@ -3293,7 +3372,6 @@ class ReportesNominaController extends Controller
                 $ultimoBoucher = DB::table("boucherpago", "bp")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->orderBy("bp.idBoucherPago","desc")
                 ->first();
@@ -3381,7 +3459,6 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","p.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->get();
     
@@ -3390,7 +3467,6 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->where("ibp.fkConcepto","=","19") //19 - PENSION
                 ->get();
@@ -3450,7 +3526,6 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->where("ibp.fkConcepto","=","33") //33 - FPS
                 ->get();
@@ -3525,7 +3600,6 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
                 ->where("ibp.fkConcepto","=","18") //19 - PENSION
                 ->get();
@@ -3581,21 +3655,34 @@ class ReportesNominaController extends Controller
     
     
                 //TARIFA RIESGOS
-                $nivelesArl = DB::table("nivel_arl","na")
-                ->where("na.idnivel_arl","=",$empleado->fkNivelArl)
-                ->first();
+                
                 //Parte 2
                 if(!isset($arrayFila2[60])){
-                    $arrayFila2[60] = $this->plantillaTxt(($nivelesArl->porcentaje / 100),9,"0","left");
+
+                    if($empleado->fkTipoCotizante != "12"){
+                        $nivelesArl = DB::table("nivel_arl","na")
+                        ->where("na.idnivel_arl","=",$empleado->fkNivelArl)
+                        ->first();
+                        $arrayFila2[60] = $this->plantillaTxt(($nivelesArl->porcentaje / 100),9,"0","left");
+                    }
+                    else{
+                        $arrayFila2[60] =  $this->plantillaTxt("0.0",9,"0","left");
+                    }
                 }
                 
                 
                 //Centro de Trabajo
-                $centroTrabajo = DB::table("centrotrabajo","ct")
-                ->where("ct.idCentroTrabajo","=",$empleado->fkCentroTrabajo)
-                ->first();
-    
-                $arrayFila2[61] = $this->plantillaTxt($centroTrabajo->codigo,9,"0","right");
+                if(isset($empleado->fkCentroTrabajo)){
+                    $centroTrabajo = DB::table("centrotrabajo","ct")
+                    ->where("ct.idCentroTrabajo","=",$empleado->fkCentroTrabajo)
+                    ->first();
+        
+                    $arrayFila2[61] = $this->plantillaTxt($centroTrabajo->codigo,9,"0","right");
+                }
+                else{
+                    $arrayFila2[61] = $this->plantillaTxt("",9,"0","right");
+                }
+                
     
     
                 $cotizacionArl = 0;
@@ -3674,6 +3761,10 @@ class ReportesNominaController extends Controller
                     $totalPorcentajeSENA = "0.0";
                 }
     
+                if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                    $totalPorcentajeSENA = "0.0";
+                }
+
                 $arrayFila2[65] = $this->plantillaTxt($totalPorcentajeSENA,7,"0","left");  
                 
                 if(!isset($arrayFila2[94])){
@@ -3717,6 +3808,10 @@ class ReportesNominaController extends Controller
                 if($ultimoBoucher->ibc_otros==0){
                     $totalPorcentajeICBF = "0.0";
                 }
+                if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+                    $totalPorcentajeICBF = "0.0";
+                }
+
                 $arrayFila2[67] = $this->plantillaTxt($totalPorcentajeICBF,7,"0","left");  
     
                 //VALOR ICBF
@@ -3728,8 +3823,8 @@ class ReportesNominaController extends Controller
                 //$ICBFFinal = ($ICBFFinal/30) * $periodoTrabajadoSinNov;        
                 $ICBFFinal = $ibcOtros*($totalPorcentajeICBF);
                 $ICBFFinal = $this->roundSup($ICBFFinal, -2);
-
-                if($ICBFFinal < $minimosRedondeo->icbf && $ICBFFinal > 0){
+                
+                if($ICBFFinal < $minimosRedondeo->icbf && $ICBFFinal > 0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                     $ICBFFinal = $minimosRedondeo->icbf;
                 }
                 
@@ -3746,22 +3841,29 @@ class ReportesNominaController extends Controller
     
                 $arrayFila2[73] = $this->plantillaTxt("",2," ","right");
                 $arrayFila2[74] = $this->plantillaTxt("",16," ","right");
-    
-                if($ultimoBoucher->ibc_otros==0){
+                
+                if($ultimoBoucher->ibc_otros==0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                     $arrayFila2[75] = $this->plantillaTxt("S",1,"","left");
                 }
                 else{
                     $arrayFila2[75] = $this->plantillaTxt("N",1,"","left");
                 }
+                if($empleado->fkTipoCotizante != "12"){
+                    $arrayFila2[76] = $this->plantillaTxt($empresa->codigoArl,6," ","left");
     
-                $arrayFila2[76] = $this->plantillaTxt($empresa->codigoArl,6," ","left");
+                    $arrayFila2[77] = $this->plantillaTxt($empleado->fkNivelArl,1,"","left");
+                }
+                else{
+                    $arrayFila2[76] = $this->plantillaTxt("",6," ","left");
     
-                $arrayFila2[77] = $this->plantillaTxt($empleado->fkNivelArl,1,"","left");
+                    $arrayFila2[77] = $this->plantillaTxt("",1," ","left");
+                }
+               
     
                 $arrayFila2[78] = $this->plantillaTxt("",1," ","left");
     
                 
-                if($ultimoBoucher->ibc_otros!=0){
+                if($ultimoBoucher->ibc_otros!=0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
               
                     
                     if($ibcOtros < $minimosRedondeo->ibc && $ibcOtros > 0){
@@ -4121,14 +4223,17 @@ class ReportesNominaController extends Controller
                     if($datoProv->fkConcepto=="72"){
                         $arrBusqueda = [68,72];
                     }
-                 - 
+                 
 
+                    
                     $saldo = DB::table("saldo","s")
                     ->selectRaw("sum(s.valor) as suma")
                     ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
                     ->where("s.anioAnterior","=",($anioFechaDocumento))
                     ->whereIn("s.fkConcepto",$arrBusqueda)
                     ->first();
+
+
                     if(isset($saldo)){
                         $arrInt[5]= $saldo->suma;
                     }
@@ -4504,7 +4609,7 @@ class ReportesNominaController extends Controller
                 ->join("vacaciones as v","v.idVacaciones","=", "n.fkVacaciones")
                 ->where("n.fkEmpleado","=", $datoProv->fkEmpleado)
                 ->whereRaw("n.fkPeriodoActivo in(
-                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$datoProv->idempleado."' and p.fkEstado = '1'
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$datoProv->fkEmpleado."' and p.fkEstado = '1'
                 )")
                 ->whereIn("n.fkEstado",["8","16"]) // Pagada-> no que este eliminada o parcialmente paga (para las de pago parcial)
                 ->whereNotNull("n.fkVacaciones")
@@ -4898,7 +5003,7 @@ class ReportesNominaController extends Controller
         ->join("nomina as n","n.idNomina", "=","e.fkNomina")
         ->where("n.fkEmpresa","=",$req->empresa)
         ->where("e.fkEstado","=","1")
-        ->whereIn("ccfijo.fkConcepto",["1","2"])
+        ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
         ->get();
         $dompdf = new Dompdf();
         $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
@@ -6415,7 +6520,7 @@ class ReportesNominaController extends Controller
             ->join('tercero AS terceroCes','terceroCes.idTercero', '=', 'afCes.fkTercero',"left")
             ->leftJoin('conceptofijo as cf', function ($join) {
                 $join->on('cf.fkEmpleado', '=', 'e.idempleado')
-                     ->whereIn('cf.fkConcepto', ["1","2"]);
+                     ->whereIn('cf.fkConcepto', ["1","2","53","54"]);
             })
             ->leftJoin('novedad AS nRet', function ($join) {
                 $join->on('nRet.fkEmpleado', '=', 'e.idempleado')

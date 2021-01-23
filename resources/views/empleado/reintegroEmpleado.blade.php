@@ -808,6 +808,18 @@
                         @endif
                         <div class="col-3">
                             <div class="form-group hasText">
+                                <label for="infoTipoCotizante" class="control-label">Tipo cotizante</label>
+                                <select class="form-control" id="infoTipoCotizante" name="infoTipoCotizante">
+                                    @foreach ($tiposcotizante as $tipocotizante)
+                                        <option value="{{$tipocotizante->idTipoCotizante}}" @if ($tipocotizante->idTipoCotizante == $empleado->fkTipoCotizante) selected @endif>{{$tipocotizante->codigo." - ".$tipocotizante->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="form-group hasText">
                                 <label for="infoSubTipoCotizante" class="control-label">Subtipo cotizante</label>
                                 <select class="form-control" id="infoSubTipoCotizante" name="infoSubTipoCotizante">
                                     @foreach ($subtiposcotizante as $subtipocotizante)

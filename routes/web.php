@@ -441,6 +441,14 @@ Route::group([
 	Route::post('/editarEmpresa/{id}', 'EmpresaController@update');
 	Route::post('/eliminarEmpresa/{id}', 'EmpresaController@delete');
 	
+	Route::group([
+		'prefix' => 'smtp',
+		'middleware' => ['auth', 'guest:2,3'],
+	], function() {
+		Route::get('/{id}', 'SMTPConfigController@index');
+		Route::post('/actSMTPConfig', 'SMTPConfigController@create');
+	});
+
 	Route::group(['prefix' => 'centroCosto'], function(){
 		Route::get('/{idEmpresa}', "CentroCostoEmpresaController@index");
 		Route::get('/formAdd/{idEmpresa}', "CentroCostoEmpresaController@getFormAdd");
@@ -518,12 +526,9 @@ Route::group([
 	'middleware' => ['auth', 'guest:2,3'],
 ], function() {
 	Route::get('/', 'CalendarioController@index');
-	Route::get('/getFormAdd', 'CalendarioController@getFormAdd');
-	Route::post('/agregarCalendario', 'CalendarioController@create');
-	Route::get('/datosCalendarioXId/{id}', 'CalendarioController@edit');
-	Route::get('/detalleCalendario/{id}', 'CalendarioController@detail');
-	Route::post('/editarCalendario/{id}', 'CalendarioController@update');
-	Route::post('/eliminarCalendario/{id}', 'CalendarioController@delete');
+	Route::get('/datosCalendarioEditar', 'CalendarioController@edit');
+	Route::get('/datosCalendarioVer', 'CalendarioController@detail');
+	Route::post('/editarCalendario', 'CalendarioController@update');
 });
 
 Route::group([
@@ -544,7 +549,7 @@ Route::group([
 
 Route::get('/recuperar_pass', 'InicioController@vistaRecuperarMail');
 Route::get('/vista_rec_pass/{token}', 'InicioController@vistaActPass');
-Route::post('/enviar_correo_rec_pass', 'InicioController@validarUsuario');
+Route::post('/enviar_correo_rec_pass', 'InicioController@validarUsuario')->middleware('mail');;
 Route::post('/act_pass', 'InicioController@resetPassword');
 Route::get('/dataUsuLog', 'UsuarioController@dataAdminLogueado');
 

@@ -1048,6 +1048,12 @@ select.error {
     padding: 0;
 }
 
+#fullCalendar_cont {
+    width: 100%;
+    height: 500px;
+}
+
+
 @media (max-width: 1024px) {
     .desaparecer_moviles {
         display: none !important;

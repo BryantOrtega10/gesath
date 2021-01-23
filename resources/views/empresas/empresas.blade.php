@@ -35,6 +35,7 @@
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item centro_costo" href = "/empresa/centroCosto/{{$empresa->idempresa}}"><i class="fas fa-dollar-sign"></i> Centros de costo</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item centro_costo" href = "/empresa/nomina/{{$empresa->idempresa}}"><i class="fas fa-money-bill-alt"></i> Nómina</a>
+                            <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item centro_costo" href = "/empresa/smtp/{{$empresa->idempresa}}"><i class="far fa-envelope"></i> Configuración SMTP</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Empresa</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Empresa</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Empresa</a>

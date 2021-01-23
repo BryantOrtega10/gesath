@@ -828,6 +828,18 @@
                         @endif
                         <div class="col-3">
                             <div class="form-group hasText">
+                                <label for="infoTipoCotizante" class="control-label">Tipo cotizante</label>
+                                <select class="form-control" id="infoTipoCotizante" name="infoTipoCotizante">
+                                    @foreach ($tiposcotizante as $tipocotizante)
+                                        <option value="{{$tipocotizante->idTipoCotizante}}" @if ($tipocotizante->idTipoCotizante == $empleado->fkTipoCotizante) selected @endif>{{$tipocotizante->codigo." - ".$tipocotizante->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="form-group hasText">
                                 <label for="infoSubTipoCotizante" class="control-label">Subtipo cotizante</label>
                                 <select class="form-control" id="infoSubTipoCotizante" name="infoSubTipoCotizante">
                                     @foreach ($subtiposcotizante as $subtipocotizante)
@@ -1584,19 +1596,21 @@
                         <hr />
                     </div>
                     <div class="row">
-                        <div class="col-3">
-                            <div class="form-group @isset($empleado->fkNivelArl) hasText @endisset">
-                                <label for="afiliacionLvArl" class="control-label">Nivel arl *</label>
-                                <select class="form-control" id="afiliacionLvArl" name="afiliacionLvArl">
-                                    <option value=""></option>
-                                    @foreach ($nivelesArl as $nivelArl)
-                                        <option value="{{$nivelArl->idnivel_arl}}" @if($empleado->fkNivelArl == $nivelArl->idnivel_arl)
-                                            selected
-                                        @endif  >{{$nivelArl->nombre}}</option>
-                                    @endforeach
-                                </select>
+                        @if ($empleado->fkTipoCotizante != "12")
+                            <div class="col-3">
+                                <div class="form-group @isset($empleado->fkNivelArl) hasText @endisset">
+                                    <label for="afiliacionLvArl" class="control-label">Nivel arl *</label>
+                                    <select class="form-control" id="afiliacionLvArl" name="afiliacionLvArl">
+                                        <option value=""></option>
+                                        @foreach ($nivelesArl as $nivelArl)
+                                            <option value="{{$nivelArl->idnivel_arl}}" @if($empleado->fkNivelArl == $nivelArl->idnivel_arl)
+                                                selected
+                                            @endif  >{{$nivelArl->nombre}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
-                        </div>
+                        @endif                       
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkCentroTrabajo) hasText @endisset">
                                 <label for="afiliacionCentroTrabajo" class="control-label">Centro trabajo *</label>

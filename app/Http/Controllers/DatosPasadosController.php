@@ -302,10 +302,11 @@ class DatosPasadosController extends Controller
                         ]);
                     }
                 }
-                DB::table("carga_datos_pasados")
-                    ->where("idCargaDatosPasados","=",$idCarga)
-                    ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+               
             }  
+            DB::table("carga_datos_pasados")
+            ->where("idCargaDatosPasados","=",$idCarga)
+            ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
             $datosPasados = DB::table("datos_pasados","dp")
             ->select("dp.*","c.nombre as nombreConcepto", "est.nombre as estado","dp2.*")
             ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
@@ -713,11 +714,12 @@ class DatosPasadosController extends Controller
                         ]);
                     }
                 }
-                DB::table("carga_datos_pasados_vac")
-                ->where("idCargaDatosPasados","=",$idCarga)
-                ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+                
 
             }  
+            DB::table("carga_datos_pasados_vac")
+                ->where("idCargaDatosPasados","=",$idCarga)
+                ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
             $datosPasados = DB::table("datos_pasados_vac","dp")
             ->select("dp.*","est.nombre as estado","dp2.*")
             ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
@@ -961,6 +963,13 @@ class DatosPasadosController extends Controller
                 else if($row[2]=="INT_CES"){
                     $fkConcepto = 72;
                 }
+                else if($row[2]=="CESANTIAS_ANT"){
+                    $fkConcepto = 67;
+                }
+                else if($row[2]=="INT_CES_ANT"){
+                    $fkConcepto = 68;
+                }
+
 
                 $existeConcepto = DB::table("concepto","c")
                 ->where("c.idconcepto","=",$fkConcepto)
@@ -1136,12 +1145,14 @@ class DatosPasadosController extends Controller
                     ]);
                 }
                 */
-                DB::table("carga_datos_pasados_sal")
-                ->where("idCargaDatosPasados","=",$idCarga)
-                ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+                
                 
 
             }  
+            DB::table("carga_datos_pasados_sal")
+                ->where("idCargaDatosPasados","=",$idCarga)
+                ->update(["numActual" => ($cargaDatos->numRegistros),"fkEstado" => "15"]);
+
             $datosPasados = DB::table("datos_pasados_sal","dp")
             ->select("dp.*","c.nombre as nombreConcepto", "est.nombre as estado","dp2.*")
             ->join("empleado as e","e.idempleado", "=","dp.fkEmpleado", "left")
@@ -1205,6 +1216,12 @@ class DatosPasadosController extends Controller
         ->get();
 
         foreach($datosPasados as $datoPasado){            
+
+            $datoPasado->mes =  $datoPasado->mes + 1;
+            if( $datoPasado->mes == 13){
+                $datoPasado->mes = 1;
+                $datoPasado->anio = $datoPasado->anio + 1;
+            }
 
             DB::table("saldo")->insert([
                 "fkConcepto" => $datoPasado->fkConcepto,

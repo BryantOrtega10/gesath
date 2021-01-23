@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 <link rel = "stylesheet" href = "https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">
+<link rel = "stylesheet" href = "https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/main.css">
 
 <!-- JAVASCRIPT -->
 
@@ -15,6 +16,10 @@
 <script src = "https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
 <script src = "https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
 <script src = "https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script src = "https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/main.min.js"></script>
+<script src = "https://cdn.jsdelivr.net/npm/fullcalendar@5.5.0/locales/es.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/moment@2.27.0/min/moment.min.js'></script>
+
 <script src="{{ URL::asset('js/general.js') }}"></script>
 <script src="{{ URL::asset('js/controlErroresFormularios.js') }}"></script>
 <script src="{{ URL::asset('js/sweetAlertas.js') }}"></script>

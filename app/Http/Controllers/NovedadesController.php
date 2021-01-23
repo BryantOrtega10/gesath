@@ -1618,8 +1618,11 @@ class NovedadesController extends Controller
                             $dt = DateTime::createFromFormat("d/m/Y", $row[$key]);
                             if($dt===false){
                                 $dt = DateTime::createFromFormat("d/m/Y H:i", $row[$key]);
-                                $ts = $dt->getTimestamp();
-                                $row[$key] = date("Y-m-d H:i:s", $ts);
+                                if($dt !== false){
+                                    $ts = $dt->getTimestamp();
+                                    $row[$key] = date("Y-m-d H:i:s", $ts);
+                                }
+                                
                             }
                             else{
                                 $ts = $dt->getTimestamp();
@@ -1796,6 +1799,9 @@ class NovedadesController extends Controller
                     $req->fechaRealF = $row[12];
                     $req->pagoTotal = $row[13];
                     $req->idCodigoDiagnostico = $row[14];
+                    
+
+
                     $req->numIncapacidad = $row[15];
                     $req->tipoAfiliacion = $row[16];
 
@@ -1851,6 +1857,13 @@ class NovedadesController extends Controller
                     if($req->tipoAfiliacion!="-1"){
                         $tipoAfiliacion = ($req->tipoAfiliacion);
                     }
+
+                    $codigoDiagnostico = DB::table("cod_diagnostico")->where("idCodDiagnostico","=", $req->idCodigoDiagnostico)->first();
+                    if(!isset($codigoDiagnostico)){
+                        dump("idCodDiagnostico invalido");
+                        dd($req->idCodigoDiagnostico);
+                    }
+
                     $idIncapacidad = DB::table('incapacidad')->insertGetId([
                         "numDias" => $req->dias, 
                         "fechaInicial" => $req->fechaInicial, 

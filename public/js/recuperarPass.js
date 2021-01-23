@@ -19,7 +19,7 @@ $(document).ready(() => {
                     ic,
                     'Aceptar'
                 );
-                window.location.href = "http://gesath.web-html.com/";
+                // window.location.href = "/";
             }, (err) => {
                 retornarAlerta(
                     '¡Error!',
@@ -50,7 +50,7 @@ $(document).ready(() => {
                     ic,
                     'Aceptar'
                 );
-                window.location.href = "http://gesath.web-html.com/";
+                // window.location.href = "/";
             }, (err) => {
                 const error = err.responseJSON;
                 if (error.error_code === 'VALIDATION_ERROR') {

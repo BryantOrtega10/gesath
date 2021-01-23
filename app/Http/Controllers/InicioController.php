@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\RecuperarPassMail;
 use App\Http\Requests\ActPassRequest;
 use App\User;
+use Config;
 
 class InicioController extends Controller
 {
@@ -118,6 +119,7 @@ class InicioController extends Controller
             Mail::to($email)->send(new RecuperarPassMail($email, $token, $nomEmpre));
             return true;
         } catch (\Exception $e) {
+            var_dump($e->getMessage());
             return false;
         }
     }

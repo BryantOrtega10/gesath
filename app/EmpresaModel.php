@@ -28,7 +28,8 @@ class EmpresaModel extends Model
         'docRepresentante',
         'numDocRepresentante',
         'logoEmpresa',
-        'vacacionesNegativas'
+        'vacacionesNegativas',
+        'fkSmtpConf'
     ];
     public $timestamps = false;
 }
