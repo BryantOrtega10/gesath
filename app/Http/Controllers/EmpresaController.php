@@ -224,6 +224,8 @@ class EmpresaController extends Controller
             $empresas->exento = $request->exento;
             $empresas->vacacionesNegativas = $request->vacacionesNegativas;
             $actualizar = $empresas->save();
+            
+
             if ($actualizar) {
                 $success = true;
                 $mensaje = "Empresa actualizada correctamente";

@@ -124,7 +124,7 @@
                         <a href="/empleado/formVer/{{ $empleado->idempleado }}" class="ver"><i class="fas fa-eye"></i></a>
                         <a href="/empleado/mostrarPorqueFalla/{{ $empleado->idempleado }}" class="verPorqueFalla"><i class="fas fa-question-circle"></i></a>
                         @if ($empleado->fkEstado == "2")
-                            <a href="#" class="reactivarUsuario" data-id="{{ $empleado->idempleado }}"><i class="fas fa-user-plus"></i></a>
+                            <a href="/empleado/formReintegro/{{ $empleado->idempleado }}" data-id="{{ $empleado->idempleado }}"><i class="fas fa-redo"></i></a>
                             <a href="#" class="eliminarDefUsuario" data-id="{{ $empleado->idempleado }}"><i class="fas fa-trash"></i></a>
                         @else
                             <a href="#" class="eliminarUsuario" data-id="{{ $empleado->idempleado }}"><i class="fas fa-user-minus"></i></a>    

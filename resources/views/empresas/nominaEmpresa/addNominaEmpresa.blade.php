@@ -4,13 +4,15 @@
         <label for="nombre">Nombre</label>
         <input type="text" class="form-control" id="nombre" name = "nombre">
     </div>
-    <div class="form-group">
-        <label for="tipoPeriodo">Tipo periodo</label>
-        <input type="text" class="form-control" id="tipoPeriodo" name = "tipoPeriodo">
-    </div>
+    <input type="hidden" class="form-control" id="tipoPeriodo" name="tipoPeriodo" value = "DIAS" readonly>
+    
     <div class="form-group">
         <label for="periodo">Periodo</label>
-        <input type="text" class="form-control" id="periodo" name = "periodo">
+        <select class="form-control" id="periodo" name = "periodo">
+            <option value="30">30 DIAS</option>
+            <option value="15">15 DIAS</option>
+        </select>
+        
     </div>
     <div class="form-group">
         <label for="id_uni_nomina">ID Único Nómina</label>

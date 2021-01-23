@@ -125,7 +125,7 @@
             <option value="">-- Seleccione una opción --</option>
             @foreach ($terceroArl as $terArl)
                 <option value="{{ $terArl->idTercero}}"
-                    @if ($c->idubicacion == old('ubi', $empresa->ubi))
+                    @if (isset($terArl->idTercero) && $terArl->idTercero == old('ubi', $empresa->fkTercero_ARL))
                         selected="selected"
                     @endif
                     >{{ $terArl->razonSocial }}</option>

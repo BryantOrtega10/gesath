@@ -16,7 +16,7 @@
                 <th>Nombre</th>
                 <th>Tipo Periodo</th>
                 <th>Periodo</th>
-                <th>ID Nomiina</th>
+                <th>ID Nómina</th>
                 <th></th>
             </tr>
         </thead>

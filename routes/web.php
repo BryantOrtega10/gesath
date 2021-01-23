@@ -98,14 +98,21 @@ Route::group([
 	'as' => 'empleado'
 ], function(){
 	Route::get('/', [ 'uses' => 'EmpleadoController@index', 'as' => '/']);
+
+
+	Route::get('/reintegro', [ 'uses' => 'EmpleadoController@indexReintegro', 'as' => '/']);
+	Route::get('formReintegro/{id}','EmpleadoController@formReintegro');
+
 	Route::get('formCrear/{id}','EmpleadoController@formCrear');
 		
 	Route::get('cargarPersonasVive/{id}','EmpleadoController@cargarPersonasVive');
-	Route::get('cargarUpcAdicional/{id}','EmpleadoController@cargarUpcAdicional');
+	Route::get('cargarUpcAdicional/{id}/{idEmpleado}','EmpleadoController@cargarUpcAdicional');
 	
 	Route::get('cargarContactoEmergencia/{id}','EmpleadoController@cargarContactoEmergencia');
 	Route::post('ingresarDatosBasicos','EmpleadoController@insert');
 	Route::get('formModificar/{id}','EmpleadoController@formModificar');
+
+	
 	Route::post('verificarDocumento','EmpleadoController@verificarDocumento');
 	Route::get('cargarCentroCosto/','EmpleadoController@cargarCentroCosto');
 	Route::get('cargarBeneficiosTributarios/{id}/{idEmpleado}','EmpleadoController@cargarBeneficiosTributarios');
@@ -115,7 +122,11 @@ Route::group([
 	Route::get('cargarEntidadesAfiliacion/{id}','EmpleadoController@cargarEntidadesAfiliacion');
 	Route::post('afiliacionesEmpleado','EmpleadoController@ingresarAfiliacionesEmpleado');
 	Route::get('cargarConceptosFijos/{id}','EmpleadoController@cargarConceptosFijos');
+
+
 	Route::post('conceptosFijos','EmpleadoController@validarConceptosFijos');
+	Route::post('conceptosFijosReintegro','EmpleadoController@validarConceptosFijosReintegro');
+	
 	Route::get('validarEstadoEmpleado/{id}','EmpleadoController@validarEstadoEmpleado');
 	Route::get('cargarFormEmpleadosxNomina','EmpleadoController@cargarFormEmpleadosxNomina');
 
@@ -129,12 +140,20 @@ Route::group([
 	Route::get('mostrarPorqueFalla/{id}','EmpleadoController@mostrarPorqueFalla');	
 
 	Route::post('modificarDatosInfoPersonal','EmpleadoController@modificarDatosInfoPersonal');
+	Route::post('modificarDatosInfoPersonalReintegro','EmpleadoController@modificarDatosInfoPersonalReintegro');
 	
+
+
 	Route::get('desactivarEmpleado/{id}','EmpleadoController@desactivarEmpleado');
 	Route::get('reactivarEmpleado/{id}','EmpleadoController@reactivarEmpleado');
 	Route::get('eliminarDefUsuario/{id}','EmpleadoController@eliminarDefUsuario');
 	
 	Route::get('/CSVEmpleados', 'EmpleadoController@CSVEmpleados');
+
+	Route::get('/subirFotos', 'EmpleadoController@indexSubirFotos');
+	Route::post('/cargaMasivaFotosEmpleados', 'EmpleadoController@cargaMasivaFotosEmpleados');
+
+	
 
 	Route::get('/dataEmpContrasenia/{id}', 'EmpleadoController@getDataPass');
 	
@@ -220,6 +239,22 @@ Route::group([
 	Route::get('novedades','ReportesNominaController@indexNovedades');
 	Route::post('generarNovedades','ReportesNominaController@generarNovedades');
 	
+	Route::get('reporteador','ReportesNominaController@reporteador');
+	Route::get('reporteador/getForm/add','ReportesNominaController@reporteadorGetFormAdd');
+	Route::get('reporteador/getItemsxReporte/{id}','ReportesNominaController@reporteadorGetItemsxReporte');
+	
+	Route::post('reporteador/crear','ReportesNominaController@crearReporte');
+
+	Route::get('reporteador/generarReporte/{id}','ReportesNominaController@reporteadorGenerar');
+
+	
+	Route::get('reporteador/getForm/filtro/{id}','ReportesNominaController@reporteadorGetFormFiltro');
+	Route::get('reporteador/getForm/edit/{id}','ReportesNominaController@reporteadorGetFormEdit');
+
+	Route::post('reporteador/modificar','ReportesNominaController@modificarReporte');
+	Route::post('reporteador/generarFinalReporteador','ReportesNominaController@generarFinalReporteador');
+	
+	Route::get('boucherPdfConsolidado/{idLiquidacion}','ReportesNominaController@boucherPdfConsolidado');	
 	
 });
 
@@ -406,6 +441,14 @@ Route::group([
 	Route::post('/editarEmpresa/{id}', 'EmpresaController@update');
 	Route::post('/eliminarEmpresa/{id}', 'EmpresaController@delete');
 	
+	Route::group([
+		'prefix' => 'smtp',
+		'middleware' => ['auth', 'guest:2,3'],
+	], function() {
+		Route::get('/{id}', 'SMTPConfigController@index');
+		Route::post('/actSMTPConfig', 'SMTPConfigController@create');
+	});
+
 	Route::group(['prefix' => 'centroCosto'], function(){
 		Route::get('/{idEmpresa}', "CentroCostoEmpresaController@index");
 		Route::get('/formAdd/{idEmpresa}', "CentroCostoEmpresaController@getFormAdd");
@@ -437,6 +480,30 @@ Route::group([
 	});
 
 });
+Route::group([
+	'prefix' => 'prestamos',
+	'middleware' => ['auth', 'guest:2,3'],
+	'as' => 'prestamos'
+], function(){
+	Route::get('/', 'PrestamosController@index');
+	Route::get('/periocidadxNomina/{idNomina}','PrestamosController@periocidadxNomina');
+	
+	Route::get('/agregar','PrestamosController@getFormAdd');
+	Route::get('/agregarEmbargo','PrestamosController@getFormAddEmbargo');
+	
+
+	
+
+	Route::get('/getForm/edit/{id}','PrestamosController@getFormEdit');
+
+	Route::get('/eliminar/{id}','PrestamosController@eliminar');
+	
+
+	Route::post('/crearEmbargo','PrestamosController@crearEmbargo');
+	Route::post('crear','PrestamosController@crear');
+	Route::post('modificar','PrestamosController@modificar');
+});
+
 
 Route::group([
 	'prefix' => 'cargos',
@@ -459,12 +526,9 @@ Route::group([
 	'middleware' => ['auth', 'guest:2,3'],
 ], function() {
 	Route::get('/', 'CalendarioController@index');
-	Route::get('/getFormAdd', 'CalendarioController@getFormAdd');
-	Route::post('/agregarCalendario', 'CalendarioController@create');
-	Route::get('/datosCalendarioXId/{id}', 'CalendarioController@edit');
-	Route::get('/detalleCalendario/{id}', 'CalendarioController@detail');
-	Route::post('/editarCalendario/{id}', 'CalendarioController@update');
-	Route::post('/eliminarCalendario/{id}', 'CalendarioController@delete');
+	Route::get('/datosCalendarioEditar', 'CalendarioController@edit');
+	Route::get('/datosCalendarioVer', 'CalendarioController@detail');
+	Route::post('/editarCalendario', 'CalendarioController@update');
 });
 
 Route::group([
@@ -485,7 +549,7 @@ Route::group([
 
 Route::get('/recuperar_pass', 'InicioController@vistaRecuperarMail');
 Route::get('/vista_rec_pass/{token}', 'InicioController@vistaActPass');
-Route::post('/enviar_correo_rec_pass', 'InicioController@validarUsuario');
+Route::post('/enviar_correo_rec_pass', 'InicioController@validarUsuario')->middleware('mail');;
 Route::post('/act_pass', 'InicioController@resetPassword');
 Route::get('/dataUsuLog', 'UsuarioController@dataAdminLogueado');
 

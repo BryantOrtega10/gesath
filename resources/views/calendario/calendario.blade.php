@@ -7,8 +7,15 @@
 @endsection
 
 @section('contenido')
-<h1>Calendarios</h1>
-<a class="btn btn-primary" href="#" id="addCalendario">Agregar calendario</a>
+<h1>Calendario festivos</h1>
+<a class="btn btn-primary" href="#" id="addCalendario">Agregar calendario</a>	<div class="row">
+    <div class="col">
+        <a class="btn btn-primary" href="#" id="verCalendario">Ver fechas</a>
+    </div>
+    <div class="col">
+        <a class="btn btn-primary" href="#" id="editCalendario">Editar fechas</a>
+    </div>
+</div>
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "calendarios">
         <thead>
@@ -17,7 +24,7 @@
                 <th scope="col">Fecha</th>
                 <th scope="col">Fecha Inicio Semana</th>
                 <th scope="col">Fecha Fin Semana</th>
-                <th scope="col"></th>
+                {{-- <th scope="col"></th> --}}
             </tr>
         </thead>
         <tbody>
@@ -27,7 +34,7 @@
                 <td>{{ $calendario->fecha }}</td>
                 <td>{{ $calendario->fechaInicioSemana }}</td>
                 <td>{{ $calendario->fechaFinSemana }}</td>
-                <td>
+                {{-- <td>
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
@@ -36,7 +43,7 @@
                             <a dataId ="{{ $calendario->idCalendario }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar</a>
                         </div>
                     </div>
-                </td>
+                </td> --}}
             </tr>
             @endforeach
         </tbody>

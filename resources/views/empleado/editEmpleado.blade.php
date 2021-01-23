@@ -555,7 +555,7 @@
                     <div class="col-12">
                         <h4>UPC ADICIONAL</h4>
                         <div class="contMasMenos">
-                        <div class="mas masUpcAdicional" data-num="{{sizeof($upcAdicional)}}" data-para="upcAdicional">+</div>
+                        <div class="mas masUpcAdicional" data-idEmpleado="{{$idEmpleado}}" data-num="{{sizeof($upcAdicional)}}" data-para="upcAdicional">+</div>
                         </div>
                     </div>
                 </div>
@@ -669,7 +669,24 @@
                                     </select>
                                 </div>
                             </div>
-                            
+                            @if (isset($periodo) && $periodo=="15")
+                                <div class="col-3">
+                                    <div class="form-group hasText">
+                                        <label for="periocidad{{$idRow}}" class="control-label">Periocidad</label>
+                                        <select class="form-control periocidad" required id="periocidad{{$idRow}}"  data-id="{{$idRow}}" name="periocidad[]">
+                                            @foreach ($periocidad as $perio)
+                                                <option value="{{$perio->per_id}}" @if ($upcAdic->fkPeriocidad == $perio->per_id)
+                                                    selected
+                                                @endif>{{$perio->per_upc}}</option>
+                                            @endforeach                                      
+                                        </select>
+                                    </div>
+                                </div>
+                            @else
+                                <input type="hidden" name="periocidad[]" value="1" />
+                            @endif
+
+
                         </div>
 
 
@@ -809,6 +826,18 @@
                             <button type = "button" class = "btn btn-outline-primary generar_pass">Generar</button>
                         </div>
                         @endif
+                        <div class="col-3">
+                            <div class="form-group hasText">
+                                <label for="infoTipoCotizante" class="control-label">Tipo cotizante</label>
+                                <select class="form-control" id="infoTipoCotizante" name="infoTipoCotizante">
+                                    @foreach ($tiposcotizante as $tipocotizante)
+                                        <option value="{{$tipocotizante->idTipoCotizante}}" @if ($tipocotizante->idTipoCotizante == $empleado->fkTipoCotizante) selected @endif>{{$tipocotizante->codigo." - ".$tipocotizante->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoSubTipoCotizante" class="control-label">Subtipo cotizante</label>
@@ -1567,19 +1596,21 @@
                         <hr />
                     </div>
                     <div class="row">
-                        <div class="col-3">
-                            <div class="form-group @isset($empleado->fkNivelArl) hasText @endisset">
-                                <label for="afiliacionLvArl" class="control-label">Nivel arl *</label>
-                                <select class="form-control" id="afiliacionLvArl" name="afiliacionLvArl">
-                                    <option value=""></option>
-                                    @foreach ($nivelesArl as $nivelArl)
-                                        <option value="{{$nivelArl->idnivel_arl}}" @if($empleado->fkNivelArl == $nivelArl->idnivel_arl)
-                                            selected
-                                        @endif  >{{$nivelArl->nombre}}</option>
-                                    @endforeach
-                                </select>
+                        @if ($empleado->fkTipoCotizante != "12")
+                            <div class="col-3">
+                                <div class="form-group @isset($empleado->fkNivelArl) hasText @endisset">
+                                    <label for="afiliacionLvArl" class="control-label">Nivel arl *</label>
+                                    <select class="form-control" id="afiliacionLvArl" name="afiliacionLvArl">
+                                        <option value=""></option>
+                                        @foreach ($nivelesArl as $nivelArl)
+                                            <option value="{{$nivelArl->idnivel_arl}}" @if($empleado->fkNivelArl == $nivelArl->idnivel_arl)
+                                                selected
+                                            @endif  >{{$nivelArl->nombre}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
-                        </div>
+                        @endif                       
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkCentroTrabajo) hasText @endisset">
                                 <label for="afiliacionCentroTrabajo" class="control-label">Centro trabajo *</label>

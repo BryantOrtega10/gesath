@@ -101,6 +101,20 @@
                 </select>
             </div>
         </div>
+        @if ($periodo=="15")
+            <div class="col-3">
+                <div class="form-group hasText">
+                    <label for="periocidad{{$idRow}}" class="control-label">Periocidad</label>
+                    <select class="form-control periocidad" required id="periocidad{{$idRow}}"  data-id="{{$idRow}}" name="periocidad[]">
+                        @foreach ($periocidad as $perio)
+                            <option value="{{$perio->per_id}}">{{$perio->per_upc}}</option>
+                        @endforeach                                      
+                    </select>
+                </div>
+            </div>
+        @else
+            <input type="hidden" name="periocidad[]" value="1" />
+        @endif
         
     </div>
 

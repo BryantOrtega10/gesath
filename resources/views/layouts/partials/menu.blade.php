@@ -1,7 +1,7 @@
 <div class="interiorMenu">
     <div class="headMenu">
         <div class="openMenu"></div>
-        @if ($dataUsu)
+        @if (isset($dataUsu))
             <div class="perfilPersona">
                 <span class="nombreUsuario">
                     Hola {{ $dataUsu->primerNombre }} {{ $dataUsu->primerApellido }}
@@ -35,7 +35,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/empleado/" >
+                    <a href="/empleado/reintegro" >
                         <span class="textoMenu">Reintegro Empleados</span>
                     </a>
                 </li>
@@ -45,12 +45,12 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/empleado/" >
+                    <a href="/empleado/subirFotos/" >
                         <span class="textoMenu">Cargar Fotos Masivo</span>
                     </a>
                 </li>
                 <li>
-                    <a href="/empleado/" >
+                    <a href="/nomina/cambiarConceptosFijos/" >
                         <span class="textoMenu">Incrementos de Salario y Conceptos Fijos</span>
                     </a>
                 </li>                
@@ -110,7 +110,7 @@
                 </li>
                 <li>
                     <a href="/datosPasadosVac/" >
-                        <span class="textoMenu">Cargar vacaciones pasadas</span>
+                        <span class="textoMenu">Cargar VAC/LRN pasadas</span>
                     </a>
                 </li>
                 <li>
@@ -119,8 +119,8 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/nomina/cambiarConceptosFijos/" >
-                        <span class="textoMenu">Cambiar conceptos fijos por plano</span>
+                    <a href="/prestamos/" >
+                        <span class="textoMenu">Prestamos y Embargos</span>
                     </a>
                 </li>
                 
@@ -170,6 +170,11 @@
                 <li>
                     <a href="/reportes/novedades/" >
                         <span class="textoMenu">Reporte de novedades</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/reportes/reporteador/" >
+                        <span class="textoMenu">Reporteador</span>
                     </a>
                 </li>
             </ul>

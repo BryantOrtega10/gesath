@@ -79,10 +79,17 @@ $(document).ready(function() {
         $(".close").trigger('click');
         var formdata = new FormData(this);
         const exentoParaf = $("#exento")[0].checked;
+        const vacacionesNeg = $("#vacacionesNegativas")[0].checked;
         if (exentoParaf) {
             formdata.append('exento', 1);
         } else {
             formdata.append('exento', 0);
+        }
+
+        if (vacacionesNeg) {
+            formdata.append('vacacionesNegativas', 1);
+        } else {
+            formdata.append('vacacionesNegativas', 0);
         }
         $.ajax({
             type: 'POST',
@@ -142,10 +149,17 @@ $(document).ready(function() {
         const idEditar = $("#idempresa").val();
         var formdata = new FormData(this);
         const exentoParaf = $("#exento")[0].checked;
+        const vacacionesNeg = $("#vacacionesNegativas")[0].checked;
         if (exentoParaf) {
             formdata.append('exento', 1);
         } else {
             formdata.append('exento', 0);
+        }
+
+        if (vacacionesNeg) {
+            formdata.append('vacacionesNegativas', 1);
+        } else {
+            formdata.append('vacacionesNegativas', 0);
         }
         $.ajax({
             type: 'POST',
@@ -233,6 +247,18 @@ $(document).ready(function() {
         const idUbi = $("#deptos option:selected").val();
         traerUbicacionesFk('#fkUbicacion', idUbi);
     });
+
+    $("body").on("keypress", "#dominio", function(e) {
+        var regex = new RegExp("^[a-zA-Z'.\S]{1,40}$");
+        var key = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+        if (regex.test(key)) {
+            return true;
+        }
+
+        e.preventDefault();
+        return false;
+    });
+
 });
 
 function traerUbicacionesFk(domAppend, idUbi) {

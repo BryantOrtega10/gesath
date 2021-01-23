@@ -28,14 +28,15 @@
                         </div>
                     </div>    
                     <div class="col-3">
-                        <div class="form-group">
+                        <div class="form-group hasText">
                             <label for="provision" class="control-label">Provision</label>
                             <select class="form-control" id="provision" name="provision">
-                                <option value=""></option>
+                                <option value="Consolidado">Consolidado</option>
                                 <option value="73">Prima</option>
                                 <option value="71">Cesantias</option>
                                 <option value="72">Intereses de cesantias</option>
                                 <option value="74">Vacaciones</option>
+                                
                             </select>
                         </div>
                     </div>

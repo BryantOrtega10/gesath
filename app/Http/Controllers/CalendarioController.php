@@ -22,26 +22,48 @@ class CalendarioController extends Controller
     public function getFormAdd() {
         return view('/calendario/addCalendario');
     }
+    
+    public function insertarDatosTabla($fechaA, $fechaI, $fechaF) {
+        $fechaAsignada = explode(',', $fechaA);
+        $fechaInicioSemana = explode(',', $fechaI);
+        $fechaFinSemana = explode(',', $fechaF);
 
+        $retorno = false;
+        foreach($fechaAsignada as $key => $f) {
+            $calendario = new CalendarioModel();
+            $calendario->fecha = $f;
+            $calendario->fechaInicioSemana = $fechaInicioSemana[$key];
+            $calendario->fechaFinSemana = $fechaFinSemana[$key];
+            $save = $calendario->save();
+            if ($save) {
+                $retorno = true;
+            }
+        }
+        return $retorno;
+    }
+    
     public function create(CalendarioRequest $request) {
-        $calendario = new CalendarioModel();
-        $calendario->fecha = $request->fecha;
-        $calendario->fechaInicioSemana = $request->fechaInicioSemana;
-        $calendario->fechaFinSemana = $request->fechaFinSemana;
-        $save = $calendario->save();
-        if ($save) {
+        $insertar = $this->insertarDatosTabla($request->fecha, $request->fechaInicioSemana, $request->fechaFinSemana);
+
+        if ($insertar) {
             $success = true;
             $mensaje = "Calendario agregado correctamente";
         } else {
             $success = true;
             $mensaje = "Error al agregar calendario";
         }
+
         return response()->json(["success" => $success, "mensaje" => $mensaje]);
     }
 
-    public function edit($id) {
+    public function edit() {
         try {
-            $calendario = CalendarioModel::findOrFail($id);
+            $calendario = CalendarioModel::select([
+                'fecha',
+                'fechaInicioSemana',
+                'fechaFinSemana'
+            ])->get();
+            
             return view('/calendario.editCalendario', [
                 'calendario' => $calendario
             ]);
@@ -52,9 +74,14 @@ class CalendarioController extends Controller
 		}
     }
 
-    public function detail($id) {
+     public function detail() {
         try {
-            $calendario = CalendarioModel::findOrFail($id);
+            $calendario = CalendarioModel::select([
+                'fecha',
+                'fechaInicioSemana',
+                'fechaFinSemana'
+            ])->get();
+
             return view('/calendario.detailCalendario', [
                 'calendario' => $calendario
             ]);
@@ -64,27 +91,29 @@ class CalendarioController extends Controller
 		    return response()->json(["success" => false, "mensaje" => "Error, No existe un calendario con este ID"]);
 		}
     }
-
-    public function update(Request $request, $id) {
+    public function update(Request $request) {
         try {
-            $calendario = CalendarioModel::findOrFail($id);
-            $calendario->fecha = $request->fecha;
-            $calendario->fechaInicioSemana = $request->fechaInicioSemana;
-            $calendario->fechaFinSemana = $request->fechaFinSemana;
-            $save = $calendario->save();
-            if ($save) {
-                $success = true;
-                $mensaje = "Calendario actualizado correctamente";
+            CalendarioModel::truncate();
+            if ($request->fecha) {
+                $insertar = $this->insertarDatosTabla($request->fecha, $request->fechaInicioSemana, $request->fechaFinSemana);
+                if ($insertar) {
+                    $success = true;
+                    $mensaje = "Calendario actualizado correctamente";
+                } else {
+                    $success = false;
+                    $mensaje = "Error al actualizar calendario";
+                }
             } else {
-                $success = true;
-                $mensaje = "Error al actualizar calendario";
+                $success = false;
+                $mensaje = "No puedes actualizar el calendario sin haber seleccionado al menos un día";
             }
-            return response()->json(["success" => $success, "mensaje" => $mensaje]);
-            }
+    
+        }
 		catch (ModelNotFoundException $e)
 		{
 		    return response()->json(["success" => false, "mensaje" => "Error, No existe un calendario con este ID"]);
-		}
+        }
+        return response()->json(["success" => $success, "mensaje" => $mensaje]);
     }
 
     public function delete($id) {

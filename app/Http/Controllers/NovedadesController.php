@@ -16,7 +16,7 @@ class NovedadesController extends Controller
         $nominas = DB::table("nomina")->get();
         $tipos_novedades = DB::table("tiponovedad")->get();
         $fechaMinima = date('Y-m-01');
-        $usu = UsuarioController::dataAdminLogueado();
+        $dataUsu = UsuarioController::dataAdminLogueado();
         return view('/novedades.cargarNovedad',[
             'nominas' => $nominas,
             'tipos_novedades' => $tipos_novedades,
@@ -259,8 +259,14 @@ class NovedadesController extends Controller
             "fechaHoraFinal" => date("Y-m-d H:i:s", $horaF)
         ], "idHoraExtra");
 
+
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkTipoReporte" => $req->fkTipoReporte,
@@ -299,8 +305,13 @@ class NovedadesController extends Controller
             "cantidadHoras" => $req->cantidadHoras, 
         ], "idHoraExtra");
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkTipoReporte" => $req->fkTipoReporte,
@@ -356,8 +367,13 @@ class NovedadesController extends Controller
         ], "idIncapacidad");
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkIncapacidad" => $idIncapacidad,
@@ -392,8 +408,13 @@ class NovedadesController extends Controller
         ], "idLicencia");
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkLicencia" => $idLicencia,
@@ -511,8 +532,13 @@ class NovedadesController extends Controller
         
 
         $idAusencia = DB::table('ausencia')->insertGetId($arrAusenciaIns, "idAusencia");
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkAusencia" => $idAusencia,
@@ -548,8 +574,13 @@ class NovedadesController extends Controller
         ], "idAusencia");
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkAusencia" => $idAusencia,
@@ -587,8 +618,13 @@ class NovedadesController extends Controller
         ], "idRetiro");
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkRetiro" => $idRetiro,
@@ -697,8 +733,13 @@ class NovedadesController extends Controller
         ], "idVacaciones");
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkVacaciones" => $idVacaciones,
@@ -738,8 +779,13 @@ class NovedadesController extends Controller
         ], "idVacaciones");
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkVacaciones" => $idVacaciones,
@@ -774,8 +820,13 @@ class NovedadesController extends Controller
         ], "idOtraNovedad");
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+
         $arrInsertNovedad = array(
             "fkTipoNovedad" => $req->fkTipoNovedad, 
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fkNomina" => $req->fkNomina,
             "fechaRegistro" => $req->fechaRegistro,
             "fkOtros" => $idOtraNovedad,
@@ -823,7 +874,11 @@ class NovedadesController extends Controller
             $novedades = $novedades->where("n.fkTipoNovedad","=",$req->tipoNovedad);
         }
 
-        $novedades = $novedades->where("n.fkEstado","=","7")->get();
+        $novedades = $novedades->where("n.fkEstado","=","7")
+        ->whereRaw("n.fkPeriodoActivo in(
+            SELECT p.idPeriodo from periodo as p where p.fkEstado = '1'
+        )")
+        ->get();
         $nominas = DB::table("nomina")->orderBy("nombre")->get();
         $tiposnovedades = DB::table("tiponovedad")->orderBy("nombre")->get();
 
@@ -1081,10 +1136,15 @@ class NovedadesController extends Controller
 
         $cantidad = DB::table('ausencia')->where("idAusencia", "=", $req->idAusencia)->update($arrAusenciaIns);
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,            
             "fkConcepto" => $req->concepto,
-            "fkEmpleado" => $req->idEmpleado
+            "fkEmpleado" => $req->idEmpleado            
         );
         DB::table('novedad')->where("idNovedad", "=", $req->idNovedad)->update($arrNovedad);
 
@@ -1121,7 +1181,12 @@ class NovedadesController extends Controller
         DB::table('licencia')->where("idLicencia","=",$req->idLicencia)->update($arrLicencia);
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1186,7 +1251,12 @@ class NovedadesController extends Controller
         ->update($arrIncapacidad);
 
         
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1231,7 +1301,12 @@ class NovedadesController extends Controller
 
         DB::table('horas_extra')->where("idHoraExtra","=",$req->idHorasExtra)->update($arrHora);
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1273,7 +1348,12 @@ class NovedadesController extends Controller
         ->where("idHoraExtra","=",$req->idHorasExtra)
         ->update($arrHora);
  
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1316,7 +1396,12 @@ class NovedadesController extends Controller
 
         DB::table('retiro')->where("idRetiro","=",$req->idRetiro)->update($arrRetiro);
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1360,7 +1445,12 @@ class NovedadesController extends Controller
         DB::table('vacaciones')->where("idVacaciones","=",$req->idVacaciones)->update($arrVacaciones);
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1399,7 +1489,12 @@ class NovedadesController extends Controller
         DB::table('vacaciones')->where("idVacaciones","=",$req->idVacaciones)->update($arrVacaciones);
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1437,7 +1532,12 @@ class NovedadesController extends Controller
         DB::table('otra_novedad')->where("idOtraNovedad","=",$req->idOtraNovedad)->update($arrOtros);
 
 
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","1")
+        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
         $arrNovedad = array(
+            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
             "fechaRegistro" => $req->fecha,
             "fkConcepto" => $req->concepto,
             "fkEmpleado" => $req->idEmpleado,
@@ -1518,8 +1618,11 @@ class NovedadesController extends Controller
                             $dt = DateTime::createFromFormat("d/m/Y", $row[$key]);
                             if($dt===false){
                                 $dt = DateTime::createFromFormat("d/m/Y H:i", $row[$key]);
-                                $ts = $dt->getTimestamp();
-                                $row[$key] = date("Y-m-d H:i:s", $ts);
+                                if($dt !== false){
+                                    $ts = $dt->getTimestamp();
+                                    $row[$key] = date("Y-m-d H:i:s", $ts);
+                                }
+                                
                             }
                             else{
                                 $ts = $dt->getTimestamp();
@@ -1651,7 +1754,13 @@ class NovedadesController extends Controller
                     
             
                     $idAusencia = DB::table('ausencia')->insertGetId($arrAusenciaIns, "idAusencia");
+
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
@@ -1690,6 +1799,9 @@ class NovedadesController extends Controller
                     $req->fechaRealF = $row[12];
                     $req->pagoTotal = $row[13];
                     $req->idCodigoDiagnostico = $row[14];
+                    
+
+
                     $req->numIncapacidad = $row[15];
                     $req->tipoAfiliacion = $row[16];
 
@@ -1745,6 +1857,13 @@ class NovedadesController extends Controller
                     if($req->tipoAfiliacion!="-1"){
                         $tipoAfiliacion = ($req->tipoAfiliacion);
                     }
+
+                    $codigoDiagnostico = DB::table("cod_diagnostico")->where("idCodDiagnostico","=", $req->idCodigoDiagnostico)->first();
+                    if(!isset($codigoDiagnostico)){
+                        dump("idCodDiagnostico invalido");
+                        dd($req->idCodigoDiagnostico);
+                    }
+
                     $idIncapacidad = DB::table('incapacidad')->insertGetId([
                         "numDias" => $req->dias, 
                         "fechaInicial" => $req->fechaInicial, 
@@ -1760,8 +1879,13 @@ class NovedadesController extends Controller
                         "tipoIncapacidad" => $req->tipo,
                     ], "idIncapacidad");
 
-
+                    
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
@@ -1788,7 +1912,12 @@ class NovedadesController extends Controller
                     ], "idLicencia");
             
             
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
@@ -1820,7 +1949,12 @@ class NovedadesController extends Controller
                         "fechaHoraFinal" => date("Y-m-d H:i:s", $horaF)
                     ], "idHoraExtra");
             
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
@@ -1849,7 +1983,12 @@ class NovedadesController extends Controller
                         "cantidadHoras" => $req->cantidadHoras, 
                     ], "idHoraExtra");
             
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
@@ -1879,7 +2018,12 @@ class NovedadesController extends Controller
                     ], "idRetiro");
             
             
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
@@ -1904,7 +2048,12 @@ class NovedadesController extends Controller
                     ], "idVacaciones");
             
             
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
@@ -1937,7 +2086,12 @@ class NovedadesController extends Controller
                     ], "idOtraNovedad");
             
             
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+        
                     $arrInsertNovedad = array(
+                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
                         "fkNomina" => $req->fkNomina,
                         "fechaRegistro" => $req->fechaRegistro,
