@@ -100,7 +100,7 @@ Route::group([
 	Route::get('/', [ 'uses' => 'EmpleadoController@index', 'as' => '/']);
 
 
-	Route::get('/reintegro', [ 'uses' => 'EmpleadoController@indexReintegro', 'as' => '/']);
+	Route::get('/reintegro', 'EmpleadoController@indexReintegro');
 	Route::get('formReintegro/{id}','EmpleadoController@formReintegro');
 
 	Route::get('formCrear/{id}','EmpleadoController@formCrear');
@@ -502,6 +502,9 @@ Route::group([
 	Route::post('/crearEmbargo','PrestamosController@crearEmbargo');
 	Route::post('crear','PrestamosController@crear');
 	Route::post('modificar','PrestamosController@modificar');
+	Route::post('modificarEmbargo','PrestamosController@modificarEmbargo');
+	
+
 });
 
 

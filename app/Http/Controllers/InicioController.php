@@ -16,7 +16,7 @@ class InicioController extends Controller
 {
     public function index(Request $request){
         if ($request->session()->has('usuario')) {
-            header('location: /seleccionarEmpresa');
+            header('location: /empleado/');
         }
         else{
             return view('/inicio.inicio');

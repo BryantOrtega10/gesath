@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -726,6 +726,7 @@ class NominaController extends Controller
 
     }
     public function recalcularNomina($idLiquidacionNomina){
+        Artisan::call('view:clear');
         $boucherpagos = DB::table("boucherpago")->where("fkLiquidacion","=",$idLiquidacionNomina)->get();
 
     
@@ -1603,7 +1604,7 @@ class NominaController extends Controller
 
 
     
-        }
+    }
 
     public function verSolicitudLiquidacion($idLiquidacion){
         $liquidaciones = DB::table("liquidacionnomina", "ln")
@@ -2644,6 +2645,7 @@ class NominaController extends Controller
     }
 
     public function recalcularBoucher($idBoucherPago){
+        Artisan::call('view:clear');
         $boucherPago = DB::table('boucherpago')
             ->where("idBoucherPago","=",$idBoucherPago)
             ->first();
@@ -2743,11 +2745,11 @@ class NominaController extends Controller
                     );
                     $arrValorxConcepto[$novedadyconcepto->idconcepto] = array(
                         "naturaleza" => $novedadyconcepto->fkNaturaleza,
-                        "tipoUnidad"=>"DIA",
+                        "unidad"=>"DÍA",
                         "cantidad"=> $cantidadInt,
                         "arrNovedades"=> $arrNovedades,
                         "valor" => 0,
-                        "valorAus" => $valorInt,
+                        "valorAus" => $arrValorxConcepto[$novedadyconcepto->idconcepto]["valorAus"] + $valorInt,
                         "tipoGen" => "novedadAus"
                     );
                     
@@ -2767,7 +2769,7 @@ class NominaController extends Controller
                     $cantidadInt = floatval($cantidadHorasEnDias) + floatval($ausencia->cantidadDias);
                     $arrValorxConcepto[$novedadyconcepto->idconcepto] = array(
                         "naturaleza" => $novedadyconcepto->fkNaturaleza,
-                        "unidad"=>"DIA",
+                        "unidad"=>"DÍA",
                         "cantidad"=> $cantidadInt,
                         "arrNovedades"=> $arrNovedades,
                         "valor" => 0,
@@ -2797,7 +2799,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$novedadyconcepto->idconcepto] = array(
                             "naturaleza" => $novedadyconcepto->fkNaturaleza,
-                            "tipoUnidad"=>"HORAS",
+                            "unidad"=>"HORAS",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -2850,7 +2852,7 @@ class NominaController extends Controller
                             ]);
                             $arrValorxConcepto[$novedadyconcepto->idconcepto] = array(
                                 "naturaleza" => $novedadyconcepto->fkNaturaleza,
-                                "unidad"=>"DIA",
+                                "unidad"=>"DÍA",
                                 "cantidad"=> $cantidadInt,
                                 "arrNovedades"=> $arrNovedades,
                                 "valor" => $valorInt,
@@ -2867,7 +2869,7 @@ class NominaController extends Controller
 
                             $arrValorxConcepto[$novedadyconcepto->idconcepto] = array(
                                 "naturaleza" => $novedadyconcepto->fkNaturaleza,
-                                "unidad"=>"DIA",
+                                "unidad"=>"DÍA",
                                 "cantidad"=> $cantidadInt,
                                 "arrNovedades"=> $arrNovedades,
                                 "valor" => $valorInt,
@@ -2928,7 +2930,7 @@ class NominaController extends Controller
             
         }
 
-
+        
 
         $sqlWhere = "( 
             ('".$fechaInicio."' BETWEEN l.fechaInicial AND l.fechaFinal) OR
@@ -2985,7 +2987,7 @@ class NominaController extends Controller
                         );                            
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3001,7 +3003,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3040,7 +3042,7 @@ class NominaController extends Controller
                         
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3056,7 +3058,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3095,7 +3097,7 @@ class NominaController extends Controller
                         
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3111,7 +3113,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3148,7 +3150,7 @@ class NominaController extends Controller
                         
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3164,7 +3166,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$licenciaPParcial->idconcepto] = array(
                             "naturaleza" => $licenciaPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3237,7 +3239,7 @@ class NominaController extends Controller
                         );                            
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3253,7 +3255,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3291,7 +3293,7 @@ class NominaController extends Controller
                         
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3307,7 +3309,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3345,7 +3347,7 @@ class NominaController extends Controller
                         
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3361,7 +3363,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3397,7 +3399,7 @@ class NominaController extends Controller
                         
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -3413,7 +3415,7 @@ class NominaController extends Controller
                         ]);
                         $arrValorxConcepto[$incapacidadPParcial->idconcepto] = array(
                             "naturaleza" => $incapacidadPParcial->fkNaturaleza,
-                            "unidad"=>"DIA",
+                            "unidad"=>"DÍA",
                             "cantidad"=> $cantidadInt,
                             "arrNovedades"=> $arrNovedades,
                             "valor" => $valorInt,
@@ -4031,7 +4033,7 @@ class NominaController extends Controller
                             ]);
                             $arrValorxConcepto[$novedadyconcepto->idconcepto] = array(
                                 "naturaleza" => $novedadyconcepto->fkNaturaleza,
-                                "unidad"=>"DIA",
+                                "unidad"=>"DÍA",
                                 "cantidad"=> $cantidadInt,
                                 "arrNovedades"=> $arrNovedades,
                                 "valor" => $valorInt,
@@ -4198,7 +4200,7 @@ class NominaController extends Controller
 
                             $arrValorxConcepto[$novedadyconcepto->idconcepto] = array(
                                 "naturaleza" => $novedadyconcepto->fkNaturaleza,
-                                "unidad"=>"DIA",
+                                "unidad"=>"DÍA",
                                 "cantidad"=> $cantidadInt,
                                 "arrNovedades"=> $arrNovedades,
                                 "valor" => $valorInt,
@@ -4421,7 +4423,7 @@ class NominaController extends Controller
                     ]);
                     $arrValorxConcepto[$vacacionPParcial->idconcepto] = array(
                         "naturaleza" => $vacacionPParcial->fkNaturaleza,
-                        "unidad"=>"DIA",
+                        "unidad"=>"DÍA",
                         "cantidad"=> $cantidadInt,
                         "arrNovedades"=> $arrNovedades,
                         "valor" => $valorInt,
@@ -4632,7 +4634,7 @@ class NominaController extends Controller
 
                     $arrValorxConcepto[$vacacionPParcial->idconcepto] = array(
                         "naturaleza" => $vacacionPParcial->fkNaturaleza,
-                        "unidad"=>"DIA",
+                        "unidad"=>"DÍA",
                         "cantidad"=> $cantidadInt,
                         "arrNovedades"=> $arrNovedades,
                         "valor" => $valorInt,
@@ -4656,13 +4658,14 @@ class NominaController extends Controller
             }   
         }
         
+        
         foreach($arrValorxConcepto as $idConcepto => $arrConcepto){                
             if($arrConcepto["tipoGen"] != "novedad"){//Si no es una novedad
                 if($arrConcepto["unidad"]=="MES"){
                     
                     $arrConcepto["valor"] = $periodoGen * ($arrConcepto["valor"]/30);
                     $arrConcepto["cantidad"]=$periodoGen;
-                    $arrConcepto["unidad"] = "DIA";                        
+                    $arrConcepto["unidad"] = "DÍA";                        
                 }
             }
             if($arrConcepto["naturaleza"]=="3"){
@@ -4678,7 +4681,7 @@ class NominaController extends Controller
                 if($arrConcepto["unidad"]=="MES"){
                     $arrConcepto["valor"] = $periodoGen * ($arrConcepto["valor"]/30);
                     $arrConcepto["cantidad"]=$periodoGen;
-                    $arrConcepto["unidad"] = "DIA";                        
+                    $arrConcepto["unidad"] = "DÍA";                        
                 }
             }
             if($arrConcepto["naturaleza"]=="3"){
@@ -4742,7 +4745,7 @@ class NominaController extends Controller
         ->get();
         //Agregar el valor del subisidio de transporte en caso de que exista dentro de la liquidacion actual
 
-        if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
+        if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19" || $empleado->aplicaSubsidio == "0"){
 
         }
         else{
@@ -4791,7 +4794,7 @@ class NominaController extends Controller
                 if($arrConcepto["unidad"]=="MES"){
                     $arrConcepto["valor"] = $periodoGen * ($arrConcepto["valor"]/30);
                     $arrConcepto["cantidad"]=$periodoGen;
-                    $arrConcepto["unidad"] = "DIA";                        
+                    $arrConcepto["unidad"] = "DÍA";                        
                 }
             }
             if($arrConcepto["naturaleza"]=="3"){
@@ -4852,7 +4855,7 @@ class NominaController extends Controller
             
             $arrValorxConcepto[32] = array(
                 "naturaleza" => '1',
-                "unidad" => "DIA",
+                "unidad" => "DÍA",
                 "cantidad"=> 0,
                 "arrNovedades"=> array(),
                 "valor" => $valorInt,
@@ -4940,7 +4943,7 @@ class NominaController extends Controller
         if(isset($arrValorxConcepto[18])){
             $arrValorxConcepto[18] = array(
                 "naturaleza" => "3",
-                "unidad" => "DIA",
+                "unidad" => "DÍA",
                 "cantidad"=> $periodoPago,
                 "arrNovedades"=> array(),
                 "valor" => ($arrValorxConcepto[18]["valor"] - $valorEpsEmpleado),
@@ -4950,7 +4953,7 @@ class NominaController extends Controller
         else{
             $arrValorxConcepto[18] = array(
                 "naturaleza" => "3",
-                "unidad" => "DIA",
+                "unidad" => "DÍA",
                 "cantidad"=> $periodoPago,
                 "arrNovedades"=> array(),
                 "valor" => $valorEpsEmpleado*-1 ,
@@ -5157,7 +5160,7 @@ class NominaController extends Controller
             if(isset($arrValorxConcepto[19])){
                 $arrValorxConcepto[19] = array(
                     "naturaleza" => "3",
-                    "unidad" => "DIA",
+                    "unidad" => "DÍA",
                     "cantidad"=> $periodoPago,
                     "arrNovedades"=> array(),
                     "valor" => ($arrValorxConcepto[19]["valor"] - $valorAfpEmpleado) ,
@@ -5167,7 +5170,7 @@ class NominaController extends Controller
             else{
                 $arrValorxConcepto[19] = array(
                     "naturaleza" => "3",
-                    "unidad" => "DIA",
+                    "unidad" => "DÍA",
                     "cantidad"=> $periodoPago,
                     "arrNovedades"=> array(),
                     "valor" => $valorAfpEmpleado*-1 ,
@@ -6146,6 +6149,11 @@ class NominaController extends Controller
                 $fechaInicialCes = $empleado->fechaIngreso;
             }       
             
+            if(strtotime($fechaInicialCes)< strtotime(date($anioActual."-01-01"))){
+                $fechaInicialCes = date($anioActual."-01-01");
+            }
+
+
             $fechaFinalCes = $fechaFin;
 
             $totalPeriodoPagoAnioActual = $periodoPagoMesActual + $liquidacionesMesesAnterioresCompleta->periodPago;
@@ -6587,7 +6595,7 @@ class NominaController extends Controller
 
                     $arrValorxConcepto[58] = array(
                         "naturaleza" => "1",
-                        "unidad" => "DIAS",
+                        "unidad" => "DÍA",
                         "cantidad"=> ($totalPeriodoPago + $diasAgregar),
                         "arrNovedades"=> array(),
                         "arrSaldo" => $arrSaldo,
@@ -6657,7 +6665,7 @@ class NominaController extends Controller
                 }
                 $arrValorxConcepto[58] = array(
                     "naturaleza" => "1",
-                    "unidad" => "DIAS",
+                    "unidad" => "DÍA",
                     "cantidad"=> $totalPeriodoPago + $diasAgregar,
                     "arrNovedades"=> array(),
                     "arrSaldo" => $arrSaldo,
@@ -6870,7 +6878,7 @@ class NominaController extends Controller
                             }
                             $arrValorxConcepto[78] = array(
                                 "naturaleza" => "1",
-                                "unidad" => "DIAS",
+                                "unidad" => "DÍA",
                                 "cantidad"=> $totalPeriodoPago + $diasAgregar,
                                 "arrNovedades"=> array(),
                                 "arrSaldo"=> $arrSaldo,
@@ -7622,7 +7630,7 @@ class NominaController extends Controller
 
                     $arrValorxConcepto[58] = array(
                         "naturaleza" => "1",
-                        "unidad" => "DIAS",
+                        "unidad" => "DÍA",
                         "cantidad"=> $totalPeriodoPago + $diasAgregar,
                         "arrNovedades"=> array([
                             "idNovedad" => $novedadesRetiro->idNovedad,
@@ -7705,7 +7713,7 @@ class NominaController extends Controller
                     $fechaFinalCes = $novedadesRetiro->fecha;
                     $arrValorxConcepto[66] = array(
                         "naturaleza" => "1",
-                        "unidad" => "DIAS",
+                        "unidad" => "DÍA",
                         "cantidad"=> $totalPeriodoPagoAnioActual,
                         "arrNovedades"=> array([
                             "idNovedad" => $novedadesRetiro->idNovedad,
@@ -7772,7 +7780,7 @@ class NominaController extends Controller
                     $fechaFinalCes = $novedadesRetiro->fecha;
                     $arrValorxConcepto[69] = array(
                         "naturaleza" => "1",
-                        "unidad" => "DIAS",
+                        "unidad" => "DÍA",
                         "cantidad"=> $totalPeriodoPagoAnioActual,
                         "arrNovedades"=> array([
                             "idNovedad" => $novedadesRetiro->idNovedad,
@@ -7873,7 +7881,7 @@ class NominaController extends Controller
                     if($liquidacionVac > 0 || $empresa->vacacionesNegativas == 1){
                         $arrValorxConcepto[30] = array(
                             "naturaleza" => "1",
-                            "unidad" => "DIAS",
+                            "unidad" => "DÍA",
                             "cantidad"=> $diasVac,
                             "arrNovedades"=> array([
                                 "idNovedad" => $novedadesRetiro->idNovedad,
@@ -7932,7 +7940,7 @@ class NominaController extends Controller
 
                         $arrValorxConcepto[$codigoIndem] = array(
                             "naturaleza" => "1",
-                            "unidad" => "DIAS",
+                            "unidad" => "DÍA",
                             "cantidad"=> $diasIndemnizacion,
                             "arrNovedades"=> array([
                                 "idNovedad" => $novedadesRetiro->idNovedad,
@@ -8743,7 +8751,7 @@ class NominaController extends Controller
             
             $valorSalario = 0;
             $retencionContingente = $impuestoValorSinAportes - $impuestoValor;
-            $arrayRetencionInd["tipoRetencion"] = "PRIMA";
+            $arrayRetencionPri["tipoRetencion"] = "PRIMA";
             $arrayRetencionPri["salario"] = $valorSalario;
             $arrayRetencionPri["ingreso"] = $ingreso;
             $arrayRetencionPri["EPS"] = 0;
@@ -8941,8 +8949,11 @@ class NominaController extends Controller
 
         
         foreach($arrValorxConcepto as $idConcepto => $arrConcepto){
-            if($arrConcepto["valor"] == 0){
-                unset($arrValorxConcepto[$idConcepto]);
+            if($arrConcepto["valor"] == 0 ){
+                if(!isset($arrConcepto["valorAus"]) || $arrConcepto["valorAus"] == 0){
+                    unset($arrValorxConcepto[$idConcepto]);
+                }
+               
             }
             $valorNeto = $valorNeto + $arrConcepto["valor"];
         }
@@ -9125,14 +9136,13 @@ class NominaController extends Controller
             
 
             if($arrConcepto["tipoGen"]=="novedadAus"){
-                $arrInsertItemBoucher["descuento"] = $arrConcepto["valorAus"];
+                $arrInsertItemBoucher["descuento"] = 0;
             }
 
             $idItemBoucherPago  = DB::table('item_boucher_pago')->insertGetId($arrInsertItemBoucher, "idItemBoucherPago");
 
-            foreach($arrConcepto["arrNovedades"] as $datosNovedad){
 
-                
+            foreach($arrConcepto["arrNovedades"] as $datosNovedad){                
                 DB::table('item_boucher_pago_novedad')->insert(
                     [
                         "fkItemBoucher" => $idItemBoucherPago,
@@ -10302,6 +10312,7 @@ class NominaController extends Controller
         
         $csv = $req->file("archivoCSV");
         $subidos = 0;
+        $errores = array();
         $reader = Reader::createFromFileObject($csv->openFile());
         $reader->setDelimiter(';');
         foreach($reader as $id => $row){
@@ -10325,6 +10336,14 @@ class NominaController extends Controller
             }
             
             //Buscar empleado
+            $dt = DateTime::createFromFormat("d/m/Y", $row[3]);
+            if($dt === false){
+                //ERROR
+                array_push($errores, "Error en la linea ".$id." el campo no es una fecha");
+                continue;
+            }
+
+
 
             $empleado = DB::table("empleado","e")
             ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
@@ -10407,7 +10426,8 @@ class NominaController extends Controller
 
         
         return view('/nomina.subirConceptoFijoResumen', [
-            "subidos" => $subidos
+            "subidos" => $subidos,
+            "errores" => $errores
         ]);
 
     }
@@ -10507,6 +10527,10 @@ class NominaController extends Controller
             else{
                 $fechaInicialPrima = $empleado->fechaIngreso;
             }
+            if(strtotime($fechaInicialPrima)< strtotime(date($anioActual."-01-01"))){
+                $fechaInicialPrima = date($anioActual."-01-01");
+            }
+
             $fechaFinalPrima = $fechaFin;
 
             //INICIO CALCULAR EL PROMEDIO SALARIO EN PERIODO ACTUAL            
@@ -10545,10 +10569,12 @@ class NominaController extends Controller
 
             
             //AGREGAR SUBSIDIO DE TRANSPORTE AL SALARIO DE SER REQUERIDO
-            $variablesSalarioMinimo = DB::table("variable")->where("idVariable","=","1")->first();
-            if($salarioPrima < (2 * $variablesSalarioMinimo->valor)){
-                $variablesSubTrans = DB::table("variable")->where("idVariable","=","2")->first();
-                $salarioPrima = $salarioPrima + $variablesSubTrans->valor;
+            if($empleado->aplicaSubsidio == "1"){
+                $variablesSalarioMinimo = DB::table("variable")->where("idVariable","=","1")->first();
+                if($salarioPrima < (2 * $variablesSalarioMinimo->valor)){
+                    $variablesSubTrans = DB::table("variable")->where("idVariable","=","2")->first();
+                    $salarioPrima = $salarioPrima + $variablesSubTrans->valor;
+                }
             }
             //FIN AGREGAR SUBSIDIO DE TRANSPORTE AL SALARIO DE SER REQUERIDO
             //FIN CALCULAR EL PROMEDIO SALARIO EN PERIODO ACTUAL            
@@ -10617,6 +10643,10 @@ class NominaController extends Controller
                     $fechaInicialPrima = $empleado->fechaIngreso;
                 }                
             }
+            if(strtotime($fechaInicialPrima)< strtotime(date($anioActual."-07-01"))){
+                $fechaInicialPrima = date($anioActual."-07-01");
+            }
+
 
             $fechaFinalPrima = $fechaFin;
             //INICIO CALCULAR EL PROMEDIO SALARIO EN PERIODO ACTUAL 
@@ -10660,10 +10690,12 @@ class NominaController extends Controller
            
 
             //AGREGAR SUBSIDIO DE TRANSPORTE AL SALARIO DE SER REQUERIDO
-            $variablesSalarioMinimo = DB::table("variable")->where("idVariable","=","1")->first();
-            if($salarioPrima < (2 * $variablesSalarioMinimo->valor)){
-                $variablesSubTrans = DB::table("variable")->where("idVariable","=","2")->first();
-                $salarioPrima = $salarioPrima + $variablesSubTrans->valor;
+            if($empleado->aplicaSubsidio == "1"){
+                $variablesSalarioMinimo = DB::table("variable")->where("idVariable","=","1")->first();
+                if($salarioPrima < (2 * $variablesSalarioMinimo->valor)){
+                    $variablesSubTrans = DB::table("variable")->where("idVariable","=","2")->first();
+                    $salarioPrima = $salarioPrima + $variablesSubTrans->valor;
+                }
             }
             //FIN AGREGAR SUBSIDIO DE TRANSPORTE AL SALARIO DE SER REQUERIDO
             //FIN CALCULAR EL PROMEDIO SALARIO EN PERIODO ACTUAL    

@@ -828,6 +828,15 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-3">
+                            <div class="form-group hasText">
+                                <label for="infoAplicaSubsidio" class="control-label">Aplica Subsidio</label>
+                                <select class="form-control" id="infoAplicaSubsidio" name="infoAplicaSubsidio">
+                                    <option value="1" @if ($empleado->aplicaSubsidio == "1") selected @endif >SI</option>
+                                    <option value="0" @if ($empleado->aplicaSubsidio == "0") selected @endif >NO</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </section>
                 <section>

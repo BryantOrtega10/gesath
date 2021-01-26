@@ -40,6 +40,7 @@
                 <tr>
 
                     <th>#</th>
+                    <th>Linea</th>
                     <th>Num. Documento</th>
                     <th>Empleado</th>
                     <th>Estado Subida</th>
@@ -48,9 +49,18 @@
                     @foreach ($cargaEmpleado_Empleados as $index => $cargaEmpleado_Empleado)
                         <tr>
                             <td>{{$index + 1}}</td>
+                            <td>@isset($cargaEmpleado_Empleado->linea)
+                                {{$cargaEmpleado_Empleado->linea}}
+                            @endisset</td>
                             <td>{{$cargaEmpleado_Empleado->tipoDocumento}} - {{$cargaEmpleado_Empleado->numeroIdentificacion}}</td>
                             <td>{{$cargaEmpleado_Empleado->primerApellido}} {{$cargaEmpleado_Empleado->segundoApellido}} {{$cargaEmpleado_Empleado->primerNombre}} {{$cargaEmpleado_Empleado->segundoNombre}}</td>
-                            <td>{{$cargaEmpleado_Empleado->estado}}</td>
+                            <td>
+                                {{$cargaEmpleado_Empleado->estado}}
+                                @if($cargaEmpleado_Empleado->fkEstado == "36")
+                                    <br>{{$cargaEmpleado_Empleado->adicional}}
+                                @endif                            
+                            </td>
+
                         </tr>
                     @endforeach
                 </tbody>

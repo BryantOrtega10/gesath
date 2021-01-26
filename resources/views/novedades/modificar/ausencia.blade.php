@@ -63,13 +63,25 @@
                 <div class="col-3">
                     <div class="form-group hasText">
                         <label for="fechaAusenciaInicial" class="control-label">Fecha Inicial:</label>
-                        <input type="datetime-local" class="form-control" id="fechaAusenciaInicial" name="fechaAusenciaInicial" value="{{date("Y-m-d",strtotime($ausencia->fechaInicio))."T".date("H:i:s",strtotime($ausencia->fechaInicio))}}" />
+                        <input type="date" class="form-control" id="fechaAusenciaInicial" name="fechaAusenciaInicial" value="{{date("Y-m-d",strtotime($ausencia->fechaInicio))}}" />
                     </div>
                 </div>
                 <div class="col-3">
                     <div class="form-group hasText">
                         <label for="fechaAusenciaFinal" class="control-label">Fecha Final:</label>
-                        <input type="datetime-local" class="form-control" id="fechaAusenciaFinal" name="fechaAusenciaFinal" value="{{date("Y-m-d",strtotime($ausencia->fechaFin))."T".date("H:i:s",strtotime($ausencia->fechaFin))}}"/>
+                        <input type="date" class="form-control" id="fechaAusenciaFinal" name="fechaAusenciaFinal" value="{{date("Y-m-d",strtotime($ausencia->fechaFin))}}"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <div class="form-group hasText">
+                        <label for="domingoAplica" class="control-label">Descuenta Domingo</label>
+                        <select class="form-control" id="domingoAplica" name="domingoAplica">
+                            <option value="1" @if ($ausencia->domingoAplica == "1") selected @endif>SI</option>
+                            <option value="0" @if ($ausencia->domingoAplica == "0") selected @endif>NO</option>
+                            
+                        </select>
                     </div>
                 </div>
             </div>

@@ -996,7 +996,7 @@ class DatosPasadosController extends Controller
                     ]);    
                 }
                 else if(isset($existeConcepto)){
-                    DB::table("datos_pasados")->insert([
+                    DB::table("datos_pasados_sal")->insert([
                         "fkConcepto" => $fkConcepto,
                         "valor" => $row[3],
                         "mes" => $row[4],

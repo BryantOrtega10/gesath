@@ -53,6 +53,86 @@ class PrestamosController extends Controller
         ]);
         
     }
+
+    public function getFormEdit($idPrestamo){
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        
+        $gruposConcepto  = DB::table("grupoconcepto")->orderBy("nombre")->get();
+        $usu = UsuarioController::dataAdminLogueado();
+        
+        $prestamo = DB::table("prestamo","p")
+        ->select("p.*","e.fkEmpresa", "e.fkNomina", "dp.primerApellido", "dp.segundoApellido", "dp.primerNombre", "dp.segundoNombre")
+        ->join("empleado as e","e.idempleado", "=","p.fkEmpleado")
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->where("p.idPrestamo","=", $idPrestamo)
+        ->first();
+        $nomina = DB::table("nomina")->where("idNomina","=",$prestamo->fkNomina)->first();
+        
+        $periocidad = DB::table("periocidad")->where("per_periodo","=",$nomina->periodo)->get();
+
+        $nominas = DB::table("nomina")->where("fkEmpresa","=",$prestamo->fkEmpresa)->orderBy("nombre")->get();
+
+
+        $embargo = DB::table("embargo")->where("fkPrestamo", "=", $idPrestamo)->first();
+        if(isset($embargo)){
+            $conceptos = DB::table("concepto","c")
+            ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
+            ->where("gcc.fkGrupoConcepto","=","42")
+            ->orderBy("nombre")->get();
+            
+            $deptos = DB::table("ubicacion")
+            ->where("fkTipoUbicacion","=","2")
+            ->where("fkUbicacion","=","57")
+            ->orderBy("nombre")->get();
+
+            $ciudad = DB::table("ubicacion")->where("idubicacion","=",$embargo->fkUbicacion)->first();
+
+            $ciudades = DB::table("ubicacion")
+            ->where("fkTipoUbicacion","=","3")
+            ->where("fkUbicacion","=",$ciudad->fkUbicacion)
+            ->orderBy("nombre")->get();
+            $deptoSelect = $ciudad->fkUbicacion; 
+            
+
+            $tercerosJuzgado = DB::table("tercero")->where("fk_actividad_economica","=","9")->get();
+            $tercerosDemandante = DB::table("tercero")->where("fk_actividad_economica","=","7")->where("naturalezaTributaria", "=", "Natural")->get();
+
+
+
+            return view('/prestamos.editEmbargo', [
+                "empresas" => $empresas,
+                "nominas" => $nominas,
+                "gruposConcepto" => $gruposConcepto,
+                "conceptos" => $conceptos,
+                "dataUsu" => $usu,
+                "deptos" => $deptos,
+                "deptoSelect" => $deptoSelect,
+                "ciudades" => $ciudades,
+                "tercerosJuzgado" => $tercerosJuzgado,
+                "tercerosDemandante" => $tercerosDemandante,
+                "prestamo" => $prestamo,
+                "periocidad" => $periocidad
+            ]);
+        }else{
+            
+            $conceptos = DB::table("concepto","c")
+            ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
+            ->where("gcc.fkGrupoConcepto","=","41")
+            ->orderBy("nombre")->get();
+            return view('/prestamos.edit', [
+                "empresas" => $empresas,
+                "nominas" => $nominas,
+                "gruposConcepto" => $gruposConcepto,
+                "conceptos" => $conceptos,
+                "dataUsu" => $usu,
+                "prestamo" => $prestamo,
+                "periocidad" => $periocidad
+            ]);
+        }
+        
+    }
+
+
     public function getFormAddEmbargo(){
         $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
         $gruposConcepto  = DB::table("grupoconcepto")->orderBy("nombre")->get();
@@ -130,6 +210,43 @@ class PrestamosController extends Controller
         ]);
             
     }
+    
+    
+    public function modificar(Request $req){
+        if($req->saldoActual == "0"){
+            $req->saldoActual = $req->montoInicial;
+        }
+
+        DB::table("prestamo")
+        ->where("idPrestamo","=", $req->idPrestamo)
+        ->update([
+            "codPrestamo" => $req->codPrestamo, 
+            "motivoPrestamo" => $req->motivoPrestamo,
+            "fkEmpleado" => $req->idEmpleado, 
+            "montoInicial" => $req->montoInicial, 
+            "saldoActual" => $req->saldoActual, 
+            "fkPeriocidad" => $req->periocidad, 
+            "tipoDescuento" => $req->tipoDesc, 
+            "numCuotas" => $req->cuotas, 
+            "valorCuota" => $req->valorFijo,
+            "porcentajeCuota" => $req->presPorcentaje,
+            "fechaInicio" => $req->fechaInicio, 
+            "fechaDesembolso" => $req->fechaDesembolso, 
+            "fkGrupoConcepto" => $req->grupoConceptoPorcentaje, 
+            "fkConcepto" => $req->claseCuota, 
+            "pignoracion" => $req->pignoracion, 
+            "hastaSalarioMinimo" => $req->hastaSalarioMinimo, 
+            "fkEstado" => "1"
+        ]);
+
+        return response()->json([
+            "success" => true,
+            "mensaje" => "Prestamo modificado correctamente",
+            "url" => '/prestamos/'
+        ]);
+            
+    }
+
     public function crearEmbargo(Request $req){
 
         if($req->saldoActual == "0"){
@@ -175,6 +292,48 @@ class PrestamosController extends Controller
             
     }
 
+    public function modificarEmbargo(Request $req){
+        DB::table("prestamo")
+        ->where("idPrestamo","=", $req->idPrestamo)
+        ->update([
+            "fkEmpleado" => $req->idEmpleado, 
+            "montoInicial" => $req->montoInicial, 
+            "saldoActual" => $req->saldoActual, 
+            "fkPeriocidad" => $req->periocidad, 
+            "tipoDescuento" => $req->tipoDesc, 
+            "valorCuota" => $req->valorFijo,
+            "porcentajeCuota" => $req->presPorcentaje,
+            "fechaInicio" => $req->fechaInicio, 
+            "fkGrupoConcepto" => $req->grupoConceptoPorcentaje, 
+            "fkConcepto" => $req->claseCuota, 
+            "pignoracion" => $req->pignoracion, 
+            "hastaSalarioMinimo" => $req->hastaSalarioMinimo, 
+            "fkEstado" => "1"
+        ]);
+
+        DB::table("embargo")
+        ->where("idEmbargo","=", $req->idEmbargo)
+        ->update([
+            "fkPrestamo" => $req->idPrestamo,
+            "numeroEmbargo" => $req->numeroEmbargo, 
+            "numeroOficio" => $req->numeroOficio, 
+            "numeroProceso" => $req->numeroProceso, 
+            "fkUbicacion" => $req->ciudad, 
+            "fkTerceroJuzgado" => $req->fkTerceroJuzgado, 
+            "fechaCargaOficio" => $req->fechaCargaOficio, 
+            "fechaRecepcionCarta" => $req->fechaRecepcionCarta,
+            "fkTerceroDemandante" => $req->fkTerceroDemandante, 
+            "numeroCuentaJudicial" => $req->numeroCuentaJudicial, 
+            "numeroCuentaDemandante" => $req->numeroCuentaDemandante, 
+            "valorTotalEmbargo" => $req->valorTotalEmbargo
+        ]);
+
+        return response()->json([
+            "success" => true,
+            "mensaje" => "Embargo modificado correctamente",
+            "url" => '/prestamos/'
+        ]);
+    }
     
     public function eliminar($idPrestamo){
 
