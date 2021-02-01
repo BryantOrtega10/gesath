@@ -170,7 +170,42 @@ class ConceptoController extends Controller
             }
             
         }
-
+        DB::table('conceptosxtipoliquidacion')->insert([
+            "fkConcepto" => $concepto->idconcepto,
+            "fkTipoLiquidacion" => "1",
+            "tipoRelacion" => "1"
+        ]);
+        DB::table('conceptosxtipoliquidacion')->insert([
+            "fkConcepto" => $concepto->idconcepto,
+            "fkTipoLiquidacion" => "2",
+            "tipoRelacion" => "1"
+        ]);
+        DB::table('conceptosxtipoliquidacion')->insert([
+            "fkConcepto" => $concepto->idconcepto,
+            "fkTipoLiquidacion" => "3",
+            "tipoRelacion" => "1"
+        ]);
+        DB::table('conceptosxtipoliquidacion')->insert([
+            "fkConcepto" => $concepto->idconcepto,
+            "fkTipoLiquidacion" => "4",
+            "tipoRelacion" => "1"
+        ]);
+        DB::table('conceptosxtipoliquidacion')->insert([
+            "fkConcepto" => $concepto->idconcepto,
+            "fkTipoLiquidacion" => "5",
+            "tipoRelacion" => "1"
+        ]);
+        DB::table('conceptosxtipoliquidacion')->insert([
+            "fkConcepto" => $concepto->idconcepto,
+            "fkTipoLiquidacion" => "6",
+            "tipoRelacion" => "1"
+        ]);
+        DB::table('conceptosxtipoliquidacion')->insert([
+            "fkConcepto" => $concepto->idconcepto,
+            "fkTipoLiquidacion" => "9",
+            "tipoRelacion" => "1"
+        ]);
+       
 
 
 

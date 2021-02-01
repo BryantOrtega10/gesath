@@ -41,7 +41,10 @@
                     <td>${{number_format($prestamo->montoInicial, 0, ",", ".")}}</td>
                     <td>${{number_format($prestamo->saldoActual, 0, ",", ".")}}</td>
                     <td>{{$prestamo->nombreEstado}}</td>
-                    <td><a class="eliminarPrestamo" href="/prestamos/eliminar/{{$prestamo->idPrestamo}}"><i class="fas fa-trash"></i></a></td>
+                    <td>
+                        <a class="modificarPrestamo" href="/prestamos/getForm/edit/{{$prestamo->idPrestamo}}"><i class="fas fa-edit"></i></a>
+                        <a class="eliminarPrestamo" href="/prestamos/eliminar/{{$prestamo->idPrestamo}}"><i class="fas fa-trash"></i></a>
+                    </td>
                 </tr>
                 @endforeach
             </table>

@@ -14,7 +14,18 @@
     <div class="col-12">
         <div class="cajaGeneral">
             Se subireon <b>{{$subidos}}</b> registros
+        @if (sizeof($errores) > 0)
+            <h2>Errores</h2>
+            <ul>
+                @foreach ($errores as $error)
+                    <li>{{$error}}</li>
+                @endforeach
+            </ul>
+        @endif
+
         </div>
+
+
     </div>
 </div>
 

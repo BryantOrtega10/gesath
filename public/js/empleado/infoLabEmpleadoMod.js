@@ -10,7 +10,7 @@ $(document).ready(function() {
 
 
     var camposOpciones = {
-        opcionales: ["infoOtroDocumento", "password","infoOtroTIdentificacion"],
+        opcionales: ["infoOtroDocumento", "password", "infoOtroTIdentificacion"],
         opcionalesAVeces: [{
                 camposQueSonOb: ["infoTipoContratoN", "infoTipoDuracionContratoN", "infoDuracionContratoN", "infoFechaFinN"],
                 camposCambia: [{ campo: "infoTipoContratoN", valorCambia: [""] }],
@@ -501,12 +501,12 @@ $(document).ready(function() {
             (data) => {
                 if (data.success) {
                     const dataEmp = data.info;
-                    const randomSpecial = getRandomString(1);
+                    const randomSpecial = "#";
                     const palabraRandom = getRandomWord();
                     const fechaNacEmp = dataEmp.fechaNacimiento;
                     const numIdenEmple = dataEmp.numeroIdentificacion;
                     const fechaNacSplit = fechaNacEmp.split('-');
-                    const passNuevo = numIdenEmple + randomSpecial + fechaNacSplit[0] + randomSpecial + palabraRandom;
+                    const passNuevo = numIdenEmple + randomSpecial + fechaNacSplit[0];
                     $(".pass_usu").focus();
                     $(".pass_usu").val(passNuevo);
                     console.log(passNuevo);

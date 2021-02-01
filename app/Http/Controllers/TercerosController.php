@@ -235,12 +235,14 @@ class TercerosController extends Controller
     
     public function agregarUbicacionesTercero($idTer, $arrUbis) {
         TerceroUbicacionModel::where('id_ter', $idTer)->delete();
-        foreach( $arrUbis as $ubis) {
-            TerceroUbicacionModel::insert([
-                'id_ter' => $idTer,
-                'id_ubi' => $ubis                
-            ]);
-        }
+        if(isset($arrUbis)){
+            foreach( $arrUbis as $ubis) {
+                TerceroUbicacionModel::insert([
+                    'id_ter' => $idTer,
+                    'id_ubi' => $ubis                
+                ]);
+            }
+        }        
     }
 
     public function actualizarUbicacionesTerceros($idTer, $arrUbis) {

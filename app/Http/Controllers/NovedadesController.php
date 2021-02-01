@@ -450,10 +450,9 @@ class NovedadesController extends Controller
 
         $dias = $diff / ( 60 * 60 * 24);
         $dias = floor($dias);
+        $dias++;
 
         $restoDias = $diff % ( 60 * 60 * 24);
-        
-
         $horas = $restoDias / ( 60 * 60 );
         $horas = round($horas, 2);
 
@@ -462,59 +461,60 @@ class NovedadesController extends Controller
 
         $fecha = new DateTime($fechaAusInicial);
         $arrDiasAdicionales=array();
-        
-        
-        do{
-
-            $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
-            $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
-
-            if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
-                if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $domingoSemana);
-                }
-                if(!in_array($sabadoSemana, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $sabadoSemana);
-                }
-            }
-            else{
-                if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $domingoSemana);
-                }
-            }
-
-            $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
-            $calendarios = DB::table("calendario")
-            ->whereRaw($sql)->get();
-            foreach($calendarios as $calendario){
-                if(!in_array($calendario->fecha, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $calendario->fecha);
-                }
-            }
-
-
-            if($fechaAusFinal != $fecha->format('Y-m-d')){
-                $fecha->add(new DateInterval('P1D'));
-            }
-            
-        }
-        while($fechaAusFinal != $fecha->format('Y-m-d'));
-
         $arrDiasAdicionalesFinal = array();
-
-        foreach($arrDiasAdicionales as $arrDiasAdicional){
-            $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
-            ->where("n.fkEmpleado","=",$req->idEmpleado)
-            ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
-            ->get();
-
-            if(sizeof($cuentaDiaAdd)==0){
-                array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
-                $dias++;
+        if($req->domingoAplica == "1"){
+            do{
+                $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
+                $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
+    
+                if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
+                    if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $domingoSemana);
+                    }
+                    /*if(!in_array($sabadoSemana, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $sabadoSemana);
+                    }*/
+                }
+                else{
+                    if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $domingoSemana);
+                    }
+                }
+    
+                $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
+                $calendarios = DB::table("calendario")
+                ->whereRaw($sql)->get();
+                foreach($calendarios as $calendario){
+                    if(!in_array($calendario->fecha, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $calendario->fecha);
+                    }
+                }
+    
+    
+                if($fechaAusFinal != $fecha->format('Y-m-d')){
+                    $fecha->add(new DateInterval('P1D'));
+                }
+                
+            }
+            while($fechaAusFinal != $fecha->format('Y-m-d'));
+    
+            
+    
+            foreach($arrDiasAdicionales as $arrDiasAdicional){
+                $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
+                ->where("n.fkEmpleado","=",$req->idEmpleado)
+                ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
+                ->get();
+    
+                if(sizeof($cuentaDiaAdd)==0){
+                    array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
+                    $dias++;
+                }
             }
         }
+        
 
-
+        
         
 
         
@@ -526,7 +526,8 @@ class NovedadesController extends Controller
             "fechaFin" => $req->fechaAusenciaFinal, 
             "cantidadDias" => $dias, 
             "cantidadHoras" => $horas,
-            "fechasAdicionales" => $textoDias
+            "fechasAdicionales" => $textoDias,
+            "domingoAplica" => $req->domingoAplica
         );
         
         
@@ -1054,6 +1055,7 @@ class NovedadesController extends Controller
         $dias = $diff / ( 60 * 60 * 24);
         $dias = floor($dias);
 
+        $dias++;
         $restoDias = $diff % ( 60 * 60 * 24);
         
 
@@ -1065,60 +1067,59 @@ class NovedadesController extends Controller
 
         $fecha = new DateTime($fechaAusInicial);
         $arrDiasAdicionales=array();
-        
-        
-        do{
-
-            $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
-            $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
-
-            if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
-                if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $domingoSemana);
-                }
-                if(!in_array($sabadoSemana, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $sabadoSemana);
-                }
-            }
-            else{
-                if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $domingoSemana);
-                }
-            }
-
-            $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
-            $calendarios = DB::table("calendario")
-            ->whereRaw($sql)->get();
-            foreach($calendarios as $calendario){
-                if(!in_array($calendario->fecha, $arrDiasAdicionales)){
-                    array_push($arrDiasAdicionales, $calendario->fecha);
-                }
-            }
-
-
-            if($fechaAusFinal != $fecha->format('Y-m-d')){
-                $fecha->add(new DateInterval('P1D'));
-            }
-            
-        }
-        while($fechaAusFinal != $fecha->format('Y-m-d'));
-
         $arrDiasAdicionalesFinal = array();
 
-        foreach($arrDiasAdicionales as $arrDiasAdicional){
-            $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
-            ->where("n.fkEmpleado","=",$req->idEmpleado)
-            ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
-            ->get();
+        if($req->domingoAplica == "1"){
+            do{
 
-            if(sizeof($cuentaDiaAdd)==0){
-                array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
-                $dias++;
+                $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
+                $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
+
+                if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
+                    if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $domingoSemana);
+                    }
+                    /*if(!in_array($sabadoSemana, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $sabadoSemana);
+                    }*/
+                }
+                else{
+                    if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $domingoSemana);
+                    }
+                }
+
+                $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
+                $calendarios = DB::table("calendario")
+                ->whereRaw($sql)->get();
+                foreach($calendarios as $calendario){
+                    if(!in_array($calendario->fecha, $arrDiasAdicionales)){
+                        array_push($arrDiasAdicionales, $calendario->fecha);
+                    }
+                }
+
+
+                if($fechaAusFinal != $fecha->format('Y-m-d')){
+                    $fecha->add(new DateInterval('P1D'));
+                }
+                
+            }
+            while($fechaAusFinal != $fecha->format('Y-m-d'));
+
+            
+            foreach($arrDiasAdicionales as $arrDiasAdicional){
+                $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
+                ->where("n.fkEmpleado","=",$req->idEmpleado)
+                ->where("a.idAusencia","<>", $req->idAusencia)
+                ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
+                ->get();
+
+                if(sizeof($cuentaDiaAdd)==0){
+                    array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
+                    $dias++;
+                }
             }
         }
-
-
-        
 
         
 
@@ -1129,7 +1130,8 @@ class NovedadesController extends Controller
             "fechaFin" => $req->fechaAusenciaFinal, 
             "cantidadDias" => $dias, 
             "cantidadHoras" => $horas,
-            "fechasAdicionales" => $textoDias
+            "fechasAdicionales" => $textoDias,
+            "domingoAplica" => $req->domingoAplica
         );
         
         
@@ -1643,25 +1645,69 @@ class NovedadesController extends Controller
                 $req->fkTipoReporte = $row[1];
                 $req->fechaRegistro = $row[2];
                 $req->concepto = $row[3];
+
                 $empleado = DB::table("empleado","e")
                 ->join("datospersonales as dp","dp.idDatosPersonales", "=","e.fkDatosPersonales")
-                ->where("dp.numeroIdentificacion", "=",$row[5])
+                ->where("dp.numeroIdentificacion", "=",$row[4])
                 ->get();
                 $req->idEmpleado = null;
                 if(sizeof($empleado)>0){
                     $req->idEmpleado = $empleado[0]->idempleado;
                 }
                 else{
+                    DB::table('carga_novedad_error')
+                    ->insert([
+                        "linea" => $index,
+                        "fkCargaNovedad" => $idCargaNovedad,
+                        "error" => "El empleado no existe"
+                        ]
+                    );
+                   
+                       
+                    
+                    continue;
+                }
+
+                
+
+                $concepto = DB::table("concepto")
+                    ->where("idconcepto", "=", $req->concepto )
+                    ->first();
+
+                if(!isset($concepto)){
+                    DB::table('carga_novedad_error')
+                    ->insert([                       
+                        "linea" => $index,
+                        "fkCargaNovedad" => $idCargaNovedad,
+                        "error" => "El concepto no existe"
+                        ]
+                    );
                     continue;
                 }
                 
+                $tiponovedad = DB::table("tiponovedad")
+                    ->where("idtipoNovedad", "=", $req->fkTipoNovedad)
+                    ->first();
+
                 
+                if(!isset($tiponovedad)){
+                    DB::table('carga_novedad_error')
+                    ->insert([                       
+                        "linea" => $index,
+                        "fkCargaNovedad" => $idCargaNovedad,
+                        "error" => "El tipo de novedad no existe"
+                        ]
+                    );
+                    continue;
+                }
+                
+
 
 
                 if($row[0]=="1"){
                     
-                    $req->fechaAusenciaInicial = $row[6];
-                    $req->fechaAusenciaFinal = $row[7];
+                    $req->fechaAusenciaInicial = $row[5];
+                    $req->fechaAusenciaFinal = $row[6];
                     
                     $fechaAusInicial = date("Y-m-d", strtotime($req->fechaAusenciaInicial));
                     $fechaAusFinal = date("Y-m-d", strtotime($req->fechaAusenciaFinal));
@@ -1672,7 +1718,7 @@ class NovedadesController extends Controller
             
                     $dias = $diff / ( 60 * 60 * 24);
                     $dias = floor($dias);
-            
+                    $dias++;
                     $restoDias = $diff % ( 60 * 60 * 24);
                     
             
@@ -1685,54 +1731,56 @@ class NovedadesController extends Controller
                     $fecha = new DateTime($fechaAusInicial);
                     $arrDiasAdicionales=array();
                     
+                    $req->domingoAplica = $row[7];
                     
-                    do{
-            
-                        $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
-                        $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
-            
-                        if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
-                            if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                                array_push($arrDiasAdicionales, $domingoSemana);
+                    if($req->domingoAplica == "1"){
+                        do{
+                            $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
+                            $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
+                
+                            if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
+                                if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                                    array_push($arrDiasAdicionales, $domingoSemana);
+                                }
+                                /*if(!in_array($sabadoSemana, $arrDiasAdicionales)){
+                                    array_push($arrDiasAdicionales, $sabadoSemana);
+                                }*/
                             }
-                            if(!in_array($sabadoSemana, $arrDiasAdicionales)){
-                                array_push($arrDiasAdicionales, $sabadoSemana);
+                            else{
+                                if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                                    array_push($arrDiasAdicionales, $domingoSemana);
+                                }
                             }
-                        }
-                        else{
-                            if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                                array_push($arrDiasAdicionales, $domingoSemana);
+                
+                            $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
+                            $calendarios = DB::table("calendario")
+                            ->whereRaw($sql)->get();
+                            foreach($calendarios as $calendario){
+                                if(!in_array($calendario->fecha, $arrDiasAdicionales)){
+                                    array_push($arrDiasAdicionales, $calendario->fecha);
+                                }
                             }
-                        }
-            
-                        $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
-                        $calendarios = DB::table("calendario")
-                        ->whereRaw($sql)->get();
-                        foreach($calendarios as $calendario){
-                            if(!in_array($calendario->fecha, $arrDiasAdicionales)){
-                                array_push($arrDiasAdicionales, $calendario->fecha);
+                
+                
+                            if($fechaAusFinal != $fecha->format('Y-m-d')){
+                                $fecha->add(new DateInterval('P1D'));
                             }
+                            
                         }
-            
-            
-                        if($fechaAusFinal != $fecha->format('Y-m-d')){
-                            $fecha->add(new DateInterval('P1D'));
-                        }
-                        
-                    }
-                    while($fechaAusFinal != $fecha->format('Y-m-d'));
-            
-                    $arrDiasAdicionalesFinal = array();
-            
-                    foreach($arrDiasAdicionales as $arrDiasAdicional){
-                        $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
-                        ->where("n.fkEmpleado","=",$req->idEmpleado)
-                        ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
-                        ->get();
-            
-                        if(sizeof($cuentaDiaAdd)==0){
-                            array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
-                            $dias++;
+                        while($fechaAusFinal != $fecha->format('Y-m-d'));
+                
+                        $arrDiasAdicionalesFinal = array();
+                
+                        foreach($arrDiasAdicionales as $arrDiasAdicional){
+                            $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
+                            ->where("n.fkEmpleado","=",$req->idEmpleado)
+                            ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
+                            ->get();
+                
+                            if(sizeof($cuentaDiaAdd)==0){
+                                array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
+                                $dias++;
+                            }
                         }
                     }
             
@@ -1859,11 +1907,17 @@ class NovedadesController extends Controller
                     }
 
                     $codigoDiagnostico = DB::table("cod_diagnostico")->where("idCodDiagnostico","=", $req->idCodigoDiagnostico)->first();
-                    if(!isset($codigoDiagnostico)){
-                        dump("idCodDiagnostico invalido");
-                        dd($req->idCodigoDiagnostico);
+                    if(!isset($codigoDiagnostico)){        
+                        DB::table('carga_novedad_error')
+                        ->insert([                       
+                            "linea" => $index,
+                            "fkCargaNovedad" => $idCargaNovedad,
+                            "error" => "El codigo de diagnostico no existe"
+                            ]
+                        );
+                        continue;
                     }
-
+                    
                     $idIncapacidad = DB::table('incapacidad')->insertGetId([
                         "numDias" => $req->dias, 
                         "fechaInicial" => $req->fechaInicial, 
@@ -2009,7 +2063,18 @@ class NovedadesController extends Controller
                     $req->motivoRetiro = $row[27];
                     $req->indemnizacion = $row[28];
                     
-
+                    $motivoRetiro = DB::table("motivo_retiro")->where("idMotivoRetiro","=", $req->motivoRetiro)->first();
+                    if(!isset($motivoRetiro)){        
+                        DB::table('carga_novedad_error')
+                        ->insert([                       
+                            "linea" => $index,
+                            "fkCargaNovedad" => $idCargaNovedad,
+                            "error" => "El motivo retiro no existe"
+                            ]
+                        );
+                        continue;
+                    }
+                    
                     $idRetiro = DB::table('retiro')->insertGetId([
                         "fecha" => $req->fechaRetiro, 
                         "fechaReal" => $req->fechaRetiroReal,
@@ -2037,13 +2102,33 @@ class NovedadesController extends Controller
                 else if($row[0]=="6"){
                     $req->fechaInicial = $row[29];
                     $req->fechaFinal = $row[30];
+
+
                     $req->dias = $row[31];
+                    if(isset($req->fechaInicial)){
+                        $request2 = new Request();
+                        $request2->replace(['fecha' => $req->fechaInicial,'dias' => $req->dias, "idEmpleado" => $req->idEmpleado ]);
+                        $jsonCalendario = $this->fechaConCalendario($request2);
+                        $diasCompensar = $jsonCalendario->original["diasCalendario"];
+                    }
+                    else{
+                        $diasCompensar = $req->dias;
+                    }
+                   
+                    
+                    
+                    
+
+
+
                     $req->pagoAnticipado = $row[32];
+
 
                     $idVacaciones = DB::table('vacaciones')->insertGetId([
                         "fechaInicio" => $req->fechaInicial, 
                         "fechaFin" => $req->fechaFinal,
-                        "diasCompensar" => $req->dias,
+                        "diasCompensar" => $diasCompensar,
+                        "diasCompletos" => $req->dias,
                         "pagoAnticipado" => $req->pagoAnticipado
                     ], "idVacaciones");
             
@@ -2136,10 +2221,14 @@ class NovedadesController extends Controller
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
         ->where("n.fkCargaNovedad","=",$idCarga)
         ->get();
+
+        $errores = DB::table("carga_novedad_error","cne")->where("fkCargaNovedad","=",$idCarga)->get();
+        
         
         return view('/novedades.listaNovedadesCarga',[
             'novedades' => $novedades,
-            'idCarga' => $idCarga
+            'idCarga' => $idCarga,
+            "errores" => $errores
         ]);        
     }
     public function cancelarSubida($idCarga){

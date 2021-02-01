@@ -19,7 +19,24 @@
                 <div class="col-3 text-left">
                     <a href="/novedades/aprobarSubida/{{$idCarga}}" class="btnSubmitGen">Aprobar Subida</a><br>
                 </div>
-            </div><br>            
+            </div><br>   
+            @if (sizeof($errores) > 0)
+                <h2>Errores</h2>
+                <table class="table table-hover table-striped">
+                    <tr>
+                        <th>Fila</th>                        
+                        <th>Error</th>
+                    </tr>
+                    @foreach ($errores as $error)
+                        <tr>
+                            <td>{{$error->linea}}</td>
+                            <td>{{$error->error}}</td>
+                        </tr>
+                    @endforeach
+                </table>
+                <h2>Subidos correctamente</h2>
+            @endif
+           
             <table class="table table-hover table-striped">
                 <tr>
                     <th></th>

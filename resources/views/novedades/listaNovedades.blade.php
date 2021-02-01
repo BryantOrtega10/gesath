@@ -61,20 +61,25 @@
                 <tr>
                     <th></th>
                     <th>#</th>
-                    <th>Concepto</th>
-                    <th>Tipo</th>
-                    <th>Fecha</th>
-                    <th>Empresa</th>
-                    <th>Nomina</th>
-                    <th>Estado</th>
                     <th>Documento</th>
                     <th>Empleado</th>
+                    <th>Empresa</th>
+                    <th>Nomina</th>
+                    <th>Concepto</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>                    
+                    <th>Estado</th>
+                    
                     <th></th>
                 </tr>
                 @foreach ($novedades as $novedad)
                     <tr>
                         <td><input type="checkbox" name="idNovedad[]" value="{{$novedad->idNovedad}}" /></td>
                         <td>{{$novedad->idNovedad}}</td>
+                        <td>{{$novedad->tipoDocumento}} - {{$novedad->numeroIdentificacion}}</td>
+                        <td>{{$novedad->primerApellido}} {{$novedad->segundoApellido}} {{$novedad->primerNombre}} {{$novedad->segundoNombre}}</td>
+                        <td>{{$novedad->nombreEmpresa}}</td>
+                        <td>{{$novedad->nombreNomina}}</td>
                         <td>{{$novedad->nombreConcepto}}</td>
                         <td>
                             @isset($novedad->fkAusencia)
@@ -99,12 +104,8 @@
                                 Otros
                             @endisset
                         </td>
-                        <td>{{$novedad->fechaRegistro}}</td>
-                        <td>{{$novedad->nombreEmpresa}}</td>
-                        <td>{{$novedad->nombreNomina}}</td>
-                        <td>{{$novedad->nombreEstado}}</td>
-                        <td>{{$novedad->tipoDocumento}} - {{$novedad->numeroIdentificacion}}</td>
-                        <td>{{$novedad->primerApellido}} {{$novedad->segundoApellido}} {{$novedad->primerNombre}} {{$novedad->segundoNombre}}</td>
+                        <td>{{$novedad->fechaRegistro}}</td>                        
+                        <td>{{$novedad->nombreEstado}}</td>                        
                         <td><a href="/novedades/modificarNovedad/{{ $novedad->idNovedad }}" class="editar"><i class="fas fa-edit"></i></a>
                             <a href="#" data-id="{{ $novedad->idNovedad }}" class="eliminar"><i class="fas fa-trash"></i></a>
                         </td>

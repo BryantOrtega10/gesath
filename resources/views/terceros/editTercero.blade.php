@@ -108,11 +108,11 @@
     <div class="row">
         <div class="col form-group">
             <label for="codigoTercero">Código Tercero</label>
-            <input type="number" class="form-control" id="codigoTercero" name = "codigoTercero" value = "{{ $tercero->codigoTercero }}">
+            <input type="text" class="form-control" id="codigoTercero" name = "codigoTercero" value = "{{ $tercero->codigoTercero }}">
         </div>
         <div class="col form-group">
             <label for="codigoSuperIntendencia">Código Superintendencia</label>
-            <input type="number" class="form-control" id="codigoSuperIntendencia" name = "codigoSuperIntendencia" value = "{{ $tercero->codigoSuperIntendencia }}">
+            <input type="text" class="form-control" id="codigoSuperIntendencia" name = "codigoSuperIntendencia" value = "{{ $tercero->codigoSuperIntendencia }}">
         </div>
     </div>
     <div class="row">

@@ -112,7 +112,9 @@ class VariableController extends Controller
         
     }
     public function getFormEdit($idVariable){
-    	$variable = Variable::where('idVariable', $idVariable)->join('tipo_campo AS tc', 'tc.idTipoCampo', '=', 'variable.fkTipoCampo')->first();
+        $variable = Variable::where('idVariable', $idVariable)
+        ->select("variable.*")
+        ->join('tipo_campo AS tc', 'tc.idTipoCampo', '=', 'variable.fkTipoCampo')->first();
         $tipoCampo = DB::table('tipo_campo')->get();
 
 

@@ -225,6 +225,16 @@
                         <span class="textoMenu">Admin Formulario 220</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/calendario/" >
+                        <span class="textoMenu">Calendario</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/mensajes/" >
+                        <span class="textoMenu">Admin Mensajes General</span>
+                    </a>
+                </li>
             </ul>
         </li>
         <li class="{{ Request::is('usuarios') ? 'active' : '' }}">

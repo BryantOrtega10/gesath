@@ -29,13 +29,24 @@
         <div class="col-3">
             <div class="form-group">
                 <label for="fechaAusenciaInicial" class="control-label">Fecha Inicial:</label>
-                <input type="datetime-local" class="form-control" id="fechaAusenciaInicial" name="fechaAusenciaInicial" min="{{$req->fechaMinima}}T00:00:00" />
+                <input type="date" class="form-control" id="fechaAusenciaInicial" name="fechaAusenciaInicial" min="{{$req->fechaMinima}}" />
             </div>
         </div>
         <div class="col-3">
             <div class="form-group">
                 <label for="fechaAusenciaFinal" class="control-label">Fecha Final:</label>
-                <input type="datetime-local" class="form-control" id="fechaAusenciaFinal" name="fechaAusenciaFinal" min="{{$req->fechaMinima}}T00:00:00" />
+                <input type="date" class="form-control" id="fechaAusenciaFinal" name="fechaAusenciaFinal" min="{{$req->fechaMinima}}" />
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <div class="form-group hasText">
+                <label for="domingoAplica" class="control-label">Descuenta Domingo?</label>
+                <select class="form-control" id="domingoAplica" name="domingoAplica">
+                    <option value="1">SI</option>
+                    <option value="0">NO</option>
+                </select>
             </div>
         </div>
     </div>

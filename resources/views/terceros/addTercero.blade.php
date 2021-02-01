@@ -73,11 +73,11 @@
     <div class="row">
         <div class="col form-group">
             <label for="codigoTercero">Código Tercero</label>
-            <input type="number" class="form-control" id="codigoTercero" name = "codigoTercero">
+            <input type="text" class="form-control" id="codigoTercero" name = "codigoTercero">
         </div>
         <div class="col form-group">
             <label for="codigoSuperIntendencia">Código Superintendencia</label>
-            <input type="number" class="form-control" id="codigoSuperIntendencia" name = "codigoSuperIntendencia">
+            <input type="text" class="form-control" id="codigoSuperIntendencia" name = "codigoSuperIntendencia">
         </div>
     </div>
     <div class="row">

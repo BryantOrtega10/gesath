@@ -66,13 +66,33 @@
             <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Nomina horizontal</a><br>
         </div>
         <div class="col-3 text-center"><br>
-            <a href="/reportes/boucherPdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Boucher PDF Consolidado</a><br>
+            <a href="/reportes/boucherPdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">PDF Consolidado</a><br>
         </div>
     
     </div>
     
 
     <br>
+    <form autocomplete="off" action="{{ Request::url() }}" method="GET" id="filtrarEmpleado" class="formGeneral">
+        <div class="row">
+            <div class="col-4">
+                <div class="form-group @isset($req->nombre) hasText @endisset">
+                    <label for="nombre" class="control-label">Nombre:</label>
+                    <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
+                </div>               
+            </div>
+            <div class="col-4">
+                <div class="form-group @isset($req->numDoc) hasText @endisset">
+                    <label for="numDoc" class="control-label">Número Identificación:</label>
+                    <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
+                </div>               
+            </div>
+            <div class="col-4">
+                <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+            </div>
+        </div>
+       
+    </form>
     <table class="table ">
         <tr>
             <th>Identificación</th>

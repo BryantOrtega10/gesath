@@ -1579,7 +1579,9 @@ class CatalogoContableController extends Controller
                 "Tercero Empleado",
                 "Nombre Tercero Empleado",
                 "Valor Débito",
-                "Valor Crédito"
+                "Valor Crédito",
+                "Tipo Cuenta",
+                "Valor"
             ]
         );
         $mesInforme = date("m",strtotime($req->fechaReporte));
@@ -1596,11 +1598,15 @@ class CatalogoContableController extends Controller
                     foreach($arrSalid3 as $arrSalid4){
                         $valorDebito = "0";
                         $valorCredito = "0";
+                        $tipoCuenta = "";
+
                         if($arrSalid4["tipoReg"]=="DEBITO"){
                             $valorDebito = $arrSalid4["valor"];
+                            $tipoCuenta = "D";
                         }
                         else{
                             $valorCredito = $arrSalid4["valor"];
+                            $tipoCuenta = "C";
                         }
                         
                         if($arrSalid4["valor"] != 0){
@@ -1619,7 +1625,9 @@ class CatalogoContableController extends Controller
                                 $arrSalid4["empleado"]->numeroIdentificacion,
                                 $arrSalid4["empleado"]->primerApellido." ".$arrSalid4["empleado"]->segundoApellido." ".$arrSalid4["empleado"]->primerNombre." ".$arrSalid4["empleado"]->segundoNombre,
                                 $valorDebito,
-                                $valorCredito                            
+                                $valorCredito,
+                                $tipoCuenta,
+                                $arrSalid4["valor"]
                             ];
                             array_push($arrDef, $arrDefInt);
                         }
