@@ -88,7 +88,7 @@
                     <div class="col-3">
                         <div class="form-group presValor activo">
                             <label for="valorFijo" class="control-label">Valor Fijo:</label>
-                            <input type="text" class="form-control" id="valorFijo" name="valorFijo" />
+                            <input type="text" class="form-control separadorMiles" id="valorFijo" name="valorFijo" />
                         </div>
                         <div class="form-group presPorcentaje">
                             <label for="presPorcentaje" class="control-label">Porcentaje:</label>

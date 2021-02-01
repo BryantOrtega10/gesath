@@ -2116,12 +2116,30 @@
                                 <div class="row">
                                     <div class="col-3">
                                         @if ($empleado->tipoRegimen == "Ley 50")
-                                            <div class="form-group hasText">
-                                                <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
-                                                <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
-                                                    <option value="1">SALARIO BASICO</option>
-                                                </select>                                       
-                                            </div>
+                                            @if ($empleado->fkTipoCotizante == "12")
+                                                <div class="form-group hasText">
+                                                    <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
+                                                    <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
+                                                        <option value="53">APOYO SOSTENIMIENTO ETAPA LECTIVA</option>
+                                                    </select>                                       
+                                                </div>
+                                            @else
+                                                @if ($empleado->fkTipoCotizante == "19")
+                                                    <div class="form-group hasText">
+                                                        <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
+                                                        <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
+                                                            <option value="54">APOYO SOSTENIMIENTO ETAPA PRODUCTIVA</option>
+                                                        </select>                                       
+                                                    </div>
+                                                @else
+                                                    <div class="form-group hasText">
+                                                        <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
+                                                        <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
+                                                            <option value="1">SALARIO BASICO</option>
+                                                        </select>                                       
+                                                    </div>
+                                                @endif
+                                            @endif                                            
                                         @else
                                         <div class="form-group hasText">
                                                 <label for="conFiConcepto1" class="control-label">Concepto</label>
@@ -2206,12 +2224,30 @@
                                 <div class="row">
                                     <div class="col-3">
                                         @if ($empleado->tipoRegimen == "Ley 50")
-                                            <div class="form-group hasText">
-                                                <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
-                                                <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]">
-                                                    <option value="1">SALARIO BASICO</option>
-                                                </select>                                       
-                                            </div>
+                                            @if ($empleado->fkTipoCotizante == "12")
+                                                <div class="form-group hasText">
+                                                    <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
+                                                    <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
+                                                        <option value="53">APOYO SOSTENIMIENTO ETAPA LECTIVA</option>
+                                                    </select>                                       
+                                                </div>
+                                            @else
+                                                @if ($empleado->fkTipoCotizante == "19")
+                                                    <div class="form-group hasText">
+                                                        <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
+                                                        <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
+                                                            <option value="54">APOYO SOSTENIMIENTO ETAPA PRODUCTIVA</option>
+                                                        </select>                                       
+                                                    </div>
+                                                @else
+                                                    <div class="form-group hasText">
+                                                        <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
+                                                        <select class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
+                                                            <option value="1">SALARIO BASICO</option>
+                                                        </select>                                       
+                                                    </div>
+                                                @endif
+                                            @endif
                                         @else
                                         <div class="form-group hasText">
                                                 <label for="conFiConcepto1" class="control-label">Concepto</label>

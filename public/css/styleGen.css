@@ -409,7 +409,7 @@ body {
 .cajaGeneral input[type="text"],
 .cajaGeneral select {
     width: 100%;
-    padding: 9px 13px; 
+    padding: 9px 13px;
     font-family: Roboto;
     font-style: normal;
     font-weight: 500;
@@ -420,6 +420,7 @@ body {
     margin-bottom: 12px;
     color: #A9A9A9;
     outline: none;
+    min-width: 70px;
 }
 
 .cajaGeneral input[type="text"]::placeholder {
@@ -872,26 +873,34 @@ a.btnSubmitGen:hover {
 }
 
 .elementoVariable,
-.elementoTerceroCred,.elementoTerceroDeb{
+.elementoTerceroCred,
+.elementoTerceroDeb {
     display: none;
 }
 
 .elementoVariable.activo,
-.elementoTerceroCred.activo, .elementoTerceroDeb.activo {
+.elementoTerceroCred.activo,
+.elementoTerceroDeb.activo {
     display: block;
 }
-.cuentaCreditoNueva, .cuentaDebitoNueva {
+
+.cuentaCreditoNueva,
+.cuentaDebitoNueva {
     padding-left: 50px;
     display: none;
 }
-.cuentaCreditoNueva.activo, .cuentaDebitoNueva.activo, .cuentaCreditoNueva.activo2, .cuentaDebitoNueva.activo2 {
+
+.cuentaCreditoNueva.activo,
+.cuentaDebitoNueva.activo,
+.cuentaCreditoNueva.activo2,
+.cuentaDebitoNueva.activo2 {
     display: block;
 }
 
 .grupoAporteEmpleador,
 .grupoProvision,
 .grupoConceptoCuenta,
-.conceptoCuenta  {
+.conceptoCuenta {
     display: none;
 }
 
@@ -1053,6 +1062,43 @@ select.error {
     height: 500px;
 }
 
+.desaparece {
+    opacity: 0;
+    height: 0;
+    animation-name: desaparece;
+    animation-duration: 4s;
+}
+
+@keyframes desaparece {
+    0% {
+        opacity: 0;
+        height: 0;
+    }
+    10% {
+        opacity: 1;
+        height: auto;
+    }
+    90% {
+        opacity: 1;
+        height: auto;
+    }
+    100% {
+        opacity: 0;
+        height: 0;
+    }
+}
+
+.ocultoModificacion.activo,
+a.ocultoModificacion.activo,
+.mostrarModificacion {
+    display: inline-block;
+}
+
+.ocultoModificacion,
+a.ocultoModificacion,
+.mostrarModificacion.activo {
+    display: none;
+}
 
 @media (max-width: 1024px) {
     .desaparecer_moviles {
@@ -1063,14 +1109,16 @@ select.error {
 
 /* FIN ESTILOS SEBASTIAN GOMEZ */
 
-.checksCont{
+.checksCont {
     overflow-x: hidden;
     overflow-y: scroll;
     max-height: 200px;
 }
-.checksCont label{
+
+.checksCont label {
     user-select: none;
 }
+
 select.selectMultiple {
     width: 100%;
     height: 145px;
@@ -1083,9 +1131,14 @@ select.selectMultiple {
     margin-bottom: 6px;
 }
 
-.presCuotas, .presValor, .presPorcentaje{
+.presCuotas,
+.presValor,
+.presPorcentaje {
     display: none;
 }
-.presCuotas.activo, .presValor.activo, .presPorcentaje.activo{
+
+.presCuotas.activo,
+.presValor.activo,
+.presPorcentaje.activo {
     display: block;
 }

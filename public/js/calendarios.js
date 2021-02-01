@@ -11,7 +11,7 @@ $(document).ready(function() {
             url: '//cdn.datatables.net/plug-ins/1.10.22/i18n/Spanish.json'
         }
     });
-    
+
     $(document).on('show.bs.modal', '.modal', function(event) {
         var zIndex = 1040 + (10 * $('.modal:visible').length);
         $(this).css('z-index', zIndex);
@@ -46,7 +46,7 @@ $(document).ready(function() {
 
     $("#verCalendario").click((e) => {
         e.preventDefault();
-        const idCalendario = e.target.attributes.dataId.value;
+        //const idCalendario = e.target.attributes.dataId.value;
         cargando();
         $.ajax({
             type: 'GET',

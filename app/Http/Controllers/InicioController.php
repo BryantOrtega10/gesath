@@ -40,8 +40,8 @@ class InicioController extends Controller
     {
         $dataUsu = User::where('email', $request->email)->first();
         if ($dataUsu) {
-            // $emple = DB::table('empleado')->select('fkEstado')->where('idempleado', $dataUsu->fkEmpleado)->first();
-            // if ($emple->fkEstado == 1) {
+             $emple = DB::table('empleado')->select('fkEstado')->where('idempleado', $dataUsu->fkEmpleado)->first();
+             if (isset($emple) && $emple->fkEstado == 1) {
                 $estadoUsu = $dataUsu->estado;
                 if ($estadoUsu == 1) {
                     $credentials = $request->only($this->username(), 'password');
@@ -56,9 +56,9 @@ class InicioController extends Controller
                 } else {
                     return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado']);
                 }   
-            // } else {
-            //     return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado o está en creación']);
-            // }
+            } else {
+                 return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado o está en creación']);
+            }
         } else {
             return response()->json(['success' => false, 'mensaje' => 'Error, usuario o contraseña incorrectos']);
         }

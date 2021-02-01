@@ -305,6 +305,9 @@ Route::group([
 	Route::get('/cancelarCarga/{idCarga}','DatosPasadosController@cancelarCargaVac');
 	Route::post('/eliminarRegistros','DatosPasadosController@eliminarRegistrosVac');
 	Route::get('/aprobarCarga/{idCarga}','DatosPasadosController@aprobarCargaVac');
+
+	Route::post('/modificarRegistro','DatosPasadosController@modificarRegistroVac');
+	
 	
 	
 });
@@ -506,6 +509,23 @@ Route::group([
 	
 
 });
+
+Route::group([
+	'prefix' => 'mensajes',
+	'middleware' => ['auth', 'guest:2,3'],
+	'as' => 'mensajes'
+], function(){
+	Route::get('/', 'MensajesController@index');
+
+	Route::get('/getForm/edit/{id}','MensajesController@getFormEdit');
+	Route::post('modificar','MensajesController@modificar');
+	
+	
+
+});
+
+
+
 
 
 Route::group([

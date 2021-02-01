@@ -114,7 +114,7 @@
                         </div>
                         <div class="form-group presValor @if ($prestamo->tipoDescuento == "2") activo @endif @if (isset($prestamo->valorCuota)) hasText @endif">
                             <label for="valorFijo" class="control-label">Valor Fijo:</label>
-                            <input type="text" class="form-control" id="valorFijo" name="valorFijo"  value="{{$prestamo->valorCuota}}"/>
+                            <input type="text" class="form-control separadorMiles" id="valorFijo" name="valorFijo"  value="{{$prestamo->valorCuota}}"/>
                         </div>
                         <div class="form-group presPorcentaje @if ($prestamo->tipoDescuento == "3") activo @endif @if (isset($prestamo->porcentajeCuota)) hasText @endif">
                             <label for="presPorcentaje" class="control-label">Porcentaje:</label>

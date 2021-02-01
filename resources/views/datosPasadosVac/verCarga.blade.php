@@ -64,6 +64,7 @@
                     <th>Fecha Fin</th>
                     <th>Dias</th>
                     <th>Estado Subida</th>
+                    <th></th>
                 </tr>
                 <tbody id="datosCargados">
                     @foreach ($datosPasados as $index => $datoPasado)
@@ -75,17 +76,44 @@
                             <th>{{$datoPasado->tipo}}</th>
                             <td>{{$datoPasado->numeroIdentificacion}}</td>
                             <td>{{$datoPasado->primerApellido}} {{$datoPasado->segundoApellido}} {{$datoPasado->primerNombre}} {{$datoPasado->segundoNombre}}</td>
-                            <td>{{$datoPasado->fecha}}</td>
-                            <td>{{$datoPasado->fechaInicial}}</td>
-                            <td>{{$datoPasado->fechaFinal}}</td>
-                            <td>{{$datoPasado->dias}}</td>
+                            <td>
+                                <span class="mostrarModificacion" data-id="{{$datoPasado->idDatosPasados}}">{{$datoPasado->fecha}}</span>
+                                <input type="date" class="ocultoModificacion" value="{{$datoPasado->fecha}}" id="fecha_{{$datoPasado->idDatosPasados}}" data-id="{{$datoPasado->idDatosPasados}}" />
+                            </td>
+                            <td>
+                                <span class="mostrarModificacion" data-id="{{$datoPasado->idDatosPasados}}">{{$datoPasado->fechaInicial}}</span>
+                                <input type="date" class="ocultoModificacion" value="{{$datoPasado->fechaInicial}}" id="fechaInicial_{{$datoPasado->idDatosPasados}}" data-id="{{$datoPasado->idDatosPasados}}" />
+                            </td>
+                            <td>
+                                <span class="mostrarModificacion" data-id="{{$datoPasado->idDatosPasados}}">{{$datoPasado->fechaFinal}}</span>
+                                <input type="date" class="ocultoModificacion" value="{{$datoPasado->fechaFinal}}" id="fechaFinal_{{$datoPasado->idDatosPasados}}" data-id="{{$datoPasado->idDatosPasados}}" />
+                            </td>
+                            <td>
+                                <span class="mostrarModificacion" data-id="{{$datoPasado->idDatosPasados}}">{{$datoPasado->dias}}</span>
+                                <input type="text" class="ocultoModificacion" value="{{$datoPasado->dias}}" id="dias_{{$datoPasado->idDatosPasados}}" data-id="{{$datoPasado->idDatosPasados}}" />
+                            </td>
                             <td>{{$datoPasado->estado}}</td>
+                            <td>
+                                <a href="#" class="modificar mostrarModificacion" data-id="{{$datoPasado->idDatosPasados}}">Modificar</a>
+
+                                <a href="#" class="modificarEnvio btnSubmitGen ocultoModificacion" data-id="{{$datoPasado->idDatosPasados}}">Modificar</a>
+                                <br><br>
+                                <a href="#" class="cancelar btnSubmitGen ocultoModificacion" data-id="{{$datoPasado->idDatosPasados}}">Cancelar</a>
+                            
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
             </form>
-
+            <form method="POST" autocomplete="off" id="formMod" action="/datosPasadosVac/modificarRegistro">
+                @csrf
+                <input type="hidden" id="idDatoPasado" name="idDatoPasado" />
+                <input type="hidden" id="fecha" name="fecha" />
+                <input type="hidden" id="fechaInicial" name="fechaInicial" />
+                <input type="hidden" id="fechaFinal" name="fechaFinal" />
+                <input type="hidden" id="dias" name="dias" />
+            </form>
 
         </div>
     </div>

@@ -11,17 +11,25 @@
         </select>
     </div>
     <div class="col-3">
-        @if ($itemReporte->tipo == "texto")
-            <input type="text" class="form-control filtro" name="filtro[]" required />
-        @endif
-        @if ($itemReporte->tipo == "fecha")
-            <input type="date" class="form-control filtro" name="filtro[]" required />
-        @endif
-        @if ($itemReporte->tipo == "bool")
+        @if ($idReporteItem == "214")
             <select class="form-control"name="filtro[]" required="">
-                <option value="1">SI</option>
-                <option value="0">NO</option>
+                @foreach ($estados as $estado)
+                    <option value="{{$estado->idestado}}">{{ $estado->nombre }}</option>
+                @endforeach
             </select>
+        @else
+            @if ($itemReporte->tipo == "texto")
+                <input type="text" class="form-control filtro" name="filtro[]" required />
+            @endif
+            @if ($itemReporte->tipo == "fecha")
+                <input type="date" class="form-control filtro" name="filtro[]" required />
+            @endif
+            @if ($itemReporte->tipo == "bool")
+                <select class="form-control"name="filtro[]" required="">
+                    <option value="1">SI</option>
+                    <option value="0">NO</option>
+                </select>
+            @endif
         @endif
     </div>
     <div class="col-2">

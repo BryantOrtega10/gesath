@@ -48,7 +48,8 @@ class EmpleadoController extends Controller
                 $query->where("dp.primerNombre","LIKE","%".$req->nombre."%")
                 ->orWhere("dp.segundoNombre","LIKE","%".$req->nombre."%")
                 ->orWhere("dp.primerApellido","LIKE","%".$req->nombre."%")
-                ->orWhere("dp.segundoApellido","LIKE","%".$req->nombre."%");
+                ->orWhere("dp.segundoApellido","LIKE","%".$req->nombre."%")
+                ->orWhereRaw("CONCAT(dp.primerApellido,' ',dp.segundoApellido,' ',dp.primerNombre,' ',dp.segundoNombre) LIKE '%".$req->nombre."%'");
             });
             $arrConsulta["nombre"] = $req->nombre;
         }
@@ -469,7 +470,11 @@ class EmpleadoController extends Controller
         foreach($afiliaciones as $afiliacion){
             $afiliacionesEnt = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->get();
+                    ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion);
+            if($afiliacion->fkTipoAfilicacion=="1"){
+                $afiliacionesEnt = $afiliacionesEnt->whereNotIn("tercero.idTercero",["10","108","111","112","113"]);
+            }
+            $afiliacionesEnt = $afiliacionesEnt->get();
 
             $entidadesAfiliacion[$afiliacion->idAfiliacion] = $afiliacionesEnt;
         }
@@ -479,8 +484,11 @@ class EmpleadoController extends Controller
 
         $afiliacionesEnt1 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '1')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '1')
+                    ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                    ->get();
 
+     
         $afiliacionesEnt2 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '2')->get();
@@ -788,7 +796,9 @@ class EmpleadoController extends Controller
 
         $afiliacionesEnt1 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '1')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '1')
+                    ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                    ->get();
 
         $afiliacionesEnt2 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
@@ -4506,7 +4516,9 @@ class EmpleadoController extends Controller
     
                 $afiliacionesEnt1 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                            ->where("ta.idTipoAfiliacion", "=", '1')->get()->toArray();
+                            ->where("ta.idTipoAfiliacion", "=", '1')
+                            ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                            ->get()->toArray();
                 $afiliacionesEnt2 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                             ->where("ta.idTipoAfiliacion", "=", '2')->get()->toArray();
@@ -4984,7 +4996,9 @@ class EmpleadoController extends Controller
 
         $afiliacionesEnt1 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '1')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '1')
+                    ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                    ->get();
         $afiliacionesEnt2 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '2')->get();

@@ -2,11 +2,12 @@
 	<h2>Editar calendario</h2>
 
     @csrf
-    <input type="hidden" name="idCalendario" value = "{{ $calendario->idCalendario }}">
+    {{--<input type="hidden" name="idCalendario" value = "{{ $calendario->idCalendario }}">--}}
 	<div class="form-group">
 		<label for="selectAnio">Seleccione un año</label>
 		<select name="selectAnio" id="selectAnio" class="form-control">
 			<option value="">-- Seleccione un año --</option>
+			<option value="2021">2021</option>
 			<option value="2022">2022</option>
 			<option value="2023">2023</option>
 			<option value="2024">2024</option>

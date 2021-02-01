@@ -419,9 +419,7 @@
                             @if ($i>1)
                             <div class="row">
                                 <div class="col-10"></div>
-                                <div class="col-2 text-right">
-                                    <a href="#" class="btn btn-outline-danger quitarContactoEmergencia" data-id="{{$i}}">Quitar</a>
-                                </div>
+                                
                             </div>
                             @endif
                             <input type="hidden" name="idContactoEmergencia[]" value="{{$contactosEmergencia[$i-1]->idContactoEmergencia}}" />
@@ -501,9 +499,7 @@
                                 <div class="col-10">
                                     Persona con quien vive 
                                 </div>
-                                <div class="col-2 text-right">
-                                    <a href="#" class="btn btn-outline-danger quitarPersonaVive" data-id="{{$idRow}}">Quitar</a>
-                                </div>
+                                
                             </div>                            
                             <input type="hidden" name="idNucleoFamiliar[]" value="{{$nucleo->idNucleoFamiliar}}" />
                             <div class="row">
@@ -560,9 +556,7 @@
                             <div class="col-10">
                                 UPC ADICIONAL 
                             </div>
-                            <div class="col-2 text-right">
-                                <a href="#" class="btn btn-outline-danger quitarUpcAdicional" data-id="{{$idRow}}">Quitar</a>
-                            </div>
+                            
                         </div> 
                         <input type="hidden" name="idUpcAdicional[]" value="{{$upcAdic->idUpcAdicional}}" />
                         <div class="row">
@@ -866,9 +860,7 @@
                                 @if ($i!=1)
                                     <div class="row">
                                         <div class="col-11"></div>
-                                        <div class="col-1 text-right">
-                                            <a href="#" class="btn btn-outline-danger quitarCentroCosto" data-id="{{$i}}">Quitar</a>
-                                        </div>
+                                        
                                     </div>                                    
                                 @endif
                                 
@@ -1108,9 +1100,7 @@
                             <div class="beneficioTrib" data-id="{{$i}}">
                                 <input type="hidden" name="idBeneficioTributario[]" value="{{$beneficiosTributarios[$i-1]->idBeneficioTributario}}"/>
                                 <div class="row">                            
-                                    <div class="col-12 text-right">
-                                        <a href="#" class="btn btn-outline-danger quitarBeneficio" data-id="{{$i}}">Quitar</a><br><br>
-                                    </div>
+                                    
                                 </div>
                                 <div class="row">
                                     <div class="col-3">
@@ -1637,16 +1627,12 @@
                             <div class="afiliacion" data-id="{{$num}}">
                                 @if ($num>4)
                                     <div class="row">
-                                        <div class="col-12 text-right">
-                                            <a href="#" class="btn btn-outline-danger quitarAfiliacion2" data-id="{{$num}}">Quitar</a><br><br>
-                                        </div>
+                                        
                                     </div> 
                                 @else
                                     @if ($empleado->esPensionado != 0 && $afiliaciones[$num - 1]->fkTipoAfilicacion == 4)
                                         <div class="row">
-                                            <div class="col-12 text-right">
-                                                <a href="#" class="btn btn-outline-danger quitarAfiliacion2" data-id="{{$num}}">Quitar</a><br><br>
-                                            </div>
+                                            
                                         </div> 
                                     @endif
                                 @endif
@@ -1979,9 +1965,7 @@
                             @if ($i > 1)
                                 <div class="row">
                                     <div class="col-11"></div>
-                                    <div class="col-1 text-right">
-                                        <a href="#" class="btn btn-outline-danger quitarConceptoFijo" data-id="{{$i}}">Quitar</a>
-                                    </div>
+                                    
                                 </div>
                             @endif                            
                             <div class="row">
