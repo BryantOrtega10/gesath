@@ -56,8 +56,24 @@ class InicioController extends Controller
                 } else {
                     return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado']);
                 }   
-            } else {
-                 return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado o está en creación']);
+            } else if (!isset($emple)){
+                $estadoUsu = $dataUsu->estado;
+                if ($estadoUsu == 1) {
+                    $credentials = $request->only($this->username(), 'password');
+                    $authSuccess = Auth::attempt($credentials);
+            
+                    if($authSuccess) {
+                        $request->session()->regenerate();
+                        return response(['success' => true, 'rol' => $dataUsu->fkRol], 200);
+                    }
+            
+                    return response()->json(['success' => false, 'mensaje' => 'Error, usuario o contraseña incorrectos']);
+                } else {
+                    return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no ha sido activado']);
+                }
+            }
+            else{
+                return response()->json(['success' => false, 'mensaje' => 'Error, el usuario no se encuentra activo']);
             }
         } else {
             return response()->json(['success' => false, 'mensaje' => 'Error, usuario o contraseña incorrectos']);

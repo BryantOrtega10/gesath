@@ -9,7 +9,7 @@ $(document).ready(function() {
 
 
     var camposOpciones = {
-        opcionales: ["password", "infoOtroDocumento"],
+        opcionales: ["password", "infoOtroDocumento", "infoLocalidad"],
         opcionalesAVeces: [{
                 camposQueSonOb: ["infoEntidadFinanciera", "infoNoCuenta", "infoTipoCuenta"],
                 camposCambia: [{ campo: "infoFormaPago", valorCambia: ["Cheque", "Efectivo", "Otra forma pago"] }],
@@ -282,6 +282,8 @@ $(document).ready(function() {
         $("#infoLugarLabora").html('<option value=""></option>');
         $("#infoDeptoLabora").trigger("change");
         $("#infoLugarLabora").trigger("change");
+        $("#infoLocalidad").html('<option value=""></option>');
+        $("#infoLocalidad").trigger("change");
         if (valorUbicacion != "") {
             $.ajax({
                 type: 'GET',
@@ -305,6 +307,8 @@ $(document).ready(function() {
         var valorUbicacion = $(this).val();
         $("#infoLugarLabora").html('<option value=""></option>');
         $("#infoLugarLabora").trigger("change");
+        $("#infoLocalidad").html('<option value=""></option>');
+        $("#infoLocalidad").trigger("change");
         if (valorUbicacion != "") {
             $.ajax({
                 type: 'GET',
@@ -312,6 +316,28 @@ $(document).ready(function() {
                 success: function(data) {
                     $("#cargando").css("display", "none");
                     $("#infoLugarLabora").html(data.opciones);
+                },
+                error: function(data) {
+                    console.log("error");
+                    console.log(data);
+                }
+            });
+        }
+    });
+
+    $("body").on("change", "#infoLugarLabora", function() {
+        cargando();
+        var valorUbicacion = $(this).val();
+        $("#infoLocalidad").html('<option value=""></option>');
+        $("#infoLocalidad").trigger("change");
+
+        if (valorUbicacion != "") {
+            $.ajax({
+                type: 'GET',
+                url: "/ubicaciones/obtenerHijos/" + valorUbicacion,
+                success: function(data) {
+                    $("#cargando").css("display", "none");
+                    $("#infoLocalidad").html(data.opciones);
                 },
                 error: function(data) {
                     console.log("error");

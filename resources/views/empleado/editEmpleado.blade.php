@@ -789,6 +789,20 @@
                             </div>
                         </div>
                         <div class="col-3">
+                            <div class="form-group @isset($empleado->fkLocalidad) hasText @endisset">
+                                <label for="infoLocalidad" class="control-label">Localidad</label>
+                                <select class="form-control" id="infoLocalidad" name="infoLocalidad">
+                                    <option value=""></option>     
+                                    @foreach ($localidadesTra as $localidadTra)
+                                        <option value="{{$localidadTra->idubicacion}}" @if($localidadTra->idubicacion == $empleado->fkLocalidad) selected @endif>{{$localidadTra->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">       
+                        
+                        <div class="col-3">
                             <div class="form-group @isset($empleado->sabadoLaborable) hasText @endisset">
                                 <label for="infoSabadoLabora" class="control-label">Sabado laborable?</label>
                                 <select class="form-control" id="infoSabadoLabora" name="infoSabadoLabora">
@@ -797,9 +811,7 @@
                                     <option value="0" @if ("0" == $empleado->sabadoLaborable) selected @endif>NO</option>    
                                 </select>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">                        
+                        </div>                 
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkCargo) hasText @endisset">
                                 <label for="infoCargo" class="control-label">Cargo</label>
@@ -826,6 +838,9 @@
                             <button type = "button" class = "btn btn-outline-primary generar_pass">Generar</button>
                         </div>
                         @endif
+                        
+                    </div>
+                    <div class="row">
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoTipoCotizante" class="control-label">Tipo cotizante</label>
@@ -836,8 +851,6 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoSubTipoCotizante" class="control-label">Subtipo cotizante</label>

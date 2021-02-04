@@ -213,8 +213,7 @@ Route::group([
 	});	
 });
 Route::group([
-	'prefix' => 'reportes',
-	'middleware' => ['auth', 'guest:2,3'],
+	'prefix' => 'reportes'
 ], function(){
 	Route::get('documentoNominaHorizontal/{idNomina}','ReportesNominaController@documentoNominaHorizontal');
 	Route::get('reporteNominaAcumulado','ReportesNominaController@reporteNominaAcumuladoIndex');
@@ -570,6 +569,21 @@ Route::group([
 	Route::post('/cambiarContrasenia/{id}', 'UsuarioController@actPass');
 });
 
+Route::group([
+	'prefix' => 'codigos',
+	'middleware' => ['auth', 'guest:2,3'],
+], function() {
+	Route::get('/', 'CodDiagnosticoController@index');
+	Route::get('/traerCodigos', 'CodDiagnosticoController@getAll');
+	Route::get('/getFormAdd', 'CodDiagnosticoController@getFormAdd');
+	Route::post('/agregarCodigo', 'CodDiagnosticoController@create');
+	Route::get('/datosCodigoXId/{id}', 'CodDiagnosticoController@edit');
+	Route::get('/detalleCodigo/{id}', 'CodDiagnosticoController@detail');
+	Route::post('/editarCodigo/{id}', 'CodDiagnosticoController@update');
+	Route::post('/eliminarCodigo/{id}', 'CodDiagnosticoController@delete');
+});
+
+
 Route::get('/recuperar_pass', 'InicioController@vistaRecuperarMail');
 Route::get('/vista_rec_pass/{token}', 'InicioController@vistaActPass');
 Route::post('/enviar_correo_rec_pass', 'InicioController@validarUsuario')->middleware('mail');;
@@ -604,9 +618,16 @@ Route::group([
 	Route::get('/datosEmple/{idEmpleado}', 'PortalEmpleadoController@datosEmpleadoPerfil');
 	Route::post('/ediDatosEmple/{idEmpleado}', 'PortalEmpleadoController@editarDataEmple');
 	Route::get('/getVistaPass/{id}', 'PortalEmpleadoController@vistaActPass');
+	Route::get('/traerFormularios220', 'PortalEmpleadoController@traerFormularios220');
+	Route::get('/vistaComprobantes/{id}', 'PortalEmpleadoController@getVistaBoucherPago');
+	Route::get('/comprobantesPago/{id}', 'PortalEmpleadoController@getBouchersPagoEmpleado');
+	Route::post('/buscarComprobantes/{id}', 'PortalEmpleadoController@buscarBoucherPorFecha');
+	/* Route::get('/generarCertificadoLaboral/{id}', 'PortalEmpleadoController@generarCertificadoLaboral'); */
 	Route::post('/cambiarContrasenia/{id}', 'PortalEmpleadoController@actPass');
 	Route::post('/cambiarContrasenia/{id}', 'PortalEmpleadoController@actOnlyPass');
 });
+
+Route::get('portalEmp/generarCertificadoLaboral/{id}', 'PortalEmpleadoController@generarCertificadoLaboral');
 
 // Ruta para eliminar cache de la aplicacion
 

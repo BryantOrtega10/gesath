@@ -1142,3 +1142,14 @@ select.selectMultiple {
 .presPorcentaje.activo {
     display: block;
 }
+
+div#cargando {
+    display: flex;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgb(0 0 0 / 12%);
+    z-index: 9999999999;
+}

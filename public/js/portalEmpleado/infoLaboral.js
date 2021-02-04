@@ -35,6 +35,38 @@ $(document).ready(() => {
         );
     });
 
+    $("body").on("click", ".certificado_dosveinte", (e) => {
+        const idUsu = $("#idUsu").val();
+        solicitudAjax(`/portal/traerFormularios220`, 'GET', null,
+            (data) => {
+                $(".respForm[data-para='portalEmple']").html(data);
+                $('#portalEmpleModal').modal('show');
+                const fechaActual = moment(new Date(), 'YYYY-MM-DD');
+                const fechaDiaHoy = fechaActual.format('YYYY-MM-DD');
+                $('#empresa').val($('.certificado_dosveinte').attr('data-idempresa'));
+                $('#infoNomina').val($('.certificado_dosveinte').attr('data-nomina'));
+                $('#idEmpleado').val($('.certificado_dosveinte').attr('data-idempleado'));
+                $('#fechaExp').val(fechaDiaHoy);
+                $('#reporte').val('PDF');
+                $('#agenteRetenedor').val($('.certificado_dosveinte').attr('data-agente'));
+            }, (err) => {
+                console.log(err);
+            }
+        );
+    });
+
+    $("body").on("click", ".comprobantes_pago", (e) => {
+        const idEmpleado = $(".comprobantes_pago").attr('data-idempleado');
+        solicitudAjax(`/portal/vistaComprobantes/${idEmpleado}`, 'GET', null,
+            (data) => {
+                $(".respForm[data-para='portalEmple']").html(data);
+                $('#portalEmpleModal').modal('show');
+            }, (err) => {
+                console.log(err);
+            }
+        );
+    });
+
     $("body").on("submit", ".formPerfilEmple", (e) => {
         e.preventDefault();
         const idUsu = $("#idEmpleado").val();
@@ -119,7 +151,6 @@ $(document).ready(() => {
         const idUbi = $("#deptos option:selected").val();
         traerUbicacionesFk('#fkUbicacion', idUbi);
     });
-
 });
 
 function traerUbicacionesFk(domAppend, idUbi) {

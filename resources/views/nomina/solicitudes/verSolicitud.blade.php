@@ -88,7 +88,7 @@
                 </div>               
             </div>
             <div class="col-4">
-                <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+                <input type="submit" value="Consultar"/><input type="reset" class="recargar" data-url="{{Request::url()}}" value="" /> 
             </div>
         </div>
        

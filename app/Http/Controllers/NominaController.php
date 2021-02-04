@@ -4053,7 +4053,7 @@ class NominaController extends Controller
        
         
         $novedadesRetiro = DB::table("novedad","n")
-        ->select("r.fecha")
+        ->select("r.fecha","r.fechaReal")
         ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
         ->where("n.fkEmpleado", "=", $empleado->idempleado)
         ->whereRaw("n.fkPeriodoActivo in(
@@ -4067,25 +4067,32 @@ class NominaController extends Controller
 
         if(isset($novedadesRetiro)){
             $fechaFinCalc = $fechaFin;
-            if(substr($fechaFin, 8, 2) == "31" || substr($fechaFin, 8, 2) == "28" || substr($fechaFin, 8, 2) == "29" ){
+            if(substr($fechaFin, 8, 2) == "31" || (substr($fechaFin, 8, 2) == "28" && substr($fechaFin, 5, 2) == "02") || (substr($fechaFin, 8, 2) == "29" && substr($fechaFin, 5, 2) == "02")  ){
                 $fechaFinCalc = substr($fechaFin,0,8)."30";
             }
-            if(substr($novedadesRetiro->fecha, 8, 2) == "31" || substr($novedadesRetiro->fecha, 8, 2) == "28" || substr($novedadesRetiro->fecha, 8, 2) == "29" ){
+            if(substr($novedadesRetiro->fecha, 8, 2) == "31" || (substr($novedadesRetiro->fecha, 8, 2) == "28" && substr($novedadesRetiro->fecha, 5, 2) == "02") || (substr($novedadesRetiro->fecha, 8, 2) == "29"  && substr($novedadesRetiro->fecha, 5, 2) == "02") ){
                 $novedadesRetiro->fecha = substr($novedadesRetiro->fecha,0,8)."30";
             }
             
             $dias = $this->days_360($novedadesRetiro->fecha, $fechaFinCalc);
             
-            if($dias < 30){
-                
+            if($dias < 30){                
                 if($empleado->fechaIngreso != $novedadesRetiro->fecha){
                     $periodoPago = $periodoPago - (floor($dias));
                 }
                 else{
                     $periodoPago = $periodoPago - (floor($dias));
                 }
+            }
+            
+            if($novedadesRetiro->fecha != $novedadesRetiro->fechaReal){
                 
-                
+                if(substr($novedadesRetiro->fechaReal, 5, 2) <= substr($novedadesRetiro->fecha, 5, 2) ){
+                    $periodoPago = 0;
+                }
+                else if(substr($novedadesRetiro->fechaReal, 5, 2) == 12 && substr($novedadesRetiro->fecha, 5, 2) == 1){
+                    $periodoPago = 0;
+                }
             }
            
         }
@@ -4272,8 +4279,8 @@ class NominaController extends Controller
                             $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
 
                             if(isset($novedadesRetiro)){
-                                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fecha)){
-                                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fechaReal)){
+                                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fechaReal) + 1 ;
                                 }
                             }
  
@@ -4415,8 +4422,8 @@ class NominaController extends Controller
                             $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
 
                             if(isset($novedadesRetiro)){
-                                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fecha)){
-                                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fechaReal)){
+                                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fechaReal) + 1 ;
                                 }
                             }
                             
@@ -4616,8 +4623,8 @@ class NominaController extends Controller
                     $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
 
                     if(isset($novedadesRetiro)){
-                        if(strtotime($fechaFin) > strtotime($novedadesRetiro->fecha)){
-                            $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                        if(strtotime($fechaFin) > strtotime($novedadesRetiro->fechaReal)){
+                            $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fechaReal) + 1 ;
                         }
                     }
 
@@ -4808,8 +4815,8 @@ class NominaController extends Controller
                     $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
 
                     if(isset($novedadesRetiro)){
-                        if(strtotime($fechaFin) > strtotime($novedadesRetiro->fecha)){
-                            $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                        if(strtotime($fechaFin) > strtotime($novedadesRetiro->fechaReal)){
+                            $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fechaReal) + 1 ;
                         }
                     }
                     
@@ -6322,7 +6329,7 @@ class NominaController extends Controller
             }
 
             
-            $arrResPrima = $this->calcularPrima($fechaInicio, $fechaFinParaPrima, $empleado, $periodo, $periodoPagoSinVac);
+            $arrResPrima = $this->calcularPrima($fechaInicio, $fechaFinParaPrima, $empleado, $periodo, $periodoPagoSinVac, $arrValorxConcepto);
             $liquidacionPrima = $arrResPrima["liquidacionPrima"];
             $fechaInicialPrima = $arrResPrima["fechaInicialPrima"];
             $fechaFinalPrima = $arrResPrima["fechaFinalPrima"];
@@ -6480,7 +6487,7 @@ class NominaController extends Controller
            
             
             $diff = intval($salarioCes) - intval($salarioMes);
-           
+            
             if($diff != 0){
                 
                 $liquidacionesMesesAnterioresCesantias = DB::table("liquidacionnomina", "ln")
@@ -6513,14 +6520,14 @@ class NominaController extends Controller
                 $salarioCes = $salarioMes;
             }   
             
-
-
-            $variablesSalarioMinimo = DB::table("variable")->where("idVariable","=","1")->first();
-            if($salarioCes < (2 * $variablesSalarioMinimo->valor)){
-                $variablesSubTrans = DB::table("variable")->where("idVariable","=","2")->first();
-                $salarioCes = $salarioCes + $variablesSubTrans->valor;
+           
+            if($empleado->aplicaSubsidio == "1"){
+                $variablesSalarioMinimo = DB::table("variable")->where("idVariable","=","1")->first();
+                if($salarioCes < (2 * $variablesSalarioMinimo->valor)){
+                    $variablesSubTrans = DB::table("variable")->where("idVariable","=","2")->first();
+                    $salarioCes = $salarioCes + $variablesSubTrans->valor;
+                }
             }
-
 
 
             $liquidacionesMesesAnterioresCompleta = DB::table("liquidacionnomina", "ln")
@@ -6553,6 +6560,7 @@ class NominaController extends Controller
 
             $fechaFinalCes = $fechaFin;
 
+
             $totalPeriodoPagoAnioActual = $periodoPagoMesActual + $liquidacionesMesesAnterioresCompleta->periodPago;
            
             //INICIO QUITAR LRN PARA CESANTIAS
@@ -6574,7 +6582,7 @@ class NominaController extends Controller
             //FIN QUITAR LRN PARA CESANTIAS
 
 
-           
+            
             
 
             $itemsBoucherSalarialMesesAnterioresCes = DB::table("item_boucher_pago", "ibp")
@@ -6590,13 +6598,17 @@ class NominaController extends Controller
             ->first();
 
             $salarialCes = $salarial + $itemsBoucherSalarialMesesAnterioresCes->suma;
-            $salarialCes = ($salarialCes / $totalPeriodoPagoAnioActual)*30;
+            if($totalPeriodoPagoAnioActual != 0){
+                $salarialCes = ($salarialCes / $totalPeriodoPagoAnioActual)*30;
+            }
+            
 
             
-            $baseCes = $salarioCes + $salarialCes;
-        
-            $liquidacionCesantias = ($baseCes / 30)*(($totalPeriodoPagoAnioActual * $nomina->diasCesantias) / 360);
 
+            $baseCes = $salarioCes + $salarialCes;
+            
+            $liquidacionCesantias = ($baseCes / 30)*(($totalPeriodoPagoAnioActual * $nomina->diasCesantias) / 360);
+            
             $historicoProvisionCesantias = DB::table("provision","p")
             ->selectRaw("sum(p.valor) as sumaValor")
             ->where("p.fkEmpleado","=",$empleado->idempleado)
@@ -6660,9 +6672,10 @@ class NominaController extends Controller
             
 
 
-            if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($fechaInicio))){
+            if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($fechaInicio)) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($empleado->fechaIngreso)) ){
                 $diasAgregar = $this->days_360($empleado->fechaIngreso, $minimaFecha);
             }            
+            
             $totalPeriodoPagoAnioActual = $totalPeriodoPagoAnioActual + $diasAgregar;
 
 
@@ -6751,8 +6764,8 @@ class NominaController extends Controller
             $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
 
             if(isset($novedadesRetiro)){
-                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fecha)){
-                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fechaReal)){
+                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fechaReal) + 1 ;
                 }
             }
             //INICIO QUITAR LRN VAC
@@ -6839,7 +6852,10 @@ class NominaController extends Controller
             ->first();
 
             $salarialVac = $salarialVac + $itemsBoucherSalarialMesesAnterioresVac->suma;
-            $salarialVac = ($salarialVac / $totalPeriodoPagoAnioActual)*30;
+            if($totalPeriodoPagoAnioActual!=0){
+                $salarialVac = ($salarialVac / $totalPeriodoPagoAnioActual)*30;
+            }
+            
             
             $salarioVac = 0;
 
@@ -6900,7 +6916,7 @@ class NominaController extends Controller
 
             if($tipoliquidacion == "7"){//TipoLiquidacion solo PRIMA
 
-                $arrResPrima = $this->calcularPrima($fechaInicio, $liquidacionNomina->fechaPrima, $empleado, $periodo, $periodoPagoSinVac);
+                $arrResPrima = $this->calcularPrima($fechaInicio, $liquidacionNomina->fechaPrima, $empleado, $periodo, $periodoPagoSinVac, $arrValorxConcepto);
                 
                 $liquidacionAnticipoPrima = $arrResPrima["liquidacionPrima"];
                 $fechaInicialPrima = $arrResPrima["fechaInicialPrima"];
@@ -6976,7 +6992,7 @@ class NominaController extends Controller
                     }
                     $diasAgregar = 0;
                     //Verificar si dicha nomina es menor a la fecha de ingreso
-                    if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha)){
+                    if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($fechaInicio)) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($empleado->fechaIngreso)) ){
                         $diasAgregar = $this->days_360($empleado->fechaIngreso, $minimaFecha);
                     }   
                     
@@ -7047,10 +7063,10 @@ class NominaController extends Controller
                 }
                 $diasAgregar = 0;
                 //Verificar si dicha nomina es menor a la fecha de ingreso
-                if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha)){
+                if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($fechaInicio)) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($empleado->fechaIngreso)) ){
                     $diasAgregar = $this->days_360($empleado->fechaIngreso, $minimaFecha);
                 }   
-
+                
 
                 $arrSaldo = array();
                 $saldoPrima = 0;
@@ -7190,7 +7206,7 @@ class NominaController extends Controller
             if($tipoliquidacion == "6"){ //NORMAL + ANTICIPO DE PRIMA
                 if(isset($liquidacionNomina->fechaPrima) && $liquidacionNomina->tipoliquidacionPrima=="1"){
 
-                    $arrResPrima = $this->calcularPrima($fechaInicio, $liquidacionNomina->fechaPrima, $empleado, $periodo, $periodoPagoSinVac);
+                    $arrResPrima = $this->calcularPrima($fechaInicio, $liquidacionNomina->fechaPrima, $empleado, $periodo, $periodoPagoSinVac, $arrValorxConcepto);
                     $liquidacionAnticipoPrima = $arrResPrima["liquidacionPrima"];
                     $fechaInicialPrima = $arrResPrima["fechaInicialPrima"];
                     $fechaFinalPrima = $arrResPrima["fechaFinalPrima"];
@@ -7299,7 +7315,7 @@ class NominaController extends Controller
 
                     }
                     
-                    $arrResPrima = $this->calcularPrima($fechaInicio, date("Y-".$mesProyeccion."-30", strtotime($fechaInicio)), $empleado, $periodo, $periodoPagoSinVac);
+                    $arrResPrima = $this->calcularPrima($fechaInicio, date("Y-".$mesProyeccion."-30", strtotime($fechaInicio)), $empleado, $periodo, $periodoPagoSinVac, $arrValorxConcepto);
                     $liquidacionAnticipoPrima = $arrResPrima["liquidacionPrima"];
                     $fechaInicialPrima = $arrResPrima["fechaInicialPrima"];
                     $fechaFinalPrima = $arrResPrima["fechaFinalPrima"];
@@ -7393,7 +7409,7 @@ class NominaController extends Controller
                     else if($mesActual >= 7 && $mesActual <= 12){
                         $mesProyeccion = 12;
                     }                    
-                    $arrResPrima = $this->calcularPrima($fechaInicio, date("Y-".$mesProyeccion."-30", strtotime($fechaInicio)), $empleado, $periodo, $periodoPagoSinVac);
+                    $arrResPrima = $this->calcularPrima($fechaInicio, date("Y-".$mesProyeccion."-30", strtotime($fechaInicio)), $empleado, $periodo, $periodoPagoSinVac, $arrValorxConcepto);
                     $liquidacionAnticipoPrima = $arrResPrima["liquidacionPrima"];
                     $fechaInicialPrima = $arrResPrima["fechaInicialPrima"];
                     $fechaFinalPrima = $arrResPrima["fechaFinalPrima"];
@@ -7490,8 +7506,8 @@ class NominaController extends Controller
             $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
 
             if(isset($novedadesRetiro)){
-                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fecha)){
-                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                if(strtotime($fechaFin) > strtotime($novedadesRetiro->fechaReal)){
+                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fechaReal) + 1 ;
                 }
             }
             //INICIO QUITAR LRN VAC
@@ -8018,7 +8034,7 @@ class NominaController extends Controller
                         }
                     }
                     else{
-                        if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($fechaInicio)) ){                        
+                        if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($fechaInicio)) && date("Y",strtotime($minimaFecha))==date("Y",strtotime($empleado->fechaIngreso)) ){                        
                             $diasAgregar = $this->days_360($empleado->fechaIngreso, $minimaFecha);
                         }   
                     }
@@ -8109,7 +8125,7 @@ class NominaController extends Controller
                     }
 
                     $fechaFinalCes = $novedadesRetiro->fecha;
-                    $arrValorxConcepto[66] = array(
+                    $arrValorxConcepto[66] = array( 
                         "naturaleza" => "1",
                         "unidad" => "DÍA",
                         "cantidad"=> $totalPeriodoPagoAnioActual,
@@ -8127,34 +8143,35 @@ class NominaController extends Controller
 
 
 
-                    $saldoCesantiasAnioAnterior = DB::table("saldo")
-                    ->where("fkEmpleado","=",$empleado->idempleado)
-                    ->where("anioAnterior","=",date("Y",strtotime($fechaInicio)))
-                    ->where("fkConcepto","=", "67")//CESANTIAS AÑO ANTERIOR
-                    ->where("fkEstado","=","7")
-                    ->first();
-
-                    if(isset($saldoCesantiasAnioAnterior)){
-                        $arrValorxConcepto[67] = array(
-                            "naturaleza" => "1",
-                            "unidad" => "VALOR",
-                            "cantidad"=> "0",
-                            "arrNovedades"=> array([
-                                "idNovedad" => $novedadesRetiro->idNovedad,
-                                "valor" => $saldoCesantiasAnioAnterior->valor
-                            ]),
-                            "arrSaldo"=> array([
-                                "idSaldo" => $saldoCesantiasAnioAnterior->idSaldo,
-                                "valor" => $saldoCesantiasAnioAnterior->valor
-                            ]),
-                            "valor" => $saldoCesantiasAnioAnterior->valor,
-                            "tipoGen" => "automaticos"
-                        );
-                    }
+                    
                    
 
 
 
+                }
+                $saldoCesantiasAnioAnterior = DB::table("saldo")
+                ->where("fkEmpleado","=",$empleado->idempleado)
+                ->where("anioAnterior","=",date("Y",strtotime($fechaInicio)))
+                ->where("fkConcepto","=", "67")//CESANTIAS AÑO ANTERIOR
+                ->where("fkEstado","=","7")
+                ->first();
+
+                if(isset($saldoCesantiasAnioAnterior)){
+                    $arrValorxConcepto[67] = array(
+                        "naturaleza" => "1",
+                        "unidad" => "VALOR",
+                        "cantidad"=> "0",
+                        "arrNovedades"=> array([
+                            "idNovedad" => $novedadesRetiro->idNovedad,
+                            "valor" => $saldoCesantiasAnioAnterior->valor
+                        ]),
+                        "arrSaldo"=> array([
+                            "idSaldo" => $saldoCesantiasAnioAnterior->idSaldo,
+                            "valor" => $saldoCesantiasAnioAnterior->valor
+                        ]),
+                        "valor" => $saldoCesantiasAnioAnterior->valor,
+                        "tipoGen" => "automaticos"
+                    );
                 }
                 if($liquidacionIntCesantias>0){
 
@@ -8244,7 +8261,18 @@ class NominaController extends Controller
 
 
                   
-                    
+                    $anioLiquida = $anioActual;
+                    $fechaInicioLiquida = $fechaInicioMes;
+                    if($novedadesRetiro->fecha != $novedadesRetiro->fechaReal){
+                        if(substr($novedadesRetiro->fechaReal, 5, 2) <= substr($novedadesRetiro->fecha, 5, 2) ){
+                            
+                        }
+                        else if(substr($novedadesRetiro->fechaReal, 5, 2) == 12 && substr($novedadesRetiro->fecha, 5, 2) == 1){
+                            $anioLiquida = $anioActual - 1;
+                            $fechaInicioLiquida = $fechaInicioMes;
+                        }
+                    }
+
                     $itemsBoucherSalarialMesesAnterioresVac = DB::table("item_boucher_pago", "ibp")
                     ->selectRaw("Sum(ibp.valor) as suma")
                     ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
@@ -8252,13 +8280,26 @@ class NominaController extends Controller
                     ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
                     ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
-                    ->where("ln.fechaInicio","<",$fechaInicioMes)
-                    ->whereRaw("YEAR(ln.fechaInicio) = '".$anioActual."'")                
+                    ->where("ln.fechaInicio","<",$fechaInicioLiquida)
+                    ->whereRaw("YEAR(ln.fechaInicio) = '".$anioLiquida."'")                
                     ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                     ->first();
 
                     $salarialVac = $salarialVac + $itemsBoucherSalarialMesesAnterioresVac->suma;
-                    $salarialVac = ($salarialVac / $totalPeriodoPagoAnioActual)*30;
+                    if($totalPeriodoPagoAnioActual != 0){
+                        $salarialVac = ($salarialVac / $totalPeriodoPagoAnioActual)*30;
+                    }
+                    else{
+                        if(strtotime($empleado->fechaIngreso) < strtotime("01-01-".$anioLiquida)){
+                            $totalPeriodoPagoAnioActual = $this->days_360("01-01-".$anioLiquida, $novedadesRetiro->fechaReal) + 1;
+                        }
+                        else{
+                            $totalPeriodoPagoAnioActual = $this->days_360($empleado->fechaIngreso, $novedadesRetiro->fechaReal) + 1;
+                        }
+
+                        $salarialVac = ($salarialVac / $totalPeriodoPagoAnioActual)*30;
+                    }
+                    
                     $salarioVac = 0;
 
                     foreach($conceptosFijosEmpl as $conceptoFijoEmpl){
@@ -8270,7 +8311,7 @@ class NominaController extends Controller
 
                     
                     $baseVac = $salarioVac + $salarialVac;
-
+                    
                     $liquidacionVac = ($baseVac/30)*$diasVac;
                     
 
@@ -8278,18 +8319,38 @@ class NominaController extends Controller
 
 
                     if($liquidacionVac > 0 || $empresa->vacacionesNegativas == 1){
-                        $arrValorxConcepto[30] = array(
-                            "naturaleza" => "1",
-                            "unidad" => "DÍA",
-                            "cantidad"=> $diasVac,
-                            "arrNovedades"=> array([
+                        
+                        if(isset($arrValorxConcepto[30])){
+                            
+                            $arrNovedades = $arrValorxConcepto[30]["arrNovedades"];
+                            array_push($arrNovedades, [
                                 "idNovedad" => $novedadesRetiro->idNovedad,
                                 "valor" => $liquidacionVac
-                            ]),
-                            "valor" => $liquidacionVac,
-                            "tipoGen" => "automaticos",
-                            "base" => $baseVac
-                        );     
+                            ]);
+                            $arrValorxConcepto[30] = array(
+                                "naturaleza" => "1",
+                                "unidad" => "DÍA",
+                                "cantidad"=> $diasVac,
+                                "arrNovedades"=> $arrNovedades,
+                                "valor" => $liquidacionVac + $arrValorxConcepto[30]['valor'],
+                                "tipoGen" => "automaticos",
+                                "base" => $baseVac
+                            );     
+                        }
+                        else{
+                            $arrValorxConcepto[30] = array(
+                                "naturaleza" => "1",
+                                "unidad" => "DÍA",
+                                "cantidad"=> $diasVac,
+                                "arrNovedades"=> array([
+                                    "idNovedad" => $novedadesRetiro->idNovedad,
+                                    "valor" => $liquidacionVac
+                                ]),
+                                "valor" => $liquidacionVac,
+                                "tipoGen" => "automaticos",
+                                "base" => $baseVac
+                            );     
+                        }
                     }
 
                 }
@@ -10870,7 +10931,7 @@ class NominaController extends Controller
         ]);
 
     }
-    public function calcularPrima($fechaInicio, $fechaFin, $empleado, $periodo, $periodoPagoSinVac){
+    public function calcularPrima($fechaInicio, $fechaFin, $empleado, $periodo, $periodoPagoSinVac, $arrValorxConcepto){
         
         $periodoActivoReintegro = DB::table("periodo")
         ->where("fkEstado","=","1")
@@ -10891,6 +10952,7 @@ class NominaController extends Controller
                 $salarial = $salarial + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
             }
         }
+        
         if($periodo == 15){
             if(substr($fechaInicio,8,2) == "16"){
                 $liquidacionAnt = DB::table("liquidacionnomina", "ln")
@@ -11031,10 +11093,12 @@ class NominaController extends Controller
             ->where("gcc.fkGrupoConcepto","=","11") //11 - Salarial
             ->first();
             $salarialPrima = $salarial + $itemsBoucherSalarialMesesAnteriores->suma;
-            $salarialPrima = ($salarialPrima / $totalPeriodoPago)*30;
+            if($totalPeriodoPago != 0){
+                $salarialPrima = ($salarialPrima / $totalPeriodoPago)*30;
+            }
+            
             //FIN CALCULAR EL PROMEDIO SALARIAL EN PERIODO ACTUAL      
 
-            
          
             $basePrima = $salarioPrima + $salarialPrima;               
         

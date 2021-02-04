@@ -441,11 +441,15 @@ class ReportesNominaController extends Controller
         foreach($nominas as $nomina){
 
             $matrizReporte[$nomina->idempleado]["Fecha Liquidacion"][$nomina->idBoucherPago] = $nomina->fechaLiquida;
-            $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idBoucherPago] = $nomina->tipoidentificacion;
-            $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idBoucherPago] = $nomina->numeroIdentificacion;     
             $matrizReporte[$nomina->idempleado]["Empresa"][$nomina->idBoucherPago] = $nomina->nom_empresa;     
             $matrizReporte[$nomina->idempleado]["Nomina"][$nomina->idBoucherPago] = $nomina->nom_nomina;     
-            $matrizReporte[$nomina->idempleado]["Centro costo"][$nomina->idBoucherPago] = $nomina->centroCosto;     
+            $matrizReporte[$nomina->idempleado]["Centro costo"][$nomina->idBoucherPago] = $nomina->centroCosto;   
+
+            $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idBoucherPago] = $nomina->tipoidentificacion;
+            $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idBoucherPago] = $nomina->numeroIdentificacion;     
+            $matrizReporte[$nomina->idempleado]["Nombre"][$nomina->idBoucherPago] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
+            
+              
             
             
             if($nomina->idconcepto == "1" || $nomina->idconcepto == "2" || $nomina->idconcepto == "53" || $nomina->idconcepto == "54" ){
@@ -454,7 +458,7 @@ class ReportesNominaController extends Controller
             $matrizReporte[$nomina->idempleado]["Sueldo"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
             
 
-            $matrizReporte[$nomina->idempleado]["Nombre"][$nomina->idBoucherPago] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
+            
             $matrizReporte[$nomina->idempleado][$nomina->nombre][$nomina->idBoucherPago]["valor"] = $nomina->valor;
             $matrizReporte[$nomina->idempleado][$nomina->nombre][$nomina->idBoucherPago]["naturaleza"] = $nomina->fkNaturaleza;
         }
@@ -808,11 +812,11 @@ class ReportesNominaController extends Controller
             }
             td{
                 text-align: left;
-                font-size: 12px;
+                font-size: 11px;
             }
             th{
                 text-align: left;
-                font-size: 12px;
+                font-size: 11px;
             }
             .liquida td, .liquida th{
                 font-size:11px;
@@ -835,7 +839,9 @@ class ReportesNominaController extends Controller
             .page_break { 
                 page-break-before: always; 
             }
-        
+            .tituloTable td b{
+                font-size: 14px;
+            }
             </style>
             ';
             $novedadesRetiro = DB::table("novedad","n")
@@ -851,10 +857,17 @@ class ReportesNominaController extends Controller
             if($empresayLiquidacion->fkTipoLiquidacion == "7"){
                 $html.='<div class="page liquida">
                 <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
-                    <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                    <b>'.$empresayLiquidacion->razonSocial.'</b>
-                    <br>
-                    <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                    <table class="tituloTable">
+                        <tr>
+                            <td rowspan="2">
+                            <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                            </td>
+                            <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                        </tr>
+                        <tr>
+                            <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                        </tr>
+                    </table>
                     <center>
                         <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">COMPROBANTE DE PAGO DE NÓMINA</h2><br>
                     </center>
@@ -1034,10 +1047,17 @@ class ReportesNominaController extends Controller
                 $html.='                    
                 <div class="page liquida">
                     <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
-                        <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                        <b>'.$empresayLiquidacion->razonSocial.'</b>
-                        <br>
-                        <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                        <table class="tituloTable">
+                            <tr>
+                                <td rowspan="2">
+                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                </td>
+                                <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                            </tr>
+                            <tr>
+                                <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                            </tr>
+                        </table>
                         <center>
                             <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">LIQUIDACIÓN DE CONTRATO</h2>
                         </center>
@@ -1331,10 +1351,17 @@ class ReportesNominaController extends Controller
                     <div style="border: 2px solid #000; padding: 10px 20px;">
                         ';
                         $html.='                        
-                        <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                        <b>'.$empresayLiquidacion->razonSocial.'</b>
-                        <br>
-                        <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                        <table class="tituloTable">
+                            <tr>
+                                <td rowspan="2">
+                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                </td>
+                                <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                            </tr>
+                            <tr>
+                                <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                            </tr>
+                        </table>
                         <center>
                             <h2 style="margin:0; margin-bottom: 10px;">Comprobante pago nómina</h2>
                         </center>
@@ -1585,10 +1612,17 @@ class ReportesNominaController extends Controller
                 $html.='<div class="page_break"></div>
                     <div class="page">
                         <div style="border: 2px solid #000; padding: 10px 20px;">
-                            <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                            <b>'.$empresayLiquidacion->razonSocial.'</b>
-                            <br>
-                            <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                            <table class="tituloTable">
+                                <tr>
+                                    <td rowspan="2">
+                                    <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                    </td>
+                                    <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                                </tr>
+                                <tr>
+                                    <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                                </tr>
+                            </table>
                             <center>
                                 <h2 style="margin:0; margin-bottom: 10px;">Comprobante de Pago de Vacaciones</h2>
                             </center>
@@ -1932,8 +1966,16 @@ class ReportesNominaController extends Controller
 
             
             $esRetiroNegativo = 0;
-            if($ultimoBoucher->ibc_afp < 0){
+            if($ultimoBoucher->ibc_afp < 0 || ($ultimoBoucher->ibc_eps == 0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                 $esRetiroNegativo = 1;
+                $minimosRedondeo = DB::table("tabla_smmlv_redondeo")->where("dias","=","30")->first();
+                
+                
+                if($conceptoFijoSalario->valor < $minimosRedondeo->ibc){
+                    $conceptoFijoSalario->valor =  $minimosRedondeo->ibc;
+                }
+
+
                 $ultimoBoucher->ibc_afp = ($conceptoFijoSalario->valor / 30);
                 $ultimoBoucher->ibc_eps = ($conceptoFijoSalario->valor / 30);
                 $ultimoBoucher->ibc_arl = ($conceptoFijoSalario->valor / 30);
@@ -1985,7 +2027,7 @@ class ReportesNominaController extends Controller
                 ->join("retiro as r", "r.idRetiro", "=","n.fkRetiro")
                 ->where("n.fkEmpleado","=", $empleado->idempleado)
                 ->whereRaw("n.fkPeriodoActivo in(
-                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
                 )")
                 ->whereIn("n.fkEstado",["8"]) // Pagada-> no que este eliminada
                 ->whereNotNull("n.fkRetiro")
@@ -2121,7 +2163,7 @@ class ReportesNominaController extends Controller
             ->where("a.cantidadDias",">=", "1")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
             ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
             )")
             ->whereIn("n.fkEstado",["7", "8"]) // Pagada o sin pagar-> no que este eliminada
             ->whereNotNull("n.fkAusencia")
@@ -2152,13 +2194,38 @@ class ReportesNominaController extends Controller
 
                 $fechaInicioSLN = date("Y-m-d",strtotime($novedadSancion->fechaInicio));
                 $fechaFinSLN =  date("Y-m-d",strtotime($novedadSancion->fechaFin));
+
+
                 $arrayPlace[82] = $this->plantillaTxt($fechaInicioSLN,10," ","left");
                 $arrayPlace[83] = $this->plantillaTxt($fechaFinSLN,10," ","left");
 
                 //Tarifa en 0 para ausentismos
+                
+
                 $arrayPlace[60] =  $this->plantillaTxt("0.0",9,"0","left");
+
+
+
                 $arrayPlace[62] = $this->plantillaTxt("0",9,"0","right");
-    
+                
+                
+                $valorNovedad = (intval($conceptoFijoSalario->valor)/30)*$novedadSancion->cantidadDias;
+                $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+
+                $arrayPlace[45] = $this->plantillaTxt("0.12",7,"0","left");
+                //$arrayPlace[46] =  $this->plantillaTxt("0",9,"0","left");
+
+
+                $arrayPlace[53] =  $this->plantillaTxt("0.0",7,"0","left");
+                $arrayPlace[54] =  $this->plantillaTxt("0",9,"0","left");
+
+
+                $arrayPlace[63] = $this->plantillaTxt("0.0",7,"0","left");
+                $arrayPlace[64] =  $this->plantillaTxt("0",9,"0","left");
+
                 array_push($arrayNuevoRegistro, $arrayPlace);   
 
                 
@@ -2182,7 +2249,7 @@ class ReportesNominaController extends Controller
             ->whereNotIn("i.tipoIncapacidad",["Maternidad", "Paternidad"])
             ->where("n.fkEmpleado","=", $empleado->idempleado)
             ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
             )")
             ->whereIn("n.fkEstado",["8","16"]) // Pagada -> no que este eliminada
             ->whereNotNull("n.fkIncapacidad")
@@ -2370,7 +2437,7 @@ class ReportesNominaController extends Controller
             ->whereIn("i.tipoIncapacidad",["Maternidad", "Paternidad"])
             ->where("n.fkEmpleado","=", $empleado->idempleado)
             ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
             )")
             ->whereIn("n.fkEstado",["8"]) // Pagada-> no que este eliminada
             ->whereNotNull("n.fkIncapacidad")
@@ -2448,7 +2515,7 @@ class ReportesNominaController extends Controller
             ->join("vacaciones as v","v.idVacaciones","=", "n.fkVacaciones")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
             ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
             )")
             ->whereIn("n.fkEstado",["8","16"]) // Pagada-> no que este eliminada o parcialmente paga (para las de pago parcial)
             ->whereNotNull("n.fkVacaciones")
@@ -2636,7 +2703,7 @@ class ReportesNominaController extends Controller
             ->join("licencia as l","l.idLicencia","=", "n.fkLicencia")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
             ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
             )")
             ->whereIn("n.fkEstado",["8"]) // Pagada-> no que este eliminada
             ->whereNotNull("n.fkLicencia")
@@ -2756,7 +2823,7 @@ class ReportesNominaController extends Controller
             ->whereNotIn("i.tipoIncapacidad",["Maternidad", "Paternidad"])
             ->where("n.fkEmpleado","=", $empleado->idempleado)
             ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
             )")
             ->whereIn("n.fkEstado",["8"]) // Pagada o sin pagar-> no que este eliminada
             ->whereNotNull("n.fkIncapacidad")
@@ -3394,7 +3461,7 @@ class ReportesNominaController extends Controller
             ->join("horas_extra as h","h.idHoraExtra","=", "n.fkHorasExtra")
             ->where("n.fkEmpleado","=", $empleado->idempleado)
             ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
             )")
             ->whereIn("n.fkEstado",["8"]) // Pagada o sin pagar-> no que este eliminada
             ->whereNotNull("n.fkHorasExtra")
@@ -3408,7 +3475,7 @@ class ReportesNominaController extends Controller
             if($horasTrabajadas > 300){
                 $horasTrabajadas = 300;
             }
-            if($empleado->fkTipoCotizante == "12"){
+            if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
                 $horasTrabajadas = 0;
             }
 
@@ -3708,8 +3775,14 @@ class ReportesNominaController extends Controller
                 
                 if($empleado->esPensionado==0){
                     //TARIFA AFP
-                    $arrayFila2[45] = $this->plantillaTxt($totalPorcentajePension,7,"0","left");
-    
+                    if(!isset($arrayFila2[45])){
+                        $arrayFila2[45] = $this->plantillaTxt($totalPorcentajePension,7,"0","left");
+                    }
+                    else{
+                        $totalPorcentajePension = floatval($arrayFila2[45]);
+                    }
+                    
+                    
                 
                     foreach($itemsBoucherAFP as $itemBoucherAFP){
                         $cotizacionPension = $cotizacionPension + $itemBoucherAFP->suma;
@@ -3722,8 +3795,8 @@ class ReportesNominaController extends Controller
                     
                     //Cotizacion AFP
                     $cotizacionPension = $ibcAFP*$totalPorcentajePension;
-
-                    if($cotizacionPension < $minimosRedondeo->pension && $cotizacionPension > 0){
+                    
+                    if($cotizacionPension < $minimosRedondeo->pension && $cotizacionPension > 0 && $totalPorcentajePension == 0.16){
                         $cotizacionPension = $minimosRedondeo->pension;
                     }
                     $cotizacionPension = $this->roundSup($cotizacionPension, -2);
@@ -3819,8 +3892,10 @@ class ReportesNominaController extends Controller
                     }
                     
                 }
-    
-                $arrayFila2[53] =$this->plantillaTxt($totalPorcentajeEPS,7,"0","left");   
+                if(!isset($arrayFila2[53])){
+                    $arrayFila2[53] =$this->plantillaTxt($totalPorcentajeEPS,7,"0","left");                       
+                }
+                
     
                 $itemsBoucherESP = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("Sum(ibp.descuento) as suma")
@@ -3870,7 +3945,10 @@ class ReportesNominaController extends Controller
                 }
     
                 //$cotizacionSalud= round(($cotizacionSalud/30) * $periodoTrabajadoSinNov, -2);
-                $arrayFila2[54] =$this->plantillaTxt(round($cotizacionSalud),9,"0","right");
+                if(!isset($arrayFila2[54])){
+                    $arrayFila2[54] = $this->plantillaTxt(round($cotizacionSalud),9,"0","right");
+                }
+                
     
                 //Valor de la UPC adicional.
                 $arrayFila2[55] =$this->plantillaTxt("",9,"0","right");
@@ -3960,7 +4038,10 @@ class ReportesNominaController extends Controller
                 foreach($varsCCF as $varCCF){
                     $totalPorcentajeCCF = $totalPorcentajeCCF + floatval($varCCF->valor);
                 }
-                $arrayFila2[63] = $this->plantillaTxt($totalPorcentajeCCF,7,"0","left");    
+                if(!isset($arrayFila2[63])){
+                    $arrayFila2[63] = $this->plantillaTxt($totalPorcentajeCCF,7,"0","left");    
+                }
+                
     
                 //VALOR CCF
                 $ccfFinal = 0;
@@ -3974,7 +4055,12 @@ class ReportesNominaController extends Controller
                     $ccfFinal = $minimosRedondeo->ccf;
                 }
     
-                $arrayFila2[64] = $this->plantillaTxt($ccfFinal,9,"0","right");
+              
+                if(!isset($arrayFila2[64])){
+                    
+                    $arrayFila2[64] = $this->plantillaTxt($ccfFinal,9,"0","right");
+                }
+                
     
     
     
@@ -6589,6 +6675,7 @@ class ReportesNominaController extends Controller
         ->select("r.*","tr.nombre as tipo_reporte")
         ->join("tipo_reporte as tr", "tr.idTipoReporte", "=","r.fkTipoReporte")
         ->where("r.idReporte","=",$idReporte)->first();
+        
         $itemsReporte = DB::table("reporte_item", "ir")
         ->join("item_tipo_reporte as itr","itr.IdItemTipoReporte", "=", "ir.fkItemTipoReporte")
         ->where("ir.fkReporte","=",$idReporte)->orderBy("ir.posicion")->get();
@@ -6605,7 +6692,7 @@ class ReportesNominaController extends Controller
         ->where("ri.idReporteItem","=",$idReporteItem)->first();
 
         $estados = array();
-        if($idReporteItem == "214"){
+        if($itemReporte->fkItemTipoReporte == "41"){
             $estados = DB::table("estado")->whereIn("idestado",["1","2","3"])->get();
         }
     
@@ -6643,7 +6730,7 @@ class ReportesNominaController extends Controller
             "OperadorComparacion" => $OperadorComparacion,
             "itemReporte" => $itemReporte,
             "estados" => $estados,
-            "idReporteItem" => $idReporteItem
+            "idReporteItem" => $itemReporte->fkItemTipoReporte
         ]);
 
 
@@ -6740,6 +6827,7 @@ class ReportesNominaController extends Controller
             //->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
             ->join('estado AS est','est.idestado', '=', 'e.fkEstado', "left")
             ->join('ubicacion AS uLabora','uLabora.idubicacion', '=', 'e.fkUbicacionLabora',"left")
+            ->join('ubicacion AS uLaboraLoc','uLaboraLoc.idubicacion', '=', 'e.fkLocalidad',"left")
             ->join('ubicacion AS uExpDoc','uExpDoc.idubicacion', '=', 'dp.fkUbicacionExpedicion',"left")
             ->join('ubicacion AS uNacimiento','uNacimiento.idubicacion', '=', 'dp.fkUbicacionNacimiento',"left")
             ->join('ubicacion AS uResidencia','uResidencia.idubicacion', '=', 'dp.fkUbicacionResidencia',"left")        
@@ -7032,11 +7120,11 @@ class ReportesNominaController extends Controller
             }
             td{
                 text-align: left;
-                font-size: 12px;
+                font-size: 10px;
             }
             th{
                 text-align: left;
-                font-size: 12px;
+                font-size: 10px;
             }
             .liquida td, .liquida th{
                 font-size:11px;
@@ -7169,10 +7257,17 @@ class ReportesNominaController extends Controller
             if($empresayLiquidacion->fkTipoLiquidacion == "7"){
                 $html.='<div class="page liquida">
                 <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
-                    <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                    <b>'.$empresayLiquidacion->razonSocial.'</b>
-                    <br>
-                    <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                    <table class="tituloTable">
+                        <tr>
+                            <td rowspan="2">
+                            <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                            </td>
+                            <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                        </tr>
+                        <tr>
+                            <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                        </tr>
+                    </table>
                     <center>
                         <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">COMPROBANTE DE PAGO DE NÓMINA</h2><br>
                     </center>
@@ -7387,10 +7482,17 @@ class ReportesNominaController extends Controller
                 $html.='                    
                 <div class="page liquida">
                     <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
-                        <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                        <b>'.$empresayLiquidacion->razonSocial.'</b>
-                        <br>
-                        <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                        <table class="tituloTable">
+                            <tr>
+                                <td rowspan="2">
+                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                </td>
+                                <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                            </tr>
+                            <tr>
+                                <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                            </tr>
+                        </table>
                         <center>
                             <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">LIQUIDACIÓN DE CONTRATO</h2>
                         </center>
@@ -7690,10 +7792,17 @@ class ReportesNominaController extends Controller
                         
                         $html.='
                         
-                        <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                        <b>'.$empresayLiquidacion->razonSocial.'</b>
-                        <br>
-                        <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                        <table class="tituloTable">
+                            <tr>
+                                <td rowspan="2">
+                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                </td>
+                                <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                            </tr>
+                            <tr>
+                                <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                            </tr>
+                        </table>
                         <center>
                             <h2 style="margin:0; margin-bottom: 10px;">Comprobante pago nómina</h2>
                         </center>
@@ -7939,10 +8048,17 @@ class ReportesNominaController extends Controller
                 $html.='
                     <div class="page">
                         <div style="border: 2px solid #000; padding: 10px 20px;">
-                            <img style="float:left; max-width: 40px; max-height: 40px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
-                            <b>'.$empresayLiquidacion->razonSocial.'</b>
-                            <br>
-                            <b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b>
+                            <table class="tituloTable">
+                                <tr>
+                                    <td rowspan="2">
+                                    <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                    </td>
+                                    <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                                </tr>
+                                <tr>
+                                    <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                                </tr>
+                            </table>
                             <center>
                                 <h2 style="margin:0; margin-bottom: 10px;">Comprobante de Pago de Vacaciones</h2>
                             </center>

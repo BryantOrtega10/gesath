@@ -11,7 +11,7 @@
         </select>
     </div>
     <div class="col-3">
-        @if ($idReporteItem == "214")
+        @if ($idReporteItem == "41")
             <select class="form-control"name="filtro[]" required="">
                 @foreach ($estados as $estado)
                     <option value="{{$estado->idestado}}">{{ $estado->nombre }}</option>

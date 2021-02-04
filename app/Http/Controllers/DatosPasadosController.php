@@ -444,7 +444,7 @@ class DatosPasadosController extends Controller
                 
                 $boucherId = DB::table("boucherpago")->insertGetId([
                     "fkEmpleado" => $datoPasado->fkEmpleado,
-                    "fkPeriodo" => $periodoActivoReintegro->idPeriodo,
+                    "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                     "fkLiquidacion" => $liquidacionId,
                     "periodoPago" => $periodo,
                     "diasTrabajados" => $periodo,

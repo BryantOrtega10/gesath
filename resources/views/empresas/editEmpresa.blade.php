@@ -7,12 +7,12 @@
     </div>
     <div class="form-group">
         <label for="documento">Cambiar logo</label>
-        <input type="file" class="form-control" id="logoEmpresa" name = "logoEmpresa">
+        <input type="file" class="form-control" id="logoEmpresa" name = "logoEmpresa" disabled>
     </div>
     <div class="row">
         <div class="col form-group">
             <label for="fkTipoCompania">Tipo de compañia</label>
-            <select name="fkTipoCompania" id="fkTipoCompania" class="form-control">
+            <select name="fkTipoCompania" id="fkTipoCompania" class="form-control" disabled>
                 <option value="">-- Seleccione una opción --</option>
                 @foreach ($tipoComp as $comp)
                     <option value="{{ $comp->idtipoCompania}}"
@@ -25,7 +25,7 @@
         </div>
         <div class="col form-group">
             <label for="fkTipoAportante">Tipo de aportante</label>
-            <select name="fkTipoAportante" id="fkTipoAportante" class="form-control">
+            <select name="fkTipoAportante" id="fkTipoAportante" class="form-control" disabled>
                 <option value="">-- Seleccione una opción --</option>
                 @foreach ($tipoApor as $apor)
                     <option value="{{ $apor->idtipoAportante}}"
@@ -40,12 +40,12 @@
 
     <div class="form-group">
         <label for="razonSocial">Razón Social</label>
-        <input type="text" class="form-control" id="razonSocial" name = "razonSocial" value = "{{ $empresa->razonSocial}}">
+        <input type="text" class="form-control" id="razonSocial" name = "razonSocial" value = "{{ $empresa->razonSocial}}" disabled>
     </div>
 
     <div class="form-group">
         <label for="fkTipoIdentificacion">Tipo de identificación</label>
-        <select name="fkTipoIdentificacion" id="fkTipoIdentificacion" class="form-control">
+        <select name="fkTipoIdentificacion" id="fkTipoIdentificacion" class="form-control" disabled>
             <option value="">-- Seleccione una opción --</option>
             @foreach ($tipoIdent as $tipo)
                 <option value="{{ $tipo->idtipoIdentificacion}}"
@@ -60,33 +60,33 @@
     <div class="row">
         <div class="col form-group">
             <label for="documento">NIT</label>
-            <input type="number" class="form-control" id="documento" name = "documento" value = "{{ $empresa->documento }}">
+            <input type="number" class="form-control" id="documento" name = "documento" value = "{{ $empresa->documento }}" disabled>
         </div>
         <div class="col form-group">
             <label for="digitoVerificacion">Dígito verificación</label>
-            <input type="number" class="form-control" id="digitoVerificacion" name = "digitoVerificacion" value = "{{ $empresa->digitoVerificacion }}">
+            <input type="number" class="form-control" id="digitoVerificacion" name = "digitoVerificacion" value = "{{ $empresa->digitoVerificacion }}" disabled>
         </div>
     </div>
 
     <div class="row">
         <div class="col form-group">
             <label for="sigla">Sigla</label>
-            <input type="text" class="form-control" id="sigla" name = "sigla" value = "{{ $empresa->sigla }}">
+            <input type="text" class="form-control" id="sigla" name = "sigla" value = "{{ $empresa->sigla }}" disabled>
         </div>
         <div class="col form-group">
             <label for="dominio">Dominio</label>
-            <input type="text" class="form-control" id="dominio" name = "dominio" value = "{{ $empresa->dominio }}">
+            <input type="text" class="form-control" id="dominio" name = "dominio" value = "{{ $empresa->dominio }}" disabled>
         </div>
     </div>
 
     <div class="form-group">
         <label for="representanteLegal">Nombre Representante Legal</label>
-        <input type="text" class="form-control" id="representanteLegal" name = "representanteLegal" value = "{{ $empresa->representanteLegal}}">
+        <input type="text" class="form-control" id="representanteLegal" name = "representanteLegal" value = "{{ $empresa->representanteLegal}}" disabled>
     </div>   
     
     <div class="form-group">
         <label for="docRepresentante">Tipo de identificación representante</label>
-        <select name="docRepresentante" id="docRepresentante" class="form-control">
+        <select name="docRepresentante" id="docRepresentante" class="form-control" disabled>
             <option value="">-- Seleccione una opción --</option>
             @foreach ($tipoIdent as $tipo)
                 <option value="{{ $tipo->idtipoIdentificacion}}"
@@ -100,7 +100,7 @@
 
     <div class="form-group">
         <label for="numDocRepresentante">Número Representante Legal</label>
-        <input type="text" class="form-control" id="numDocRepresentante" name = "numDocRepresentante" value = "{{ $empresa->numDocRepresentante }}">
+        <input type="text" class="form-control" id="numDocRepresentante" name = "numDocRepresentante" value = "{{ $empresa->numDocRepresentante }}" disabled>
     </div>
 
     {{-- <div class="row">
@@ -121,7 +121,7 @@
 
     <div class="form-group">
         <label for="fkTercero_ARL">Tercero ARL</label>
-        <select name="fkTercero_ARL" id="fkTercero_ARL" class="form-control">
+        <select name="fkTercero_ARL" id="fkTercero_ARL" class="form-control" disabled>
             <option value="">-- Seleccione una opción --</option>
             @foreach ($terceroArl as $terArl)
                 <option value="{{ $terArl->idTercero}}"
@@ -135,7 +135,7 @@
 
     <div class="form-group">
         <label for="pais">País</label>
-        <select name="pais" id="pais" class="form-control">
+        <select name="pais" id="pais" class="form-control" disabled>
             <option value="">-- Seleccione una opción --</option>
             @foreach ($paises as $p)
                 <option value="{{ $p->idubicacion }}"
@@ -150,7 +150,7 @@
     <div class="row">
         <div class="col form-group">
             <label for="deptos">Departamento</label>
-            <select name="deptos" id="deptos" class="form-control">
+            <select name="deptos" id="deptos" class="form-control" disabled>
                 <option value="">-- Seleccione una opción --</option>
                 @foreach ($deptos as $d)
                     <option value="{{ $d->idubicacion }}"
@@ -163,7 +163,7 @@
         </div>
         <div class="col form-group">
             <label for="direccion">Ciudad</label>
-            <select name="fkUbicacion" id="fkUbicacion" class="form-control">
+            <select name="fkUbicacion" id="fkUbicacion" class="form-control" disabled>
                 <option value="">-- Seleccione una opción --</option>
                 @foreach ($ciudades as $c)
                     <option value="{{ $c->idubicacion }}"
@@ -178,38 +178,38 @@
 
     <div class="form-group">
         <label for="direccion">Dirección</label>
-        <input type="text" class="form-control" id="direccion" name = "direccion" value = "{{ $empresa->direccion }}">
+        <input type="text" class="form-control" id="direccion" name = "direccion" value = "{{ $empresa->direccion }}" disabled>
     </div>
 
     <div class="form-group">
         <label for="paginaWeb">Página Web</label>
-        <input type="text" class="form-control" id="paginaWeb" name = "paginaWeb" value = "{{ $empresa->paginaWeb }}">
+        <input type="text" class="form-control" id="paginaWeb" name = "paginaWeb" value = "{{ $empresa->paginaWeb }}" disabled>
     </div>
 
     <div class="row">
         <div class="col form-group">
             <label for="telefonoFijo">Teléfono</label>
-            <input type="number" class="form-control" id="telefonoFijo" name = "telefonoFijo" value = "{{ $empresa->telefonoFijo }}">
+            <input type="number" class="form-control" id="telefonoFijo" name = "telefonoFijo" value = "{{ $empresa->telefonoFijo }}" disabled>
         </div>
         <div class="col form-group">
             <label for="celular">Celular</label>
-            <input type="number" class="form-control" id="celular" name = "celular" value = "{{ $empresa->celular }}">
+            <input type="number" class="form-control" id="celular" name = "celular" value = "{{ $empresa->celular }}" disabled>
         </div>
     </div>
 
     <div class="row">
         <div class="col form-group">
             <label for="email1">Correo 1</label>
-            <input type="email" class="form-control" id="email1" name = "email1" value = "{{ $empresa->email1 }}">
+            <input type="email" class="form-control" id="email1" name = "email1" value = "{{ $empresa->email1 }}" disabled>
         </div>
         <div class="col form-group">
             <label for="email2">Correo 2</label>
-            <input type="email" class="form-control" id="email2" name = "email2" value = "{{ $empresa->email2 }}">
+            <input type="email" class="form-control" id="email2" name = "email2" value = "{{ $empresa->email2 }}" disabled>
         </div>
     </div>
 
     <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="exento"
+        <input disabled type="checkbox" class="form-check-input" id="exento"
             @if($empresa->exento == 1)
                 checked
             @endif
@@ -218,14 +218,10 @@
     </div><br>
         
     <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="vacacionesNegativas"
+        <input disabled type="checkbox" class="form-check-input" id="vacacionesNegativas"
             @if($empresa->vacacionesNegativas == 1)
                 checked
             @endif>
         <label class="form-check-label" for="vacacionesNegativas">¿Vacaciones negativas?</label>
     </div><br>
-    
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-    </div>
 </form>
