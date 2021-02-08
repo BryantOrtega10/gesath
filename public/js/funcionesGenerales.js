@@ -2,6 +2,11 @@ function solicitudAjax(url, tipo, parametros, funcionRta, funcionError) {
     if (typeof parametros === 'undefined' && parametros == null) {
         parametros = new FormData();
     }
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
     $.ajax({
         type: tipo,
         url: url,

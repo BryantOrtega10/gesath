@@ -48,7 +48,7 @@ class SMTPConfigController extends Controller
                 $request->smtp_password,
                 $request->smtp_encrypt,
                 $request->smtp_mail_envia,
-                $request->smtp_nombre_envia,
+                $request->smtp_nombre_envia
             );
             if ($guardarSMTP) {
                 $actConfEmpresa = $this->actConfSmtpEmpresa(

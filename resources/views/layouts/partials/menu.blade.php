@@ -235,6 +235,11 @@
                         <span class="textoMenu">Admin Mensajes General</span>
                     </a>
                 </li>
+                <li  class="{{ Request::is('codigos') ? 'active' : '' }}">
+                    <a href="/codigos/">
+                        <span class="textoMenu">Códigos diagnóstico</span>
+                    </a>
+                </li>
             </ul>
         </li>
         <li class="{{ Request::is('usuarios') ? 'active' : '' }}">

@@ -154,6 +154,7 @@ class TercerosController extends Controller
             $terceros->naturalezaTributaria = $request->naturalezaTributaria;
             $terceros->fkTipoIdentificacion = $request->fkTipoIdentificacion;
             $terceros->numeroIdentificacion = $request->numeroIdentificacion;
+            $terceros->digitoVer = $request->digitoVer;
             $terceros->fkEstado = $request->fkEstado;
             $terceros->direccion = $request->direccion;
             $terceros->telefono = $request->telefono;

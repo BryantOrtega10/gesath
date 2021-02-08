@@ -39,6 +39,7 @@
             </div>
         </div>
     </div>
+    <div class="contAdicional"></div>
     <div class="alert alert-danger print-error-msg-DatosNovedad" style="display:none">
         <ul></ul>
     </div>

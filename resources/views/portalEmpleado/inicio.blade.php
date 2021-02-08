@@ -26,7 +26,9 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-        <div class="card tarjeta_hover puntero alto_tarjeta">
+        <div class="card tarjeta_hover puntero alto_tarjeta certificado_laboral"
+            data-idempleado = "{{ $dataEmpr->idempleado }}
+        ">
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Certificado laboral</h5>
                 <p class="card-text mt-auto">Genere su certificado laboral seleccionando un periodo</p>
@@ -34,7 +36,9 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-        <div class="card tarjeta_hover puntero alto_tarjeta">
+        <div class="card tarjeta_hover puntero alto_tarjeta comprobantes_pago"
+            data-idempleado = "{{ $dataEmpr->idempleado }}"
+        >
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Comprobante de pago</h5>
                 <p class="card-text mt-auto">Genere su comprobante de pago</p>
@@ -42,7 +46,13 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-        <div class="card tarjeta_hover puntero alto_tarjeta">
+        <div class="card tarjeta_hover puntero alto_tarjeta certificado_dosveinte"
+            data-idempresa = "{{ $dataEmpr->idempresa }}"
+            data-nomina = "{{ $dataEmpr->fkNomina }}"
+            data-idempleado = "{{ $dataEmpr->idempleado }}"
+            data-fechaexp = "2020"
+            data-agente = "{{ $dataEmpr->razonSocial }}"
+            >
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Certificado de ingreso y retenciones</h5>
                 <p class="card-text mt-auto">Genere su certificado de ingreso y pensiones</p>

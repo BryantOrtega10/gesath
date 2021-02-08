@@ -88,7 +88,7 @@
                 </div>               
             </div>
             <div class="col-4">
-                <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+                <input type="submit" value="Consultar"/><input type="reset" class="recargar" data-url="{{Request::url()}}" value="" /> 
             </div>
         </div>
        
@@ -117,8 +117,9 @@
                 @endphp
                 </td>
                 <td>
-                    <a href="#" class="verDetalle" data-id="{{$boucher->idBoucherPago}}">Ver Detalle</a>
-                    <a href="/reportes/boucherPdf/{{$boucher->idBoucherPago}}" target="_blank" >Boucher pdf</a>
+                    <a href="#" class="verDetalle" data-id="{{$boucher->idBoucherPago}}">Ver Detalle</a><br>
+                    <a href="/reportes/boucherPdf/{{$boucher->idBoucherPago}}" target="_blank" >Comprobante de pago</a><br>
+                    <a href="/nomina/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo">Enviar por correo</a><br>
                     <a href="/nomina/recalcularBoucher/{{$boucher->idBoucherPago}}" class="recalcular" data-id="{{$boucher->idBoucherPago}}">Recalcular</a>
                 </td>
             </tr>

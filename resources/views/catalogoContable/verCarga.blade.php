@@ -66,13 +66,16 @@
                                 <td>{{$datoCuenta->estado}}</td>
                             @else
                                 <td>{{($index + 1)}}</td>
-                                <td></td>
+                                <td>@if($datoCuenta->tipoConsulta=="4")
+                                        @isset($datoCuenta->nombreConcepto) Concepto: {{$datoCuenta->nombreConcepto}} @endisset
+                                    @endif
+                                </td>
                                 <td>@if($datoCuenta->tipoConsulta=="1")
                                         @isset($datoCuenta->nombreGrupoConcepto) Grupo: {{$datoCuenta->nombreGrupoConcepto}} @endisset
                                         @endif
                                 </td>
                                 <td>
-                                    @if($datoCuenta->tipoConsulta == "3")
+                                    @if($datoCuenta->tipoConsulta == "2")
                                         @if($datoCuenta->fkTipoProvision=="1") PRIMA @endif
                                         @if($datoCuenta->fkTipoProvision=="2") CESANTIAS @endif
                                         @if($datoCuenta->fkTipoProvision=="3") INTERESES DE CESANTIA @endif
@@ -80,7 +83,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($datoCuenta->tipoConsulta=="2")
+                                    @if($datoCuenta->tipoConsulta=="3")
                                         @if($datoCuenta->fkTipoAporteEmpleador=="1") PENSIÓN @endif
                                         @if($datoCuenta->fkTipoAporteEmpleador=="2") SALUD @endif
                                         @if($datoCuenta->fkTipoAporteEmpleador=="3") ARL @endif

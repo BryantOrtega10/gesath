@@ -352,7 +352,7 @@ class EmpleadoController extends Controller
 
     }
     public function formModificar($idEmpleado, Request $req){        
-        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.usuario as usuarioTxt',
+        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.username as usuarioTxt',
                                                     'ubi_dep_exp.idubicacion AS ubi_depto_exp', 'ubi_pa_exp.idubicacion AS ubi_pais_exp',
                                                     'ubi_dep_nac.idubicacion AS ubi_depto_nac', 'ubi_pa_nac.idubicacion AS ubi_pais_nac',
                                                     'ubi_dep_res.idubicacion AS ubi_depto_res', 'ubi_pa_res.idubicacion AS ubi_pais_res',
@@ -374,12 +374,11 @@ class EmpleadoController extends Controller
                                         ->join("ubicacion AS ubi_dep_tra", 'ubi_ciud_tra.fkUbicacion', '=', 'ubi_dep_tra.idubicacion',"left")
                                         ->join("ubicacion AS ubi_pa_tra", 'ubi_dep_tra.fkUbicacion', '=', 'ubi_pa_tra.idubicacion',"left")
 
-                                        ->join("usuario AS u", 'u.idusuario','=','empleado.fkUsuario',"left")
+                                        ->join("users AS u", 'u.fkEmpleado','=','empleado.idempleado',"left")
 
                                         ->where('idempleado', $idEmpleado)
                                         ->first();
         
-
 
         $paises = Ubicacion::where("fkTipoUbicacion", "=" ,'1')->get();
         $deptosExp = array();
@@ -410,6 +409,7 @@ class EmpleadoController extends Controller
         if(isset($empleado->ubi_pais_tra)){
             $deptosTra = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_pais_tra)->get();
             $ciudadesTra = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_depto_tra)->get();    
+            $localidadesTra = Ubicacion::where("fkUbicacion", "=", $empleado->fkUbicacionLabora)->get();    
         }
 
 
@@ -472,7 +472,10 @@ class EmpleadoController extends Controller
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion);
             if($afiliacion->fkTipoAfilicacion=="1"){
-                $afiliacionesEnt = $afiliacionesEnt->whereNotIn("tercero.idTercero",["10","108","111","112","113"]);
+                $afiliacionesEnt = $afiliacionesEnt->whereNotIn("tercero.idTercero",["10","109","111","112","113"]);
+            }
+            if($afiliacion->fkTipoAfilicacion=="4"){
+                $afiliacionesEnt = $afiliacionesEnt->whereNotIn("tercero.idTercero",["120"]);
             }
             $afiliacionesEnt = $afiliacionesEnt->get();
 
@@ -485,7 +488,7 @@ class EmpleadoController extends Controller
         $afiliacionesEnt1 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '1')
-                    ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                    ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
                     ->get();
 
      
@@ -592,6 +595,8 @@ class EmpleadoController extends Controller
             $periocidad = DB::table("periocidad")->where("per_periodo", "=",$nomina->periodo)->get();
             $periodo = $nomina->periodo;
         }
+
+        
         
         $tiposcotizante = DB::table("tipo_cotizante")->get();
         return view('/empleado.editEmpleado', [
@@ -640,6 +645,7 @@ class EmpleadoController extends Controller
             'nominas' => $nominas,
             'deptosTra' => $deptosTra,
             'ciudadesTra' =>$ciudadesTra,
+            'localidadesTra' => $localidadesTra,
             'beneficiosTributarios' => $beneficiosTributarios,
             'generosBen' => $generosBen,
             'tipobeneficio' => $tipobeneficio,
@@ -797,7 +803,7 @@ class EmpleadoController extends Controller
         $afiliacionesEnt1 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '1')
-                    ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                    ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
                     ->get();
 
         $afiliacionesEnt2 = DB::table("tercero")
@@ -808,8 +814,9 @@ class EmpleadoController extends Controller
                     ->where("ta.idTipoAfiliacion", "=", '3')->get();
         $afiliacionesEnt4 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '4')->get();
-                    
+                    ->where("ta.idTipoAfiliacion", "=", '4')->whereNotIn("tercero.idTercero",["120"])->get();
+
+               
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
         ->where("cf.fkEmpleado", "=", $idEmpleado)->get();
@@ -1071,7 +1078,7 @@ class EmpleadoController extends Controller
         $idUsuario = DB::table('usuario')->insertGetId($insertUsuario, "idusuario");
 
         $updateEmpleado = array("fkEmpresa" => $req->infoEmpresa, "fkNomina" => $req->infoNomina, "fechaIngreso" => $req->infoFechaIngreso,
-            "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora, "sabadoLaborable" => $req->infoSabadoLabora,
+            "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora, "fkLocalidad" => $req->infoLocalidad, "sabadoLaborable" => $req->infoSabadoLabora,
             "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
             "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,
             "fkCargo" => $req->infoCargo, "fkUsuario" => $idUsuario,"procedimientoRetencion" => $req->infoProcedimientoRetencion, "porcentajeRetencion" => $req->infoPorcentajeRetencion
@@ -1168,7 +1175,7 @@ class EmpleadoController extends Controller
             $usuarioNuevo->save();
         }
         $updateEmpleado = array("fkEmpresa" => $req->infoEmpresa, "fkNomina" => $req->infoNomina, "fechaIngreso" => $req->infoFechaIngreso,
-            "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora, "sabadoLaborable" => $req->infoSabadoLabora,
+            "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora,"fkLocalidad" => $req->infoLocalidad, "sabadoLaborable" => $req->infoSabadoLabora,
             "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
             "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,"fkTipoOtroDocumento" => $req->infoOtroTIdentificacion, 
              "otroDocumento" => $req->infoOtroDocumento, "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
@@ -1339,7 +1346,7 @@ class EmpleadoController extends Controller
             $usuarioNuevo->save();
         }
         $updateEmpleado = array("fkEmpresa" => $req->infoEmpresa, "fkNomina" => $req->infoNomina, "fechaIngreso" => $req->infoFechaIngreso,
-            "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora, "sabadoLaborable" => $req->infoSabadoLabora,
+            "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora, "fkLocalidad" => $req->infoLocalidad,"sabadoLaborable" => $req->infoSabadoLabora,
             "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
             "tipoCuenta" => $req->infoTipoCuenta, "otraFormaPago" => $req->infoOtraFormaPago,"fkTipoOtroDocumento" => $req->infoOtroTIdentificacion, 
              "otroDocumento" => $req->infoOtroDocumento, "fkCargo" => $req->infoCargo,"procedimientoRetencion" => $req->infoProcedimientoRetencion, 
@@ -4517,7 +4524,7 @@ class EmpleadoController extends Controller
                 $afiliacionesEnt1 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                             ->where("ta.idTipoAfiliacion", "=", '1')
-                            ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                            ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
                             ->get()->toArray();
                 $afiliacionesEnt2 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
@@ -4527,7 +4534,9 @@ class EmpleadoController extends Controller
                             ->where("ta.idTipoAfiliacion", "=", '3')->get()->toArray();
                 $afiliacionesEnt4 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                            ->where("ta.idTipoAfiliacion", "=", '4')->get()->toArray();
+                            ->where("ta.idTipoAfiliacion", "=", '4')->get()->whereNotIn("tercero.idTercero",["120"])->toArray();
+
+
                 $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
                 ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
                 ->where("cf.fkEmpleado", "=", $idEmpleado)->get()->toArray();
@@ -4997,7 +5006,7 @@ class EmpleadoController extends Controller
         $afiliacionesEnt1 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '1')
-                    ->whereNotIn("tercero.idTercero",["10","108","111","112","113"])
+                    ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
                     ->get();
         $afiliacionesEnt2 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
@@ -5007,7 +5016,8 @@ class EmpleadoController extends Controller
                     ->where("ta.idTipoAfiliacion", "=", '3')->get();
         $afiliacionesEnt4 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '4')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '4')->whereNotIn("tercero.idTercero",["120"])->get();
+
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
         ->where("cf.fkEmpleado", "=", $idEmpleado)->get();

@@ -7,34 +7,12 @@
     <input type="hidden" name="fkTipoNovedad" value="{{$req->tipo_novedad}}" />
     <input type="hidden" name="fkNomina" value="{{$req->nomina}}" />
     <input type="hidden" name="fechaRegistro" value="{{$req->fecha}}" />
-    <div class="row">
-        <div class="col-3">
-            <div class="form-group busquedaPop" id="busquedaEmpleado">
-                <label for="nombreEmpleado" class="control-label">Empleado:</label>
-                <input type="text" readonly class="form-control" id="nombreEmpleado" name="nombreEmpleado" />
-                <input type="hidden" class="form-control" id="idEmpleado" name="idEmpleado" />
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="form-group">
-                <label for="concepto" class="control-label">Concepto:</label>
-                <select class="form-control" id="concepto" name="concepto">
-                    <option value=""></option>
-                    @foreach ($conceptos as $concepto)
-                        <option value="{{$concepto->idconcepto}}">{{$concepto->nombre}}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="form-group">
-                <label for="dias" class="control-label">Dias a compensar:</label>
-                <input type="text" class="form-control" id="diasVacac" name="dias" />
-            </div>
-        </div>
-        <input type="hidden" value="1" name="pagoAnticipado">
-        
-    </div>
+    @include('novedades.ajaxAdicional.vacaciones2', [
+        'idRow' => $idRow,
+        'conceptos' => $conceptos,
+        'req' => $req
+    ])
+    <div class="contAdicional"></div>
     <div class="alert alert-danger print-error-msg-DatosNovedad" style="display:none">
         <ul></ul>
     </div>

@@ -111,7 +111,13 @@
             'PRUEBAS GESATH'
         ];
         const arrAntSmtp = '{{ $smtp }}';
-        const objSmtpActual = JSON.parse(arrAntSmtp.replace(/&quot;/g,'"'));
+        
+        var objSmtpActual = {};
+        if(arrAntSmtp!=""){
+            var objSmtpActual = JSON.parse(arrAntSmtp.replace(/&quot;/g,'"'));
+        }
+
+
         const arrSmtpActual = [];
         arrSmtpActual.push(objSmtpActual.smtp_host);
         arrSmtpActual.push(objSmtpActual.smtp_username);

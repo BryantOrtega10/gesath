@@ -43,13 +43,14 @@
                     <div class="col-3">        
                         <div class="text-center"><input type="submit" value="Eliminar seleccionados" class="btnSubmitGen" /></div><br>
                     </div>
-                    <div class="col-3 text-center">
-                        <a href="/datosPasadosVac/cancelarCarga/{{$cargaDatoPasado->idCargaDatosPasados}}" class="btnSubmitGen">Cancelar Subida</a><br>
-                    </div>
+                    
                     <div class="col-3 text-center">
                         <a href="/datosPasadosVac/aprobarCarga/{{$cargaDatoPasado->idCargaDatosPasados}}" class="btnSubmitGen">Aprobar Subida</a><br>
                     </div>
                     @endif
+                    <div class="col-3 text-center">
+                        <a href="/datosPasadosVac/cancelarCarga/{{$cargaDatoPasado->idCargaDatosPasados}}" class="btnSubmitGen">Cancelar Subida</a><br>
+                    </div><br>
                 
             </div>
             <table class="table table-hover table-striped">

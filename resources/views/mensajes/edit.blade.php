@@ -21,6 +21,8 @@
             <form method="POST" action="/mensajes/modificar">
                 @csrf
                 <input type="hidden" name="idMensaje" value="{{$mensaje->idMensaje}}">
+                <label for="asunto">Asunto</label>
+                <input type="text" id="asunto" class="form-control" value="{{$mensaje->asunto}}" name="asunto">
                 <textarea name="html" id="tinyMce">{{$mensaje->html}}</textarea><br>
                 <button type="submit" class="btnSubmitGen">Modificar Mensaje</button>
             </form>

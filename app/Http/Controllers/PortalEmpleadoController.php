@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Dompdf\Dompdf;
 use DateTime;
 
 class PortalEmpleadoController extends Controller
@@ -32,9 +33,13 @@ class PortalEmpleadoController extends Controller
 
         if (is_null($dataEmple->foto) || $dataEmple->foto === '') {
             $dataEmpr = DB::table('empresa')->select(
-                'logoEmpresa',
-                'razonSocial'
-            )->where('idempresa', $dataEmple->fkEmpresa)->first();
+                'empresa.idempresa',
+                'empresa.logoEmpresa',
+                'empresa.razonSocial',
+                'empleado.fkNomina',
+                'empleado.idempleado'
+            )->join('empleado', 'empresa.idempresa', 'empleado.fkEmpresa')
+            ->where('empresa.idempresa', $dataEmple->fkEmpresa)->first();
             if (is_null($dataEmpr->logoEmpresa)) {
                 $fotoEmple = 'http://gesath.web-html.com/img/noimage.png';
             } else {
@@ -45,6 +50,7 @@ class PortalEmpleadoController extends Controller
         return view('/portalEmpleado.inicio', [
             'dataUsu' => $dataUsu,
             'dataEmple' => $dataEmple,
+            'dataEmpr' => $dataEmpr,
             'fotoEmple' => $fotoEmple
         ]);
     }
@@ -72,6 +78,7 @@ class PortalEmpleadoController extends Controller
         )
         ->where('empleado.idempleado', $idEmple)
         ->where('conceptofijo.fkConcepto', '1')
+        ->groupBy('empresa.idempresa')
         ->get();
         
         
@@ -221,6 +228,107 @@ class PortalEmpleadoController extends Controller
         }
     }
 
+    public function getVistaBoucherPago($id) {
+        return view('/portalEmpleado.comprobantesPago', [
+            'idEmple' => $id
+        ]);
+    }
+
+    public function getBouchersPagoEmpleado($idEmple) {
+        $bouchersPago = DB::table('liquidacionnomina')
+            ->join('boucherpago', 'boucherpago.fkLiquidacion', 'liquidacionnomina.idLiquidacionNomina')
+            ->select([
+                'boucherpago.idBoucherPago',
+                'liquidacionnomina.fechaInicio',
+                'liquidacionnomina.fechaFin',
+            ])
+            ->where('boucherpago.fkEmpleado', '=', $idEmple)
+            ->get();
+        return $bouchersPago;
+    }
+
+    public function buscarBoucherPorFecha(Request $request, $idEmple) {
+        $bouchersPago = DB::table('liquidacionnomina')
+            ->join('boucherpago', 'boucherpago.fkLiquidacion', 'liquidacionnomina.idLiquidacionNomina')
+            ->select([
+                'boucherpago.idBoucherPago',
+                'liquidacionnomina.fechaInicio',
+                'liquidacionnomina.fechaFin',
+            ])
+            ->where('boucherpago.fkEmpleado', '=', $idEmple)
+            ->whereBetween('liquidacionnomina.fechaInicio', [$request->fechaInicio, $request->fechaFin])
+            ->get();
+        return $bouchersPago;
+    }
+
+    public function generarCertificadoLaboral($idEmple) {
+        setlocale(LC_ALL, "es_ES", 'Spanish_Spain', 'Spanish');
+        $fechaCarta = ucwords(iconv('ISO-8859-2', 'UTF-8', strftime("%A, %d de %B de %Y", strtotime(date('Y-m-d')))));
+
+        $dompdf = new Dompdf();
+        $datosEmpleado = DB::table('empleado')
+        ->join('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
+        ->join('empresa', 'empleado.fkEmpresa', 'empresa.idempresa')
+        ->select(
+            'datospersonales.primerNombre',
+            'datospersonales.segundoNombre',
+            'datospersonales.primerApellido',
+            'datospersonales.segundoApellido',
+            'datospersonales.numeroIdentificacion',
+            'empresa.razonSocial'
+        )
+        ->where('empleado.idempleado', $idEmple)
+        ->first();
+
+        $empresasEmpleado = DB::table('empleado')
+        ->join('empresa', 'empleado.fkEmpresa', 'empresa.idempresa')
+        ->join('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
+        ->join('nomina', 'empleado.fkNomina', 'nomina.idnomina')
+        ->join('conceptofijo', 'empleado.idempleado', 'conceptofijo.fkEmpleado')
+        ->join('cargo', 'empleado.fkCargo', 'cargo.idCargo')
+        ->join('centrocosto', 'empresa.idempresa', 'centrocosto.fkEmpresa')
+        ->join('periodo', 'periodo.fkEmpleado', 'empleado.idempleado')
+        ->select(
+            'conceptofijo.valor',
+            'conceptofijo.unidad',
+            'cargo.nombreCargo',
+            'centrocosto.nombre',
+            'empresa.razonSocial',
+            'periodo.fechaInicio',
+            'periodo.fechaFin',
+            'periodo.salario',
+            'periodo.fkEstado'
+        )
+        ->where('empleado.idempleado', $idEmple)
+        ->where('conceptofijo.fkConcepto', '1')
+        ->groupBy('empresa.idempresa')
+        ->get();
+
+        /* return response()->json([
+            'dataEmpleado' => $datosEmpleado,
+            'empresasEmpleado' => $empresasEmpleado,
+            'fechaCarta' => $fechaCarta
+        ]); */
+
+        /* return view('/pdfs.certificadoLaboral', [
+            'dataEmpleado' => $datosEmpleado,
+            'empresasEmpleado' => $empresasEmpleado,
+            'fechaCarta' => $fechaCarta
+        ]); */
+        
+        $vista = view('/pdfs.certificadoLaboral', [
+            'dataEmpleado' => $datosEmpleado,
+            'empresasEmpleado' => $empresasEmpleado,
+            'fechaCarta' => $fechaCarta
+        ]);
+
+        $dompdf->loadHtml($vista ,'UTF-8');
+        $dompdf->setPaper('letter', 'portrait');
+        $dompdf->render();
+        $dompdf->get_canvas()->get_cpdf()->setEncryption($datosEmpleado->numeroIdentificacion, $datosEmpleado->numeroIdentificacion);
+        $dompdf->stream("Certificación Laboral", array('compress' => 1, 'Attachment' => 1));
+    }
+
     public function vistaActPass($id) {
         try {
             $usuario = DB::table('users')->where('fkEmpleado', $id)->first();            
@@ -254,8 +362,14 @@ class PortalEmpleadoController extends Controller
 		}
     }
 
+    public function traerFormularios220() {
+        $formularios = DB::table('formulario220')->get();
+        return view('portalEmpleado.selectFormulario2020', [
+            'formularios' => $formularios
+        ]);
+    }
+
     public function days_360($fecha1,$fecha2,$europeo=true) {
-        //try switch dates: min to max
         if( $fecha1 > $fecha2 ) {
         $temf = $fecha1;
         $fecha1 = $fecha2;

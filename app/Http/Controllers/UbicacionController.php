@@ -126,13 +126,14 @@ class UbicacionController extends Controller
 		$tpUbicacion = DB::table('tipoubicacion')->where("idtipoUbicacion", "=", $req->tUbicacion)->first();
 		
 		switch ($tpUbicacion->nivel) {
+			
 			case 2:
 				$ubicacion->fkUbicacion = $req->pais;
 				break;
 			case 3:
 				$ubicacion->fkUbicacion = $req->depto;
 				break;
-			case 3:
+			case 4:
 				$ubicacion->fkUbicacion = $req->ciudad;
 				break;
 		}
