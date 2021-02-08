@@ -74,8 +74,13 @@
         </div>
         <div class="col form-group">
             <label for="numeroIdentificacion">Número de identificación</label>
-        <input type="number" class="form-control" id="numeroIdentificacion" name = "numeroIdentificacion" value = "{{ $tercero->numeroIdentificacion}}">
+            <input type="number" class="form-control" id="numeroIdentificacion" name = "numeroIdentificacion" value = "{{ $tercero->numeroIdentificacion}}">
         </div>
+        <div class="col form-group">
+            <label for="numeroIdentificacion">Digito Verificación</label>
+            <input type="number" class="form-control" id="digitoVer" name = "digitoVer" value = "{{ $tercero->digitoVer}}">
+        </div>
+        
     </div>
     <div class="row">
         <div class="col form-group">

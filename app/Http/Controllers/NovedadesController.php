@@ -82,6 +82,10 @@ class NovedadesController extends Controller
         if(!isset($req->nomina) || !isset($req->fecha) || !isset($req->tipo_novedad)){
             return "";
         }
+        $carpeta = "ajax";
+        if($req->idRow != 0){
+            $carpeta = "ajaxAdicional";
+        }
         if($req->tipo_novedad == "1"){ //&& isset($req->tipo_reporte) && $req->tipo_reporte == "1"){
             $conceptos = DB::table("concepto", "c")
                         ->select(["c.*"])
@@ -89,9 +93,10 @@ class NovedadesController extends Controller
                         ->where("tnc.fkTipoNovedad", "=", $req->tipo_novedad)->get();
             
 
-            return view('/novedades.ajax.ausencia1',[
+            return view('/novedades.'.$carpeta.'.ausencia1',[
                 'conceptos' => $conceptos,
-                'req' => $req
+                'req' => $req,
+                'idRow' => $req->idRow
      
             ]);
         }
@@ -115,11 +120,11 @@ class NovedadesController extends Controller
                         ->where("tnc.fkTipoNovedad", "=", $req->tipo_novedad)->get();
             $tiposAfiliacion = DB::table("tipoafilicacion")->whereIn("idTipoAfiliacion", [3,4])->get();
 
-            return view('/novedades.ajax.incapacidad',[
+            return view('/novedades.'.$carpeta.'.incapacidad',[
                 'conceptos' => $conceptos,
                 'tiposAfiliacion' => $tiposAfiliacion,
-                'req' => $req
-     
+                'req' => $req,
+                'idRow' => $req->idRow
             ]);
         }
         else if($req->tipo_novedad == "3"){
@@ -129,9 +134,10 @@ class NovedadesController extends Controller
                         ->where("tnc.fkTipoNovedad", "=", $req->tipo_novedad)->get();
             
 
-            return view('/novedades.ajax.licencia',[
+            return view('/novedades.'.$carpeta.'.licencia',[
                 'conceptos' => $conceptos,
-                'req' => $req
+                'req' => $req,
+                'idRow' => $req->idRow
      
             ]);
         }
@@ -141,10 +147,10 @@ class NovedadesController extends Controller
                         ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
                         ->where("tnc.fkTipoNovedad", "=", $req->tipo_novedad)->get();
             
-            return view('/novedades.ajax.horas1',[
+            return view('/novedades.'.$carpeta.'.horas1',[
                 'conceptos' => $conceptos,
-                'req' => $req
-     
+                'req' => $req,
+                'idRow' => $req->idRow
             ]);
         }
         else if($req->tipo_novedad == "4" && isset($req->tipo_reporte) && $req->tipo_reporte == "2"){
@@ -153,19 +159,19 @@ class NovedadesController extends Controller
                         ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
                         ->where("tnc.fkTipoNovedad", "=", $req->tipo_novedad)->get();
             
-            return view('/novedades.ajax.horas2',[
+            return view('/novedades.'.$carpeta.'.horas2',[
                 'conceptos' => $conceptos,
-                'req' => $req
-     
+                'req' => $req,
+                'idRow' => $req->idRow     
             ]);
         }
         else if($req->tipo_novedad == "5"){
             $motivosRetiro = DB::table("motivo_retiro", "m")->orderBy("nombre")->get();
             
-            return view('/novedades.ajax.retiro',[
+            return view('/novedades.'.$carpeta.'.retiro',[
                 'motivosRetiro' => $motivosRetiro,
-                'req' => $req
-     
+                'req' => $req,
+                'idRow' => $req->idRow     
             ]);
         }
         else if($req->tipo_novedad == "6" && isset($req->tipo_reporte) && $req->tipo_reporte == "1"){
@@ -176,9 +182,10 @@ class NovedadesController extends Controller
             ->where("tnc.tipoReporte", "=", $req->tipo_reporte)
             ->get();
 
-            return view('/novedades.ajax.vacaciones',[
+            return view('/novedades.'.$carpeta.'.vacaciones',[
                 'conceptos' => $conceptos,
-                'req' => $req
+                'req' => $req,
+                'idRow' => $req->idRow
             ]);
         }
         else if($req->tipo_novedad == "6" && isset($req->tipo_reporte) && $req->tipo_reporte == "2"){
@@ -189,18 +196,19 @@ class NovedadesController extends Controller
                         ->where("tnc.tipoReporte", "=", $req->tipo_reporte)
                         ->get();
             
-            return view('/novedades.ajax.vacaciones2',[
+            return view('/novedades.'.$carpeta.'.vacaciones2',[
                 'conceptos' => $conceptos,
-                'req' => $req
-     
+                'req' => $req,
+                'idRow' => $req->idRow     
             ]);
         }
         else if($req->tipo_novedad == "7"){
             $conceptos = DB::table("concepto", "c")->orderBy("nombre")->get();
 
-            return view('/novedades.ajax.otros',[
+            return view('/novedades.'.$carpeta.'.otros',[
                 'conceptos' => $conceptos,
-                'req' => $req
+                'req' => $req,
+                'idRow' => $req->idRow
             ]);
         }
         
@@ -208,8 +216,13 @@ class NovedadesController extends Controller
     public function tipoAfiliacionxConcepto($tipoNovedad, $concepto){
         $tipoAfiliacion = DB::table("tiponovconceptotipoent")->where("fkTipoNovedad","=", $tipoNovedad)
             ->where("fkConcepto", "=", $concepto)->first();
+        if(isset($tipoAfiliacion)){
+            return response()->json(['success'=>true, 'actividad' => $tipoAfiliacion->fkTipoAfilicacion]);
+        }
+        else{
+            return response()->json(['success'=>false]);
+        }
         
-        return response()->json(['success'=>true, 'actividad' => $tipoAfiliacion->fkTipoAfilicacion]);
     }
     public function entidadxTipoAfiliacion($tipoAfiliacion, $idEmpleado){
         if($tipoAfiliacion == -1){
@@ -238,46 +251,49 @@ class NovedadesController extends Controller
             'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'horaInicial' => 'required|date',
-            'horaFinal' => 'required|date|after_or_equal:horaInicial'
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'horaInicial.*' => 'required|date',
+            'horaFinal.*' => 'required|date|after_or_equal:horaInicial.*'
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
-        $horaI = strtotime( $req->horaInicial );
-        $horaF = strtotime( $req->horaFinal );
-        $diff = $horaF - $horaI;
-        $horas = $diff / ( 60 * 60 );
-        $horas = round($horas, 2);
-
-        $idHoraExtra = DB::table('horas_extra')->insertGetId([
-            "cantidadHoras" => $horas, 
-            "fechaHoraInicial" => date("Y-m-d H:i:s", $horaI),
-            "fechaHoraFinal" => date("Y-m-d H:i:s", $horaF)
-        ], "idHoraExtra");
-
-
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkTipoReporte" => $req->fkTipoReporte,
-            "fkHorasExtra" => $idHoraExtra,
-            "fkConcepto" => $req->concepto,
-            "fkEmpleado" => $req->idEmpleado,
-        );
-        
-        
-
-        DB::table('novedad')->insert($arrInsertNovedad);
+        foreach($req->horaInicial as $row => $horaIni){
+            $horaI = strtotime( $req->horaInicial[$row] );
+            $horaF = strtotime( $req->horaFinal[$row] );
+            $diff = $horaF - $horaI;
+            $horas = $diff / ( 60 * 60 );
+            $horas = round($horas, 2);
+    
+            $idHoraExtra = DB::table('horas_extra')->insertGetId([
+                "cantidadHoras" => $horas, 
+                "fechaHoraInicial" => date("Y-m-d H:i:s", $horaI),
+                "fechaHoraFinal" => date("Y-m-d H:i:s", $horaF)
+            ], "idHoraExtra");
+    
+    
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
+    
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkTipoReporte" => $req->fkTipoReporte,
+                "fkHorasExtra" => $idHoraExtra,
+                "fkConcepto" => $req->concepto[$row],
+                "fkEmpleado" => $req->idEmpleado[$row],
+            );
+            
+            
+    
+            DB::table('novedad')->insert($arrInsertNovedad);
+            
+        }
         
         return response()->json(['success'=>true]);
 
@@ -290,9 +306,9 @@ class NovedadesController extends Controller
             'numeric' => 'La :attribute debe ser numerica.'
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'cantidadHoras' => 'required|numeric'
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'cantidadHoras.*' => 'required|numeric'
         ],$messages);
 
         if ($validator->fails()) {
@@ -300,26 +316,27 @@ class NovedadesController extends Controller
         }
 
         
+        foreach($req->concepto as $row => $concepto){
+            $idHoraExtra = DB::table('horas_extra')->insertGetId([
+                "cantidadHoras" => $req->cantidadHoras[$row], 
+            ], "idHoraExtra");
 
-        $idHoraExtra = DB::table('horas_extra')->insertGetId([
-            "cantidadHoras" => $req->cantidadHoras, 
-        ], "idHoraExtra");
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
 
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkTipoReporte" => $req->fkTipoReporte,
-            "fkHorasExtra" => $idHoraExtra,
-            "fkConcepto" => $req->concepto,
-            "fkEmpleado" => $req->idEmpleado,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkTipoReporte" => $req->fkTipoReporte,
+                "fkHorasExtra" => $idHoraExtra,
+                "fkConcepto" => $req->concepto[$row],
+                "fkEmpleado" => $req->idEmpleado[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
+        }
         return response()->json(['success'=>true]);
     }
     public function insertarNovedadIncapacidad(Request $req){
@@ -329,58 +346,61 @@ class NovedadesController extends Controller
             'numeric' => 'La :attribute debe ser numerica.'
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'fechaInicial' => 'required|date',
-            'dias' => 'required|numeric',
-            'fechaFinal' => 'required|date',
-            'fechaRealI' => 'required|date',
-            'fechaRealF' => 'required|date',
-            'codigoDiagnostico' => 'required',
-            'pagoTotal' => 'required',
-            'tipoAfiliacion' => 'required',
-            'terceroEntidad' => 'required',
-            'naturaleza' => 'required',
-            'tipo' => 'required'
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'fechaInicial.*' => 'required|date',
+            'dias.*' => 'required|numeric',
+            'fechaFinal.*' => 'required|date',
+            'fechaRealI.*' => 'required|date',
+            'fechaRealF.*' => 'required|date',
+            'codigoDiagnostico.*' => 'required',
+            'pagoTotal.*' => 'required',
+            'tipoAfiliacion.*' => 'required',
+            'terceroEntidad.*' => 'required',
+            'naturaleza.*' => 'required',
+            'tipo.*' => 'required'
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
-        $tipoAfiliacion = null;
-        if($req->tipoAfiliacion!="-1"){
-            $tipoAfiliacion = ($req->tipoAfiliacion);
+
+        foreach($req->concepto as $row => $concepto){
+            $tipoAfiliacion = null;
+            if($req->tipoAfiliacion[$row]!="-1"){
+                $tipoAfiliacion = ($req->tipoAfiliacion[$row]);
+            }
+            $idIncapacidad = DB::table('incapacidad')->insertGetId([
+                "numDias" => $req->dias[$row], 
+                "fechaInicial" => $req->fechaInicial[$row], 
+                "fechaFinal" => $req->fechaFinal[$row], 
+                "fechaRealI" => $req->fechaRealI[$row], 
+                "fechaRealF" => $req->fechaRealF[$row], 
+                "pagoTotal" => $req->pagoTotal[$row],
+                "fkCodDiagnostico" => $req->idCodigoDiagnostico[$row],
+                "numIncapacidad" => $req->numIncapacidad[$row],
+                "fkTipoAfilicacion" => $tipoAfiliacion,
+                "fkTercero" => $req->idTerceroEntidad[$row],
+                "naturaleza" => $req->naturaleza[$row],
+                "tipoIncapacidad" => $req->tipo[$row],
+            ], "idIncapacidad");
+
+
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
+
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkIncapacidad" => $idIncapacidad,
+                "fkConcepto" => $req->concepto[$row],
+                "fkEmpleado" => $req->idEmpleado[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
         }
-        $idIncapacidad = DB::table('incapacidad')->insertGetId([
-            "numDias" => $req->dias, 
-            "fechaInicial" => $req->fechaInicial, 
-            "fechaFinal" => $req->fechaFinal, 
-            "fechaRealI" => $req->fechaRealI, 
-            "fechaRealF" => $req->fechaRealF, 
-            "pagoTotal" => $req->pagoTotal,
-            "fkCodDiagnostico" => $req->idCodigoDiagnostico,
-            "numIncapacidad" => $req->numIncapacidad,
-            "fkTipoAfilicacion" => $tipoAfiliacion,
-            "fkTercero" => $req->idTerceroEntidad,
-            "naturaleza" => $req->naturaleza,
-            "tipoIncapacidad" => $req->tipo,
-        ], "idIncapacidad");
-
-
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkIncapacidad" => $idIncapacidad,
-            "fkConcepto" => $req->concepto,
-            "fkEmpleado" => $req->idEmpleado,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
         return response()->json(['success'=>true]);
     }
     public function insertarNovedadLicencia(Request $req){
@@ -390,38 +410,39 @@ class NovedadesController extends Controller
             'numeric' => 'La :attribute debe ser numerica.'
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'fechaInicial' => 'required|date',
-            'dias' => 'required|numeric',
-            'fechaFinal' => 'required|date',
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'fechaInicial.*' => 'required|date',
+            'dias.*' => 'required|numeric',
+            'fechaFinal.*' => 'required|date',
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
+        foreach($req->concepto as $row => $concepto){
+            $idLicencia = DB::table('licencia')->insertGetId([
+                "numDias" => $req->dias[$row], 
+                "fechaInicial" => $req->fechaInicial[$row], 
+                "fechaFinal" => $req->fechaFinal[$row], 
+            ], "idLicencia");
 
-        $idLicencia = DB::table('licencia')->insertGetId([
-            "numDias" => $req->dias, 
-            "fechaInicial" => $req->fechaInicial, 
-            "fechaFinal" => $req->fechaFinal, 
-        ], "idLicencia");
 
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
 
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkLicencia" => $idLicencia,
-            "fkConcepto" => $req->concepto,
-            "fkEmpleado" => $req->idEmpleado,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkLicencia" => $idLicencia,
+                "fkConcepto" => $req->concepto[$row],
+                "fkEmpleado" => $req->idEmpleado[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
+        }
         return response()->json(['success'=>true]);
     }
     public function insertarNovedadAusencia1(Request $req){
@@ -431,122 +452,123 @@ class NovedadesController extends Controller
             'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'fechaAusenciaInicial' => 'required|date',
-            'fechaAusenciaFinal' => 'required|date|after_or_equal:fechaAusenciaInicial'
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'fechaAusenciaInicial.*' => 'required|date',
+            'fechaAusenciaFinal.*' => 'required|date|after_or_equal:fechaAusenciaInicial.*'
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
+        foreach($req->concepto as $row => $concepto){
+            $fechaAusInicial = date("Y-m-d", strtotime($req->fechaAusenciaInicial[$row]));
+            $fechaAusFinal = date("Y-m-d", strtotime($req->fechaAusenciaFinal[$row]));
 
-        $fechaAusInicial = date("Y-m-d", strtotime($req->fechaAusenciaInicial));
-        $fechaAusFinal = date("Y-m-d", strtotime($req->fechaAusenciaFinal));
+            $fechaAusenciaInicial = strtotime( $req->fechaAusenciaInicial[$row] );
+            $fechaAusenciaFinal = strtotime( $req->fechaAusenciaFinal[$row] );
+            $diff = $fechaAusenciaFinal - $fechaAusenciaInicial;
 
-        $fechaAusenciaInicial = strtotime( $req->fechaAusenciaInicial );
-        $fechaAusenciaFinal = strtotime( $req->fechaAusenciaFinal );
-        $diff = $fechaAusenciaFinal - $fechaAusenciaInicial;
+            $dias = $diff / ( 60 * 60 * 24);
+            $dias = floor($dias);
+            $dias++;
 
-        $dias = $diff / ( 60 * 60 * 24);
-        $dias = floor($dias);
-        $dias++;
+            $restoDias = $diff % ( 60 * 60 * 24);
+            $horas = $restoDias / ( 60 * 60 );
+            $horas = round($horas, 2);
 
-        $restoDias = $diff % ( 60 * 60 * 24);
-        $horas = $restoDias / ( 60 * 60 );
-        $horas = round($horas, 2);
-
-        
-        $empleado = DB::table("empleado")->where("idempleado","=", $req->idEmpleado)->first();
-
-        $fecha = new DateTime($fechaAusInicial);
-        $arrDiasAdicionales=array();
-        $arrDiasAdicionalesFinal = array();
-        if($req->domingoAplica == "1"){
-            do{
-                $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
-                $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
-    
-                if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
-                    if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                        array_push($arrDiasAdicionales, $domingoSemana);
-                    }
-                    /*if(!in_array($sabadoSemana, $arrDiasAdicionales)){
-                        array_push($arrDiasAdicionales, $sabadoSemana);
-                    }*/
-                }
-                else{
-                    if(!in_array($domingoSemana, $arrDiasAdicionales)){
-                        array_push($arrDiasAdicionales, $domingoSemana);
-                    }
-                }
-    
-                $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
-                $calendarios = DB::table("calendario")
-                ->whereRaw($sql)->get();
-                foreach($calendarios as $calendario){
-                    if(!in_array($calendario->fecha, $arrDiasAdicionales)){
-                        array_push($arrDiasAdicionales, $calendario->fecha);
-                    }
-                }
-    
-    
-                if($fechaAusFinal != $fecha->format('Y-m-d')){
-                    $fecha->add(new DateInterval('P1D'));
-                }
-                
-            }
-            while($fechaAusFinal != $fecha->format('Y-m-d'));
-    
             
-    
-            foreach($arrDiasAdicionales as $arrDiasAdicional){
-                $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
-                ->where("n.fkEmpleado","=",$req->idEmpleado)
-                ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
-                ->get();
-    
-                if(sizeof($cuentaDiaAdd)==0){
-                    array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
-                    $dias++;
+            $empleado = DB::table("empleado")->where("idempleado","=", $req->idEmpleado[$row])->first();
+
+            $fecha = new DateTime($fechaAusInicial);
+            $arrDiasAdicionales=array();
+            $arrDiasAdicionalesFinal = array();
+            if($req->domingoAplica[$row] == "1"){
+                do{
+                    $domingoSemana = date("Y-m-d", strtotime('next sunday '.$fecha->format('Y-m-d')));
+                    $sabadoSemana = date("Y-m-d", strtotime('next saturday '.$fecha->format('Y-m-d')));
+        
+                    if($empleado->sabadoLaborable == "0"){//No trabaja el sabado
+                        if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                            array_push($arrDiasAdicionales, $domingoSemana);
+                        }
+                        /*if(!in_array($sabadoSemana, $arrDiasAdicionales)){
+                            array_push($arrDiasAdicionales, $sabadoSemana);
+                        }*/
+                    }
+                    else{
+                        if(!in_array($domingoSemana, $arrDiasAdicionales)){
+                            array_push($arrDiasAdicionales, $domingoSemana);
+                        }
+                    }
+        
+                    $sql = "'".$fecha->format('Y-m-d')."' BETWEEN fechaInicioSemana AND fechaFinSemana";
+                    $calendarios = DB::table("calendario")
+                    ->whereRaw($sql)->get();
+                    foreach($calendarios as $calendario){
+                        if(!in_array($calendario->fecha, $arrDiasAdicionales)){
+                            array_push($arrDiasAdicionales, $calendario->fecha);
+                        }
+                    }
+        
+        
+                    if($fechaAusFinal != $fecha->format('Y-m-d')){
+                        $fecha->add(new DateInterval('P1D'));
+                    }
+                    
+                }
+                while($fechaAusFinal != $fecha->format('Y-m-d'));
+        
+                
+        
+                foreach($arrDiasAdicionales as $arrDiasAdicional){
+                    $cuentaDiaAdd = DB::table("ausencia","a")->join("novedad AS n", "n.fkAusencia", "=", "a.idAusencia")
+                    ->where("n.fkEmpleado","=",$req->idEmpleado[$row])
+                    ->where("a.fechasAdicionales","LIKE", "%".$arrDiasAdicional."%")
+                    ->get();
+        
+                    if(sizeof($cuentaDiaAdd)==0){
+                        array_push($arrDiasAdicionalesFinal, $arrDiasAdicional);
+                        $dias++;
+                    }
                 }
             }
+            
+
+            
+            
+
+            
+
+            $textoDias = implode(",",$arrDiasAdicionalesFinal);
+
+            $arrAusenciaIns = array(
+                "fechaInicio" => $req->fechaAusenciaInicial[$row], 
+                "fechaFin" => $req->fechaAusenciaFinal[$row], 
+                "cantidadDias" => $dias, 
+                "cantidadHoras" => $horas,
+                "fechasAdicionales" => $textoDias,
+                "domingoAplica" => $req->domingoAplica[$row]
+            );
+            
+            
+
+            $idAusencia = DB::table('ausencia')->insertGetId($arrAusenciaIns, "idAusencia");
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
+
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkAusencia" => $idAusencia,
+                "fkConcepto" => $req->concepto[$row],
+                "fkEmpleado" => $req->idEmpleado[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
         }
-        
-
-        
-        
-
-        
-
-        $textoDias = implode(",",$arrDiasAdicionalesFinal);
-
-        $arrAusenciaIns = array(
-            "fechaInicio" => $req->fechaAusenciaInicial, 
-            "fechaFin" => $req->fechaAusenciaFinal, 
-            "cantidadDias" => $dias, 
-            "cantidadHoras" => $horas,
-            "fechasAdicionales" => $textoDias,
-            "domingoAplica" => $req->domingoAplica
-        );
-        
-        
-
-        $idAusencia = DB::table('ausencia')->insertGetId($arrAusenciaIns, "idAusencia");
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkAusencia" => $idAusencia,
-            "fkConcepto" => $req->concepto,
-            "fkEmpleado" => $req->idEmpleado,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
         return response()->json(['success'=>true]);
     }
 
@@ -557,38 +579,39 @@ class NovedadesController extends Controller
             'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'dias' => 'required_without:horas',
-            'horas' => 'required_without:dias'
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'dias.*' => 'required_without:horas.*',
+            'horas.*' => 'required_without:dias.*'
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
       
+        foreach($req->concepto as $row => $concepto){
+
+            $idAusencia = DB::table('ausencia')->insertGetId([
+                "cantidadDias" => $req->dias[$row], 
+                "cantidadHoras" => $req->horas[$row]
+            ], "idAusencia");
 
 
-        $idAusencia = DB::table('ausencia')->insertGetId([
-            "cantidadDias" => $req->dias, 
-            "cantidadHoras" => $req->horas
-        ], "idAusencia");
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
 
-
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkAusencia" => $idAusencia,
-            "fkConcepto" => $req->concepto,
-            "fkEmpleado" => $req->idEmpleado,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkAusencia" => $idAusencia,
+                "fkConcepto" => $req->concepto[$row],
+                "fkEmpleado" => $req->idEmpleado[$row]
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
+        }
         return response()->json(['success'=>true]);
     }
     public function insertarNovedadRetiro(Request $req){
@@ -598,40 +621,41 @@ class NovedadesController extends Controller
             'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
         ];
         $validator = Validator::make($req->all(), [
-            'motivoRetiro' => 'required',
-            'idEmpleado' => 'required',
-            'fechaRetiro' => 'required',
-            'fechaRetiroReal' => 'required',
-            'indemnizacion' => 'required'
+            'motivoRetiro.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'fechaRetiro.*' => 'required',
+            'fechaRetiroReal.*' => 'required',
+            'indemnizacion.*' => 'required'
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
       
+        foreach($req->fechaRetiro as $row => $fechaRet){
+
+            $idRetiro = DB::table('retiro')->insertGetId([
+                "fecha" => $req->fechaRetiro[$row], 
+                "fechaReal" => $req->fechaRetiroReal[$row],
+                "fkMotivoRetiro" => $req->motivoRetiro[$row],
+                "indemnizacion" => $req->indemnizacion[$row]
+            ], "idRetiro");
 
 
-        $idRetiro = DB::table('retiro')->insertGetId([
-            "fecha" => $req->fechaRetiro, 
-            "fechaReal" => $req->fechaRetiroReal,
-            "fkMotivoRetiro" => $req->motivoRetiro,
-            "indemnizacion" => $req->indemnizacion
-        ], "idRetiro");
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
 
-
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkRetiro" => $idRetiro,
-            "fkEmpleado" => $req->idEmpleado,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkRetiro" => $idRetiro,
+                "fkEmpleado" => $req->idEmpleado[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
+        }
         return response()->json(['success'=>true]);
     }
     
@@ -717,37 +741,38 @@ class NovedadesController extends Controller
             'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'dias' => 'required',
-            'pagoAnticipado' => 'required'            
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'dias.*' => 'required',
+            'pagoAnticipado.*' => 'required'            
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
       
-   
-        $idVacaciones = DB::table('vacaciones')->insertGetId([
-            "diasCompensar" => $req->dias,
-            "pagoAnticipado" => $req->pagoAnticipado
-        ], "idVacaciones");
+        foreach($req->concepto as $row => $concepto){
+            $idVacaciones = DB::table('vacaciones')->insertGetId([
+                "diasCompensar" => $req->dias[$row],
+                "pagoAnticipado" => $req->pagoAnticipado[$row]
+            ], "idVacaciones");
 
 
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
 
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkVacaciones" => $idVacaciones,
-            "fkEmpleado" => $req->idEmpleado,
-            "fkConcepto" => $req->concepto,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkVacaciones" => $idVacaciones,
+                "fkEmpleado" => $req->idEmpleado[$row],
+                "fkConcepto" => $req->concepto[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
+        }
         return response()->json(['success'=>true]);
     }
 
@@ -758,42 +783,44 @@ class NovedadesController extends Controller
             'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'fechaInicial' => 'required',
-            'dias' => 'required',
-            'fechaFinal' => 'required',
-            'pagoAnticipado' => 'required'            
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'fechaInicial.*' => 'required',
+            'dias.*' => 'required',
+            'fechaFinal.*' => 'required',
+            'pagoAnticipado.*' => 'required'            
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
-      
+
+        foreach($req->concepto as $row => $concepto){
    
-        $idVacaciones = DB::table('vacaciones')->insertGetId([
-            "fechaInicio" => $req->fechaInicial, 
-            "fechaFin" => $req->fechaFinal,
-            "diasCompensar" => $req->dias,
-            "diasCompletos" => $req->diasCompletos,
-            "pagoAnticipado" => $req->pagoAnticipado
-        ], "idVacaciones");
+            $idVacaciones = DB::table('vacaciones')->insertGetId([
+                "fechaInicio" => $req->fechaInicial[$row], 
+                "fechaFin" => $req->fechaFinal[$row],
+                "diasCompensar" => $req->dias[$row],
+                "diasCompletos" => $req->diasCompletos[$row],
+                "pagoAnticipado" => $req->pagoAnticipado[$row]
+            ], "idVacaciones");
 
 
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
 
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkVacaciones" => $idVacaciones,
-            "fkEmpleado" => $req->idEmpleado,
-            "fkConcepto" => $req->concepto,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkVacaciones" => $idVacaciones,
+                "fkEmpleado" => $req->idEmpleado[$row],
+                "fkConcepto" => $req->concepto[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
+        }
         return response()->json(['success'=>true]);
     }
     
@@ -804,37 +831,39 @@ class NovedadesController extends Controller
             'after_or_equal' => 'La :attribute debe ser mayor a la inicial.',
         ];
         $validator = Validator::make($req->all(), [
-            'concepto' => 'required',
-            'idEmpleado' => 'required',
-            'valor' => 'required',
-            'sumaResta' => 'required',
+            'concepto.*' => 'required',
+            'idEmpleado.*' => 'required',
+            'valor.*' => 'required',
+            'sumaResta.*' => 'required',
         ],$messages);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
-      
-   
-        $idOtraNovedad = DB::table('otra_novedad')->insertGetId([
-            "valor" => $req->valor,
-            "sumaResta" => $req->sumaResta
-        ], "idOtraNovedad");
+        
+        foreach($req->concepto as $row => $concepto){
+            $idOtraNovedad = DB::table('otra_novedad')->insertGetId([
+                "valor" => $req->valor[$row],
+                "sumaResta" => $req->sumaResta[$row]
+            ], "idOtraNovedad");
 
 
-        $periodoActivoReintegro = DB::table("periodo")
-        ->where("fkEstado","=","1")
-        ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado[$row])->first();
 
-        $arrInsertNovedad = array(
-            "fkTipoNovedad" => $req->fkTipoNovedad, 
-            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-            "fkNomina" => $req->fkNomina,
-            "fechaRegistro" => $req->fechaRegistro,
-            "fkOtros" => $idOtraNovedad,
-            "fkEmpleado" => $req->idEmpleado,
-            "fkConcepto" => $req->concepto,
-        );
-        DB::table('novedad')->insert($arrInsertNovedad);
+            $arrInsertNovedad = array(
+                "fkTipoNovedad" => $req->fkTipoNovedad, 
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $req->fkNomina,
+                "fechaRegistro" => $req->fechaRegistro,
+                "fkOtros" => $idOtraNovedad,
+                "fkEmpleado" => $req->idEmpleado[$row],
+                "fkConcepto" => $req->concepto[$row],
+            );
+            DB::table('novedad')->insert($arrInsertNovedad);
+
+        }
         return response()->json(['success'=>true]);
     }
     public function lista(Request $req){

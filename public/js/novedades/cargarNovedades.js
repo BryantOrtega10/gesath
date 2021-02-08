@@ -143,7 +143,7 @@ $(document).ready(function() {
         const idTipo_novedad = $(this).val();
         $("#tipo_reporte").html('<option value=""></option>');
         $("#resp_tipoReporte").removeClass("activo");
-
+        desbloquearCampos();
         if (idTipo_novedad != "") {
             cargando();
             $.ajax({
@@ -155,8 +155,10 @@ $(document).ready(function() {
                         $("#resp_tipoReporte").addClass("activo");
                         $("#tipo_reporte").html(data.opciones);
                         $("#formCargarNovedades").submit();
+
                     } else if (data.tipo == 2) {
                         $("#formCargarNovedades").submit();
+
                     }
                 },
                 error: function(data) {
@@ -169,6 +171,7 @@ $(document).ready(function() {
 
 
     $("body").on("change", "#tipo_reporte", function() {
+        desbloquearCampos();
         $("#formCargarNovedades").submit();
 
     });
@@ -190,10 +193,11 @@ $(document).ready(function() {
         });
     });
 
+    var dataIdEmpleado = 0;
 
-
-    $("body").on("click", "#busquedaEmpleado", function() {
+    $("body").on("click", ".busquedaEmpleado", function() {
         cargando();
+        dataIdEmpleado = $(this).attr("data-id");
         $.ajax({
             type: 'GET',
             url: "/empleado/cargarFormEmpleadosxNomina?idNomina=" + $("#nomina").val(),
@@ -208,7 +212,15 @@ $(document).ready(function() {
             }
         });
     });
+    $("body").on("click", ".resFormBusEmpleado a.seleccionarEmpleado", function(e) {
+        e.preventDefault();
+        $("#nombreEmpleado" + dataIdEmpleado).val($(this).html().trim());
+        $("#nombreEmpleado" + dataIdEmpleado).trigger("change");
+        $("#idEmpleado" + dataIdEmpleado).val($(this).attr("data-id"));
 
+        $('#busquedaEmpleadoModal').modal('hide');
+
+    });
     $("body").on("submit", "#filtrarEmpleado", function(e) {
         e.preventDefault();
         cargando();
@@ -250,9 +262,10 @@ $(document).ready(function() {
             }
         });
     });
-
-    $("body").on("click", "#busquedaCodDiagnostico", function() {
+    var dataIdCodDiag = 0;
+    $("body").on("click", ".busquedaCodDiagnostico", function() {
         cargando();
+        dataIdCodDiag = $(this).attr("data-id");
         $.ajax({
             type: 'GET',
             url: "/varios/codigosDiagnostico",
@@ -304,26 +317,19 @@ $(document).ready(function() {
 
     $("body").on("click", ".resFormBusCodDiagnostico a.seleccionarCodigo", function(e) {
         e.preventDefault();
-        $("#codigoDiagnostico").val($(this).html().trim());
-        $("#codigoDiagnostico").trigger("change");
-        $("#idCodigoDiagnostico").val($(this).attr("data-id"));
+        $("#codigoDiagnostico" + dataIdCodDiag).val($(this).html().trim());
+        $("#codigoDiagnostico" + dataIdCodDiag).trigger("change");
+        $("#idCodigoDiagnostico" + dataIdCodDiag).val($(this).attr("data-id"));
 
         $('#busquedaCodDiagnosticoModal').modal('hide');
 
     });
-    $("body").on("click", ".resFormBusEmpleado a.seleccionarEmpleado", function(e) {
-        e.preventDefault();
-        $("#nombreEmpleado").val($(this).html().trim());
-        $("#nombreEmpleado").trigger("change");
-        $("#idEmpleado").val($(this).attr("data-id"));
 
-        $('#busquedaEmpleadoModal').modal('hide');
 
-    });
-
-    $("body").on("change", "#concepto", function(e) {
+    $("body").on("change", ".concepto", function(e) {
         var concepto = $(this).val();
-        if ($('#tipoAfiliacion').length > 0) {
+        const dataIdConcepto = $(this).attr("data-id");
+        if ($(".tipoAfiliacion").length > 0) {
             e.preventDefault();
             cargando();
             $.ajax({
@@ -331,8 +337,8 @@ $(document).ready(function() {
                 url: '/novedades/tipoAfiliacionxConcepto/' + $("#tipo_novedad").val() + '/' + concepto,
                 success: function(data) {
                     $("#cargando").css("display", "none");
-                    $("#tipoAfiliacion").val(data.actividad);
-                    $("#tipoAfiliacion").trigger("change");
+                    $("#tipoAfiliacion" + dataIdConcepto).val(data.actividad);
+                    $("#tipoAfiliacion" + dataIdConcepto).trigger("change");
                 },
                 error: function(data) {
                     console.log("error");
@@ -341,10 +347,11 @@ $(document).ready(function() {
             });
         }
     });
-    $("body").on("change", "#tipoAfiliacion", function(e) {
+    $("body").on("change", ".tipoAfiliacion", function(e) {
         var tipoAfiliacion = $(this).val();
-        var idEmpleado = $("#idEmpleado").val();
-        if ($('#terceroEntidad').length > 0) {
+        const dataIdTipoAfiliacion = $(this).attr("data-id");
+        var idEmpleado = $(".idEmpleado[data-id='" + dataIdTipoAfiliacion + "']").val();
+        if ($("#terceroEntidad" + dataIdTipoAfiliacion).length > 0) {
             e.preventDefault();
             cargando();
             $.ajax({
@@ -352,14 +359,14 @@ $(document).ready(function() {
                 url: '/novedades/entidadxTipoAfiliacion/' + tipoAfiliacion + '/' + idEmpleado,
                 success: function(data) {
                     $("#cargando").css("display", "none");
-                    $("#terceroEntidad").val(data.nombreTercero);
-                    $("#idTerceroEntidad").val(data.idTercero);
-                    if ($("#tipoAfiliacion").val() == "3") {
-                        $("#naturaleza").val("Enfermedad General o Maternidad");
-                        $("#naturaleza").trigger("change");
+                    $("#terceroEntidad" + dataIdTipoAfiliacion).val(data.nombreTercero);
+                    $("#idTerceroEntidad" + dataIdTipoAfiliacion).val(data.idTercero);
+                    if ($("#tipoAfiliacion" + dataIdTipoAfiliacion).val() == "3") {
+                        $("#naturaleza" + dataIdTipoAfiliacion).val("Enfermedad General o Maternidad");
+                        $("#naturaleza" + dataIdTipoAfiliacion).trigger("change");
                     }
 
-                    $("#terceroEntidad").trigger("change");
+                    $("#terceroEntidad" + dataIdTipoAfiliacion).trigger("change");
                 },
                 error: function(data) {
                     console.log("error");
@@ -404,49 +411,54 @@ $(document).ready(function() {
         });
     });
 
-    $("body").on("change", "#fechaRetiro", function() {
-
-        $("#fechaRetiroReal").val($(this).val());
-        $('#fechaRetiroReal').trigger("blur");
+    $("body").on("change", ".fechaRetiro", function() {
+        var dataid = $(this).attr("data-id");
+        $("#fechaRetiroReal" + dataid).val($(this).val());
+        $('#fechaRetiroReal' + dataid).trigger("blur");
     });
 
-
-    $("body").on("change", "#fechaInicial", function() {
+    var dataIdIncap = 0;
+    $("body").on("change", ".fechaInicial", function() {
+        dataIdIncap = $(this).attr("data-id");
         cambiarFechaFinal();
     });
 
-    $("body").on("change", "#dias", function() {
+    $("body").on("change", ".dias", function() {
+        dataIdIncap = $(this).attr("data-id");
         cambiarFechaFinal();
     });
 
     function cambiarFechaFinal() {
-        var fecha = new Date($("#fechaInicial").val());
-        fecha.setDate(fecha.getDate() + parseInt($("#dias").val()));
+        var fecha = new Date($("#fechaInicial" + dataIdIncap).val());
+        fecha.setDate(fecha.getDate() + parseInt($("#dias" + dataIdIncap).val()));
         var dias = ("0" + fecha.getDate()).slice(-2);
         var meses = ("0" + (fecha.getMonth() + 1)).slice(-2);
 
         var fechaTxt = fecha.getFullYear() + "-" + (meses) + "-" + (dias);
 
-        $('#fechaFinal').val(fechaTxt);
-        $('#fechaFinal').trigger("blur");
+        $('#fechaFinal' + dataIdIncap).val(fechaTxt);
+        $('#fechaFinal' + dataIdIncap).trigger("blur");
 
-        $('#fechaRealI').val($("#fechaInicial").val());
-        $('#fechaRealI').trigger("blur");
+        $('#fechaRealI' + dataIdIncap).val($("#fechaInicial" + dataIdIncap).val());
+        $('#fechaRealI' + dataIdIncap).trigger("blur");
 
-        $('#fechaRealF').val(fechaTxt);
-        $('#fechaRealF').trigger("blur");
+        $('#fechaRealF' + dataIdIncap).val(fechaTxt);
+        $('#fechaRealF' + dataIdIncap).trigger("blur");
     }
 
-
-    $("body").on("change", "#fechaInicialVaca", function() {
+    var dataIdVac = 0;
+    $("body").on("change", ".fechaInicialVaca", function() {
+        dataIdVac = $(this).attr("data-id");
         cambiarFechaFinalConCalendario();
     });
 
-    $("body").on("change", "#diasVaca", function() {
+    $("body").on("change", ".diasVaca", function() {
+        dataIdVac = $(this).attr("data-id");
         cambiarFechaFinalConCalendario();
     });
 
-    $("body").on("change", ".formVacaciones #idEmpleado", function() {
+    $("body").on("change", ".formVacaciones input[name='idEmpleado[]']", function() {
+        dataIdVac = $(this).attr("data-id");
         cambiarFechaFinalConCalendario();
     });
 
@@ -454,15 +466,16 @@ $(document).ready(function() {
         cargando();
         $.ajax({
             type: 'GET',
-            url: '/novedades/fechaConCalendario/?fecha=' + $("#fechaInicialVaca").val() + "&dias=" + $("#diasVaca").val() + "&idEmpleado=" + $("#idEmpleado").val(),
+            url: '/novedades/fechaConCalendario/?fecha=' + $("#fechaInicialVaca" + dataIdVac).val() + "&dias=" + $("#diasVaca" + dataIdVac).val() + "&idEmpleado=" + $("#idEmpleado" + dataIdVac).val(),
             cache: false,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
-                    $("#cargando").css("display", "none");
-                    $('#fechaFinalVaca').val(data.fecha);
-                    $('#fechaFinalVaca').trigger("blur");
-                    $("#diasCalendario").val(data.diasCalendario);
-                    $("#diasCal").html("Días calendario: " + data.diasCalendario);
+
+                    $('#fechaFinalVaca' + dataIdVac).val(data.fecha);
+                    $('#fechaFinalVaca' + dataIdVac).trigger("blur");
+                    $("#diasCalendario" + dataIdVac).val(data.diasCalendario);
+                    $("#diasCal" + dataIdVac).html("Días calendario: " + data.diasCalendario);
 
                 }
             },
@@ -478,7 +491,9 @@ $(document).ready(function() {
     $("body").on("submit", "#formCargarNovedades", function(e) {
         e.preventDefault();
         cargando();
-        $(".respNovedades").html("");
+        desbloquearCampos();
+        $(".masNovedades").removeClass("activo");
+        $(".resetNovedades").removeClass("activo");
         var formdata = new FormData(this);
         $.ajax({
             type: 'POST',
@@ -489,7 +504,18 @@ $(document).ready(function() {
             data: formdata,
             success: function(data) {
                 $("#cargando").css("display", "none");
-                $(".respNovedades").html(data);
+
+                if (data != "") {
+                    bloquearCampos();
+                    $(".masNovedades").addClass("activo");
+                    $(".resetNovedades").addClass("activo");
+                }
+                if ($("#idRow").val() == 0) {
+                    $(".respNovedades").append(data);
+                } else {
+                    $(".contAdicional").append(data);
+                }
+
                 $(".separadorMiles").inputmask({ alias: "currency", removeMaskOnSubmit: true });
             },
             error: function(data) {
@@ -549,10 +575,44 @@ $(document).ready(function() {
 
     });
 
+    $("body").on("click", ".masNovedades", function(e) {
+        desbloquearCampos();
+        $("#idRow").val(parseInt($("#idRow").val()) + 1);
+        $("#formCargarNovedades").submit();
+    })
 
+
+    $(".resetNovedades").click(function() {
+        $(".respNovedades").html("");
+        desbloquearCampos();
+        $(".masNovedades").removeClass("activo");
+        $(".resetNovedades").removeClass("activo");
+
+        $("#idRow").val(0);
+    });
 
     $(".recargarPage").click(function() {
         window.open("/novedades/listaNovedades/", "_self");
     });
 
+    $("body").on("click", ".quitarNovedadAdicional", function(e) {
+        const dataid = $(this).attr("data-id");
+        $(".novedadAdicional[data-id='" + dataid + "']").remove();
+    })
+
+
+    function bloquearCampos() {
+        $("#nomina").prop("disabled", true);
+        $("#fecha").prop("disabled", true);
+        $("#tipo_novedad").prop("disabled", true);
+        $("#tipo_reporte").prop("disabled", true);
+
+    }
+
+    function desbloquearCampos() {
+        $("#nomina").prop("disabled", false);
+        $("#fecha").prop("disabled", false);
+        $("#tipo_novedad").prop("disabled", false);
+        $("#tipo_reporte").prop("disabled", false);
+    }
 });

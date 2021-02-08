@@ -28,10 +28,10 @@
                 </div>
             </div>
             <div class="col-3">
-                <div class="form-group @isset($req->idcentroCosto) hasText @endisset">
+                <div class="form-group hasText">
                     <label for="idcentroCosto" class="control-label">Centro de costo:</label>
                     <select class="form-control" name="idcentroCosto" id="idcentroCosto">
-                        <option value=""></option>
+                        <option value="">Todos</option>
                         @foreach($centros_costos as $centro_costo)
                             <option value="{{$centro_costo->idcentroCosto}}" @isset($req->idcentroCosto) @if ($req->idcentroCosto == $centro_costo->idcentroCosto) selected @endif @endisset>{{$centro_costo->nombre}}</option>
                         @endforeach
@@ -117,6 +117,7 @@
                     @endif</td>
                     <td>
                         <a href="/catalogo-contable/getForm/edit/{{ $cata["id"] }}" class="editar"><i class="fas fa-edit"></i></a>
+                        <a href="/catalogo-contable/eliminar/{{ $cata["id"] }}" class="eliminar"><i class="fas fa-trash"></i></a>
                     </td>
                 </tr>
 

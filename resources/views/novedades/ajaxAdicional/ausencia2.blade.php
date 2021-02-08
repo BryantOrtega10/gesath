@@ -1,12 +1,9 @@
-<div class="subTitulo">
-    <h2>Ausencia</h2>
-    <hr />
-</div>
-<form action="/novedades/insertarNovedadAusencia2" method="POST" class="formGeneral" id="formDatosNovedad" autocomplete="off">
-    @csrf
-    <input type="hidden" name="fkTipoNovedad" value="{{$req->tipo_novedad}}" />
-    <input type="hidden" name="fkNomina" value="{{$req->nomina}}" />
-    <input type="hidden" name="fechaRegistro" value="{{$req->fecha}}" />
+<div class="novedadAdicional" data-id="{{$idRow}}">
+    <div>
+        <div class="offset-10 col-2 text-right">
+            <a href="#" class="btn btn-outline-danger quitarNovedad" data-id="{{$idRow}}">Quitar</a>
+        </div>
+    </div>
     <div class="row">
         <div class="col-3">
             <div class="form-group busquedaPop" id="busquedaEmpleado">
@@ -39,9 +36,4 @@
             </div>
         </div>
     </div>
-    <div class="contAdicional"></div>
-    <div class="alert alert-danger print-error-msg-DatosNovedad" style="display:none">
-        <ul></ul>
-    </div>
-    <div class="text-center"><input type="submit" value="AGREGAR" class="btnSubmitGen" /></div>
-</form>
+</div>

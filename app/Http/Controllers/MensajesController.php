@@ -28,7 +28,8 @@ class MensajesController extends Controller
     public function modificar(Request $req){
         
         DB::table("mensaje")->where("idMensaje","=",$req->idMensaje)->update([
-            "html" => $req->html
+            "html" => $req->html,
+            "asunto" => $req->asunto
         ]);
 
         $mensaje = DB::table("mensaje")->where("idMensaje","=", $req->idMensaje)->first();

@@ -191,4 +191,29 @@ $(document).ready(function() {
         e.preventDefault();
         window.open($(this).attr("data-url"), "_self");
     });
+    $(".enviarCorreo").click(function(e) {
+        e.preventDefault();
+        cargando();
+        $.ajax({
+            type: 'GET',
+            url: $(this).attr("href"),
+            cache: false,
+            success: function(data) {
+                $("#cargando").css("display", "none");
+                if (data.success) {
+                    alert("Correo enviado correctamente");
+                    window.location.reload();
+                } else {
+                    alert(data.error);
+                }
+
+
+            },
+            error: function(data) {
+                console.log("error");
+                console.log(data);
+            }
+        });
+
+    });
 });

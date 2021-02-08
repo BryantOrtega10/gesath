@@ -117,8 +117,9 @@
                 @endphp
                 </td>
                 <td>
-                    <a href="#" class="verDetalle" data-id="{{$boucher->idBoucherPago}}">Ver Detalle</a>
-                    <a href="/reportes/boucherPdf/{{$boucher->idBoucherPago}}" target="_blank" >Boucher pdf</a>
+                    <a href="#" class="verDetalle" data-id="{{$boucher->idBoucherPago}}">Ver Detalle</a><br>
+                    <a href="/reportes/boucherPdf/{{$boucher->idBoucherPago}}" target="_blank" >Comprobante de pago</a><br>
+                    <a href="/nomina/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo">Enviar por correo</a><br>
                     <a href="/nomina/recalcularBoucher/{{$boucher->idBoucherPago}}" class="recalcular" data-id="{{$boucher->idBoucherPago}}">Recalcular</a>
                 </td>
             </tr>

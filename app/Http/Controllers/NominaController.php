@@ -12,6 +12,10 @@ use DateInterval;
 use League\Csv\Reader;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Swift_Mailer;
+use Swift_SmtpTransport;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ComprobantesPagoMail;
 
 class NominaController extends Controller
 {
@@ -5245,22 +5249,48 @@ class NominaController extends Controller
         }
 
         
+        $ibcArl = 0;
+        $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
+        ->where("gcc.fkGrupoConcepto", "=", '45')//45->ibcArl
+        ->get();
+        $salarioMaximo = ($salarioMinimoDia * 30) * 25;
+        
+
+
+        foreach($grupoConceptoCalculo as $grupoConcepto){
+            if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto!=36){
+                $ibcArl= $ibcArl + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                
+            }
+        }
+
         
         
 
         if($ibcGeneral > $salarioMaximo){
             $ibcGeneral = $salarioMaximo;
         }
-        
+        if($ibcArl > $salarioMaximo){
+            $ibcArl = $salarioMaximo;
+        }
 
 
 
         
         $arrBoucherPago["ibc_afp"] = intval($ibcGeneral);
         $arrBoucherPago["ibc_eps"] = intval($ibcGeneral);
-        $arrBoucherPago["ibc_arl"] = intval($ibcGeneral);
+        
+        $arrBoucherPago["ibc_arl"] = intval($ibcArl);
+
+
+
+
         $arrBoucherPago["ibc_ccf"] = intval($ibcGeneral);
         $arrBoucherPago["ibc_otros"] = intval($ibcGeneral);
+
+
+
+
         
         if($ibcGeneral == 0 && ($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19")){
             $arrBoucherPago["ibc_eps"] = ($salarioMinimoDia * 30);
@@ -5325,6 +5355,7 @@ class NominaController extends Controller
             } 
         }
         $ibcGeneral2 = $ibcGeneral;
+        $ibcArl2  = $ibcArl;
         if(isset($fechaPrimeraQuincena)){ 
             if($empleado->tipoRegimen != "Salario Integral"){
                 $itemsBoucherIbcOtrosMesAnterior = DB::table("item_boucher_pago", "ibp")
@@ -5342,25 +5373,45 @@ class NominaController extends Controller
                 if(isset($itemsBoucherIbcOtrosMesAnterior)){
                     $ibcGeneral2 = $ibcGeneral2 + $itemsBoucherIbcOtrosMesAnterior->suma;
                 }
+
+                $itemsBoucherIbcOtrosMesAnterior = DB::table("item_boucher_pago", "ibp")
+                ->selectRaw("Sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")                
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("ln.fechaInicio","=",$fechaPrimeraQuincena)
+                ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
+                ->where("gcc.fkGrupoConcepto","=","45") //45 - ibc Arl
+                ->first();
+    
+                if(isset($itemsBoucherIbcOtrosMesAnterior)){
+                    $ibcArl2 = $ibcArl2 + $itemsBoucherIbcOtrosMesAnterior->suma;
+                }
             }           
         }
-        $arrBoucherPago["ibc_arl"] = intval($ibcGeneral2);
+
+
+
+
+        $arrBoucherPago["ibc_arl"] = intval($ibcArl2);
         if($ibcGeneral2 == 0 && ($empleado->fkTipoCotizante == "19")){
             $arrBoucherPago["ibc_arl"] = ($salarioMinimoDia * 30);
         }
 
         $arrBoucherPago["ibc_ccf"] = intval($ibcGeneral2);
         $arrBoucherPago["ibc_otros"] = intval($ibcGeneral2);
+
         if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
-            $valorEpsEmpleador = $ibcGeneral2 * ($varParafiscales[50] + $varParafiscales[49]);
+            $valorEpsEmpleador = $arrBoucherPago["ibc_eps"] * ($varParafiscales[50] + $varParafiscales[49]);
         }
         else{
             $valorEpsEmpleador = $ibcGeneral2 * $varParafiscales[50];
         }
         
         $valorEpsEmpleador = round($valorEpsEmpleador);
-
-
+        
         $arrParafiscales["eps"] = $valorEpsEmpleador;
         
         $existeConceptoUPCLiq = DB::table("conceptosxtipoliquidacion","ctl")
@@ -5516,6 +5567,7 @@ class NominaController extends Controller
         if($empleado->esPensionado == 0 && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
             $valorAfpEmpleado = $arrBoucherPago["ibc_afp"] * $varParafiscales[51];
             $valorAfpEmpleado = round($valorAfpEmpleado);
+            
             if(isset($arrValorxConcepto[19])){
                 $arrValorxConcepto[19] = array(
                     "naturaleza" => "3",
@@ -5537,7 +5589,14 @@ class NominaController extends Controller
                 );
             }
             
-            $valorAfpEmpleador = $ibcGeneral2 * $varParafiscales[52];
+            $nuevoIbc =  $ibcGeneral2;
+            if(isset($arrValorxConcepto[24])){
+                $nuevoIbc= $nuevoIbc + floatval($arrValorxConcepto[24]['valorAus']);
+            }
+            
+
+
+            $valorAfpEmpleador = $nuevoIbc * $varParafiscales[52];
             $valorAfpEmpleador = round($valorAfpEmpleador);
         }
         else{
@@ -5588,7 +5647,10 @@ class NominaController extends Controller
         else{
             $arrParafiscales["icbf"] = 0;
             $arrParafiscales["sena"] = 0;
-            $arrParafiscales["eps"] = 0;
+            if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                $arrParafiscales["eps"] = 0;
+            }
+            
             $arrBoucherPago["ibc_otros"] = 0;
         }
 
@@ -5618,6 +5680,20 @@ class NominaController extends Controller
                     }
                 }
 
+                $ibcArl = 0;
+                $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
+                ->where("gcc.fkGrupoConcepto", "=", '45')//45->ibcArl
+                ->get();
+                foreach($grupoConceptoCalculo as $grupoConcepto){
+                    if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto!=36){
+                        $ibcArl= $ibcArl + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                        
+                    }
+                }
+
+
+
+
                 $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
                 ->where("gcc.fkGrupoConcepto", "=", '4')//4->Salarial Nomina
                 ->get();
@@ -5636,7 +5712,11 @@ class NominaController extends Controller
              
                 $arrBoucherPago["ibc_afp"] = intval($ibcGeneral);
                 $arrBoucherPago["ibc_eps"] = intval($ibcGeneral);
-                $arrBoucherPago["ibc_arl"] = intval($ibcGeneral);
+                
+                
+                $arrBoucherPago["ibc_arl"] = intval($ibcArl);
+
+
                 $arrBoucherPago["ibc_ccf"] = intval($ibcGeneral);
                 $arrBoucherPago["ibc_otros"] = intval($ibcGeneral);
                 
@@ -5674,7 +5754,10 @@ class NominaController extends Controller
                 else{
                     $arrParafiscales["icbf"] = 0;
                     $arrParafiscales["sena"] = 0;
-                    $arrParafiscales["eps"] = 0;
+                    if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                        $arrParafiscales["eps"] = 0;
+                    }
+                    
                     $arrBoucherPago["ibc_otros"] = 0;
                 }
 
@@ -6677,7 +6760,7 @@ class NominaController extends Controller
             }            
             
             $totalPeriodoPagoAnioActual = $totalPeriodoPagoAnioActual + $diasAgregar;
-
+            
 
             /*//INICIO QUITAR LRN PARA INT CESANTIAS
             $novedadesAus = DB::table("novedad","n")
@@ -6704,7 +6787,7 @@ class NominaController extends Controller
 
 
             $liquidacionIntCesantias = ($liquidacionCesantias + (isset($saldoCesantias->valor) ? $saldoCesantias->valor : 0)) * $interesesPorcen;
-     
+            
             $historicoProvisionIntCesantias = DB::table("provision","p")
             ->selectRaw("sum(p.valor) as sumaValor")
             ->where("p.fkEmpleado","=",$empleado->idempleado)
@@ -6758,14 +6841,23 @@ class NominaController extends Controller
             }
 
             //Vacaciones
+            $fechaFinPeriodoVac = $fechaFin;
+            if(substr($fechaFin, 8, 2) == "31"){
+                $fechaFinPeriodoVac = substr($fechaFin, 0, 8)."30";
+            }
             
             
             
-            $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFin) + 1 ;
-
+            $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFinPeriodoVac) + 1 ;
+            
             if(isset($novedadesRetiro)){
                 if(strtotime($fechaFin) > strtotime($novedadesRetiro->fechaReal)){
-                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fechaReal) + 1 ;
+                    $fechaFinPeriodoVac = $novedadesRetiro->fechaReal;
+                    if(substr($novedadesRetiro->fechaReal, 8, 2) == "31"){
+                        $fechaFinPeriodoVac = substr($novedadesRetiro->fechaReal, 0, 8)."30";
+                    }
+                   
+                    $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$fechaFinPeriodoVac) + 1 ;
                 }
             }
             //INICIO QUITAR LRN VAC
@@ -6810,6 +6902,7 @@ class NominaController extends Controller
                 $salarialVac = $salarialVac + $itemsBoucherSalarialMesAnteriorVac->suma;
             }
             
+
             $diasVac = $periodoPagoVac * 15 / 360;
             
             //INICIO QUITAR DIAS VAC
@@ -6825,14 +6918,18 @@ class NominaController extends Controller
             //$diasVac = $totalPeriodoPagoAnioActual * 15 / 360;
 
             
-
+            
             foreach($novedadesVacacion as $novedadVacacion){
                 $diasVac = $diasVac - $novedadVacacion->diasCompletos;
+                
             }
+            
             if(isset($diasVac) && $diasVac < 0 && $empresa->vacacionesNegativas == 0){
                 $diasVac = 0;
             }
             $diasVac = round($diasVac, 2);
+            
+
             //FIN QUITAR DIAS VAC
 
 
@@ -6852,9 +6949,21 @@ class NominaController extends Controller
             ->first();
 
             $salarialVac = $salarialVac + $itemsBoucherSalarialMesesAnterioresVac->suma;
-            if($totalPeriodoPagoAnioActual!=0){
+            /*if($totalPeriodoPagoAnioActual!=0){
                 $salarialVac = ($salarialVac / $totalPeriodoPagoAnioActual)*30;
             }
+            else{
+                
+            }
+            ;*/
+            $diff = $this->days_360($empleado->fechaIngreso, $fechaFin);
+            $diasTomar = $diff;
+            if($diff> 360){
+                $diasTomar = 360;
+            }
+            
+            $salarialVac = ($salarialVac / $diasTomar)*30;
+            
             
             
             $salarioVac = 0;
@@ -6868,7 +6977,7 @@ class NominaController extends Controller
             $baseVac = $salarioVac + $salarialVac;
             
             $liquidacionVac = ($baseVac/30)*$diasVac;
-    
+            
             $historicoProvisionVac = DB::table("provision","p")
             ->selectRaw("sum(p.valor) as sumaValor")
             ->where("p.fkEmpleado","=",$empleado->idempleado)
@@ -6880,8 +6989,27 @@ class NominaController extends Controller
             ->where("p.fkConcepto","=","74")
             ->first();
 
-            $provisionVacValor = $liquidacionVac - $historicoProvisionVac->sumaValor;
-    
+            $saldoVacaciones = DB::table("saldo")
+            ->where("fkEmpleado","=",$empleado->idempleado)
+            ->where("anioAnterior","=",date("Y",strtotime($fechaInicio)))
+            ->where("fkConcepto","=", "74")
+            ->where("fkEstado","=","7")
+            ->first();
+
+            
+            $provAnteriores = $historicoProvisionVac->sumaValor + (isset($saldoVacaciones) ? $saldoVacaciones->valor : 0);
+            
+            if(isset($arrValorxConcepto[28])){
+                $provAnteriores = $provAnteriores - $arrValorxConcepto[28]["valor"];
+            }
+
+            if(isset($arrValorxConcepto[29])){
+                $provAnteriores = $provAnteriores - $arrValorxConcepto[29]["valor"];
+            }
+
+            $provisionVacValor = $liquidacionVac - $provAnteriores;
+            
+
             $provisionVacaciones = DB::table("provision","p")
                 ->where("p.fkEmpleado","=",$empleado->idempleado)
                 ->whereRaw("p.fkPeriodoActivo in(
@@ -6891,7 +7019,7 @@ class NominaController extends Controller
                 ->where("p.anio","=",date("Y",strtotime($fechaInicio)))
                 ->where("p.fkConcepto","=","74")
                 ->get();
-
+                    
             $periodoActivoReintegro = DB::table("periodo")
                 ->where("fkEstado","=","1")
                 ->where("fkEmpleado", "=", $empleado->idempleado)->first();
@@ -7568,15 +7696,18 @@ class NominaController extends Controller
             //$diasVac = $totalPeriodoPagoAnioActual * 15 / 360;
             
             
-
+           
             foreach($novedadesVacacion as $novedadVacacion){
                 $diasVac = $diasVac - $novedadVacacion->diasCompletos;
             }
+
+
             if(isset($diasVac) && $diasVac < 0 && $empresa->vacacionesNegativas == 0){
                 $diasVac = 0;
             }
             $diasVac = round($diasVac, 2);
             //FIN QUITAR DIAS VAC
+            
 
 
            
@@ -8313,8 +8444,7 @@ class NominaController extends Controller
                     $baseVac = $salarioVac + $salarialVac;
                     
                     $liquidacionVac = ($baseVac/30)*$diasVac;
-                    
-
+                   
 
 
 
@@ -9390,7 +9520,7 @@ class NominaController extends Controller
             
             $valorEpsEmpleador = round($valorEpsEmpleador);
     
-    
+            
             $arrParafiscales["eps"] = $valorEpsEmpleador;
             
 
@@ -9398,7 +9528,10 @@ class NominaController extends Controller
         else{
             $arrParafiscales["icbf"] = 0;
             $arrParafiscales["sena"] = 0;
-            $arrParafiscales["eps"] = 0;
+            if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                $arrParafiscales["eps"] = 0;
+            }
+            
             $arrBoucherPago["ibc_otros"] = 0;
         }   
         
@@ -11253,4 +11386,130 @@ class NominaController extends Controller
         ];
 
     }
+    
+     
+
+
+    public function enviarCorreoBoucher($idBoucherPago) {
+
+        $arrSMTPDefault = array(
+            'host' => 'smtp-mail.outlook.com',
+            'user' => 'noreply@gesath.com',
+            'pass' => 'NI900020391',
+            'encrypt' => 'TLS',
+            'port' => 587,
+            'sender_mail' => 'noreply@gesath.com',
+            'sender_name' => 'PRUEBAS GESATH'
+        );
+
+        $empleado = DB::table("empleado", "e")
+        ->selectRaw('dp.*,e.*,ti.nombre as tipoidentificacion, emp.razonSocial as nombreEmpresa,
+                    CONCAT_WS(" ",dp.primerApellido, dp.segundoApellido, dp.primerNombre, dp.segundoNombre) as nombreCompleto')
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
+        ->join("nomina as n","n.idNomina", "=","e.fkNomina","left")
+        ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa","left")
+        ->join("boucherpago as bp","bp.fkEmpleado", "=","e.idempleado")
+        ->where("bp.idBoucherPago","=",$idBoucherPago)
+        ->first();
+        
+        $empresayLiquidacion = DB::table("empresa", "e")
+        ->select("e.*", "ln.*", "n.nombre as nom_nombre", "bp.*")
+        ->join("nomina as n","n.fkEmpresa", "e.idempresa")
+        ->join("liquidacionnomina as ln","ln.fkNomina", "n.idNomina")
+        ->join("boucherpago as bp","bp.fkLiquidacion", "ln.idLiquidacionNomina")
+        ->where("bp.idBoucherPago","=",$idBoucherPago)
+        ->first();
+
+        $smtConfig = DB::table("smtp_config","s")
+        ->join("empresa as e","e.fkSmtpConf", "=","s.id_smpt")
+        ->where("e.idempresa","=",$empresayLiquidacion->idempresa)->first();
+
+        $novedadesRetiro = DB::table("novedad","n")
+            ->select("r.fecha", "r.fechaReal","mr.nombre as motivoRet")
+            ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+            ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro")
+            ->where("n.fkEmpleado", "=", $empleado->idempleado)
+            ->whereIn("n.fkEstado",["7", "8"])
+            ->whereNotNull("n.fkRetiro")
+            ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
+        
+        $mensaje = DB::table("mensaje")->where("idMensaje","=", "4")->first();
+
+        if(($empresayLiquidacion->fkTipoLiquidacion == "2" || $empresayLiquidacion->fkTipoLiquidacion == "3" || $empresayLiquidacion->fkTipoLiquidacion == "7") && isset($novedadesRetiro)){
+            $mensaje = DB::table("mensaje")->where("idMensaje","=", "5")->first();
+        }  
+
+        $transport = new Swift_SmtpTransport($arrSMTPDefault['host'], $arrSMTPDefault['port'], $arrSMTPDefault['encrypt']);
+        $transport->setUsername($arrSMTPDefault['user']);
+        $transport->setPassword($arrSMTPDefault['pass']);
+        $customSwiftMailer = new Swift_Mailer($transport);
+
+        $sender_mail = $arrSMTPDefault['sender_mail'];
+        $sender_name = $arrSMTPDefault['sender_name'];
+
+        if(isset($smtConfig)){
+            $transport = new Swift_SmtpTransport($smtConfig->smtp_host, $smtConfig->smtp_port, $smtConfig->smtp_encrypt);
+            $transport->setUsername($smtConfig->smtp_username);
+            $transport->setPassword($smtConfig->smtp_password);
+            $customSwiftMailer = new Swift_Mailer($transport);
+
+            $sender_mail = $smtConfig->smtp_mail_envia;
+            $sender_name = $smtConfig->smtp_nombre_envia;
+        }
+        
+        Mail::setSwiftMailer($customSwiftMailer);
+
+
+
+        $arrDatos =  (array) $empleado;
+
+
+
+
+        
+        $arrDatos["periodoNomina"] = $empresayLiquidacion->fechaLiquida;
+        
+        $mensaje->html = $this->reemplazarCampos($mensaje->html, $arrDatos);
+        $mensaje->asunto = $this->reemplazarCampos($mensaje->asunto, $arrDatos);
+        
+
+        $reportes = new ReportesNominaController();
+
+        $pdf = $reportes->boucherCorreo($idBoucherPago);
+
+        try {
+            Mail::to($empleado->correo)->send(new ComprobantesPagoMail($mensaje->asunto, $mensaje->html, $sender_mail, $sender_name, $pdf));
+            return response()->json([
+                "success" => true
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "success" => false,
+                "error" => $e->getMessage()
+            ]);
+        }
+    }
+
+    private function reemplazarCampos($mensaje, $datos){
+        $arrayCampos = [
+            "nombreCompleto" => "__nombreCompleto__",
+            "primerNombre" => "__primerNombre__",
+            "segundoNombre" => "__segundoNombre__",
+            "primerApellido" => "__primerApellido__",
+            "segundoApellido" => "__segundoApellido__",
+            "numeroIdentificacion" => "__numeroIdentificacion__",
+            "tipoidentificacion" => "__tipoIdentificacion__",
+            "nombreEmpresa" => "__empresa__",            
+            "periodoNomina" => "__periodoNomina__"
+        ];
+        foreach($arrayCampos as $id => $campo){
+            if(isset($datos[$id])){
+                $mensaje = str_replace($campo, $datos[$id], $mensaje);
+            }
+        }
+        return $mensaje;
+        
+    }
+
 }

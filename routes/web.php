@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use \Illuminate\Support\Facades\Mail;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -195,7 +196,7 @@ Route::group([
 	Route::get('cambiarConceptosFijos','NominaController@cambiarConceptosFijosIndex');
 	Route::post('subirCambioConceptoFijo','NominaController@subirCambioConceptoFijo');
 	
-
+	Route::get('enviarComprobante/{idBoucher}','NominaController@enviarCorreoBoucher');
 	Route::group(['prefix' => 'distri'], function(){
 		Route::get('add','NominaController@centroCostoPeriodoFormAdd');
 		Route::post('crear','NominaController@insertDistri');
@@ -383,6 +384,10 @@ Route::group(['prefix' => 'catalogo-contable', 'middleware' => ['auth', 'guest:2
 	Route::get('/', 'CatalogoContableController@index');
 	Route::get("/getForm/add", 'CatalogoContableController@getFormAdd');
 	Route::get("/getForm/edit/{id}", 'CatalogoContableController@getFormEdit');
+
+	Route::get("/eliminar/{id}", 'CatalogoContableController@eliminarTransaccion');
+	
+
 	Route::post("/crear", 'CatalogoContableController@crear');
 	Route::post("/modificar", 'CatalogoContableController@modificar');
 	

@@ -12,53 +12,18 @@
 			@endforeach
 		</select>
 	</div>
+
 	<div class="form-group">
 		<label for="fkCentroCosto" class="control-label">Centro costo *</label>
 		<select class="form-control" id="fkCentroCosto" name="fkCentroCosto">
 			<option value="">Todos</option>
 			@foreach($centrosCosto as $centroCosto)
-				<option value="{{$centroCosto->idcentroCosto}}" @if($centroCosto->idcentroCosto == $centroCostoSelect) selected @endif>{{$centroCosto->nombre}}</option>
+				<option value="{{$centroCosto->idcentroCosto}}" @if($centroCosto->idcentroCosto == $datosCuentaCred->fkCentroCosto2) selected @endif>{{$centroCosto->nombre}}</option>
 			@endforeach
 		</select>
-	</div>
-    <div class="form-group">
-		<label for="cuentaCred" class="control-label">Cuenta Credito *</label>
-		<select class="form-control" id="cuentaCred" name="cuentaCred">
-			<option value="nueva">Nueva</option>
-			@foreach($cuentas as $cuenta)
-				<option value="{{$cuenta->idCatalgoContable}}" @if($cuenta->idCatalgoContable == $datosCuentaCred->fkCuenta) selected @endif>{{$cuenta->cuenta}} - {{$cuenta->descripcion}}</option>
-			@endforeach
-		</select>
-	</div>
-	<div class="cuentaCreditoNueva activo2">
-		<div class="form-group">
-			<label for="cuentaCred2" class="control-label">Cuenta credito *</label>
-			<input type="text" class="form-control" id="cuentaCred2" name="cuentaCred2" value="{{$datosCuentaCred->cuenta}}" />
-		</div>	
-		<div class="form-group">
-			<label for="descripcionCred" class="control-label">Descripcion cuenta credito *</label>
-			<input type="text" class="form-control" id="descripcionCred" name="descripcionCred" value="{{$datosCuentaCred->descripcion}}" />
-		</div>	
-		<div class="form-group">
-			<label for="fkTipoTerceroCred" class="control-label">Tipo tercero credito*</label>
-			<select class="form-control" id="fkTipoTerceroCred"  name="fkTipoTerceroCred">
-				<option value="">Seleccione uno</option>
-				@foreach($tipoTerceroCuenta as $tipoCuenta)
-					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}" @if($datosCuentaCred->fkTipoTercero==$tipoCuenta->idTipoTerceroCuenta) selected @endif >{{$tipoCuenta->nombre}}</option>
-				@endforeach
-			</select>
-		</div>
-		<div class="form-group elementoTerceroCred @if ($datosCuentaCred->fkTipoTercero == "8") activo @endif">
-			<label for="fkTerceroCred" class="control-label">Tercero credito*</label>
-			<select class="form-control" id="fkTerceroCred" name="fkTerceroCred">
-				<option value="">Seleccione uno</option>
-				@foreach($terceros as $tercero)
-					<option value="{{$tercero->idTercero}}" @if($datosCuentaCred->fkTercero==$tercero->idTercero) selected @endif >{{$tercero->razonSocial}}</option>
-				@endforeach
-			</select>
-		</div>		
 	</div>
 	<div class="form-group">
+		<input type="hidden" name="cuentaDebAnt" value="{{$datosCuentaDeb->fkCuenta}}"/>
 		<label for="cuentaDeb" class="control-label">Cuenta Debito *</label>
 		<select class="form-control" id="cuentaDeb" name="cuentaDeb">
 			<option value="nueva">Nueva</option>
@@ -95,6 +60,45 @@
 			</select>
 		</div>		
 	</div>
+    <div class="form-group">
+		<input type="hidden" name="cuentaCredAnt" value="{{$datosCuentaCred->fkCuenta}}"/>
+		<label for="cuentaCred" class="control-label">Cuenta Credito *</label>
+		<select class="form-control" id="cuentaCred" name="cuentaCred">
+			<option value="nueva">Nueva</option>
+			@foreach($cuentas as $cuenta)
+				<option value="{{$cuenta->idCatalgoContable}}" @if($cuenta->idCatalgoContable == $datosCuentaCred->fkCuenta) selected @endif>{{$cuenta->cuenta}} - {{$cuenta->descripcion}}</option>
+			@endforeach
+		</select>
+	</div>
+	<div class="cuentaCreditoNueva activo2">
+		<div class="form-group">
+			<label for="cuentaCred2" class="control-label">Cuenta credito *</label>
+			<input type="text" class="form-control" id="cuentaCred2" name="cuentaCred2" value="{{$datosCuentaCred->cuenta}}" />
+		</div>	
+		<div class="form-group">
+			<label for="descripcionCred" class="control-label">Descripcion cuenta credito *</label>
+			<input type="text" class="form-control" id="descripcionCred" name="descripcionCred" value="{{$datosCuentaCred->descripcion}}" />
+		</div>	
+		<div class="form-group">
+			<label for="fkTipoTerceroCred" class="control-label">Tipo tercero credito*</label>
+			<select class="form-control" id="fkTipoTerceroCred"  name="fkTipoTerceroCred">
+				<option value="">Seleccione uno</option>
+				@foreach($tipoTerceroCuenta as $tipoCuenta)
+					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}" @if($datosCuentaCred->fkTipoTercero==$tipoCuenta->idTipoTerceroCuenta) selected @endif >{{$tipoCuenta->nombre}}</option>
+				@endforeach
+			</select>
+		</div>
+		<div class="form-group elementoTerceroCred @if ($datosCuentaCred->fkTipoTercero == "8") activo @endif">
+			<label for="fkTerceroCred" class="control-label">Tercero credito*</label>
+			<select class="form-control" id="fkTerceroCred" name="fkTerceroCred">
+				<option value="">Seleccione uno</option>
+				@foreach($terceros as $tercero)
+					<option value="{{$tercero->idTercero}}" @if($datosCuentaCred->fkTercero==$tercero->idTercero) selected @endif >{{$tercero->razonSocial}}</option>
+				@endforeach
+			</select>
+		</div>		
+	</div>
+	
 	<div class="form-group">
 		<label for="transaccion" class="control-label">Transacción *</label>
 		<select class="form-control" id="transaccion" required name="transaccion">
@@ -147,10 +151,11 @@
 	</div>
 	<div class="form-group conceptoCuenta @if($datosCuentaCred->tablaConsulta == "4") activo @endif" data-id="0">
 		<label for="fkConcepto0" class="control-label">Concepto *</label>
+		
 		<select class="form-control" id="fkConcepto0" name="fkConcepto[]">
 			<option value="">Seleccione uno</option>
 			@foreach($conceptos as $concepto)
-				<option value="{{$concepto->idconcepto}}" @if($datosCuentaCred->subTipoConsulta == $datosCuentaCred->fkConcepto) selected @endif>{{$concepto->nombre}}</option>
+				<option value="{{$concepto->idconcepto}}" @if($concepto->idconcepto == $datosCuentaCred->fkConcepto) selected @endif>{{$concepto->nombre}}</option>
 			@endforeach
 		</select>
 	</div>

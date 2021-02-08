@@ -9,6 +9,8 @@
     <div class="cajaGeneral">
         <form action="/novedades/cargarFormNovedadesxTipo" method="POST" class="formGeneral" id="formCargarNovedades" autocomplete="off">
             @csrf
+            
+            <input type="hidden" name="idRow" id="idRow" value="0"/>
             <input type="hidden" name="fechaMinima" id="fechaMinima" />
             <div class="row">
                 <div class="col-3">
@@ -51,8 +53,13 @@
                 </div>
             </div>
         </form>
+        <div class="row">
+            <div class="offset-11 col-1">
+                <div class="contMasMenos resetNovedades"><i class="fas fa-redo"></i></div><div class="contMasMenos masNovedades" data-id="0">+</div>
+            </div>
+        </div>
         <div class="respNovedades">
-                
+            
         </div>   
     </div>
     <div class="modal fade" id="errorNominaModal" tabindex="-1" role="dialog" aria-labelledby="errorNominaModal" aria-hidden="true">

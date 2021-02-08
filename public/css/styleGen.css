@@ -1150,6 +1150,39 @@ div#cargando {
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgb(0 0 0 / 12%);
+    background: rgb(0 0 0 / 44%);
     z-index: 9999999999;
+    text-align: center;
+    color: #FFF;
+    font-size: 36px;
+    justify-content: center;
+    align-items: center;
+}
+
+.contMasMenos.masNovedades {
+    display: none;
+}
+
+.contMasMenos.masNovedades.activo {
+    display: block;
+    background: #166f93;
+    color: #FFF;
+    width: 24px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 2px;
+    height: 24px;
+    z-index: 9;
+}
+
+.contMasMenos.resetNovedades {
+    right: 60px;
+    color: #166f93;
+    cursor: pointer;
+    z-index: 999;
+    display: none;
+}
+
+.contMasMenos.resetNovedades.activo {
+    display: block;
 }

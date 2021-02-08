@@ -759,6 +759,8 @@ class DatosPasadosController extends Controller
         DB::table("carga_datos_pasados_vac")
         ->where("idCargaDatosPasados","=",$idCarga)
         ->delete();
+
+        
         return redirect('/datosPasadosVac');
     }
     public function eliminarRegistrosVac(Request $req){
@@ -794,7 +796,13 @@ class DatosPasadosController extends Controller
                 $periodoActivoReintegro = DB::table("periodo")
                 ->where("fkEstado","=","1")
                 ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
-                
+                if(!isset($periodoActivoReintegro)){
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","2")
+                    ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+                }
+
+
                 $arrInsertNovedad =[
                     "fkTipoNovedad" => 6,
                     "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
@@ -1001,22 +1009,24 @@ class DatosPasadosController extends Controller
                     continue;
                 }
                 $fkConcepto = 0;
-                if($row[2]=="PRIMA"){
+                if($row[1]=="PRIMA"){
                     $fkConcepto = 73;
                 }
-                else if($row[2]=="CESANTIAS"){
+                else if($row[1]=="CESANTIAS"){
                     $fkConcepto = 71;
                 }
-                else if($row[2]=="INT_CES"){
+                else if($row[1]=="INT_CES"){
                     $fkConcepto = 72;
                 }
-                else if($row[2]=="CESANTIAS_ANT"){
+                else if($row[1]=="CESANTIAS_ANT"){
                     $fkConcepto = 67;
                 }
-                else if($row[2]=="INT_CES_ANT"){
+                else if($row[1]=="INT_CES_ANT"){
                     $fkConcepto = 68;
                 }
-
+                else if($row[1]=="VACACIONES"){
+                    $fkConcepto = 74;
+                }
 
                 $existeConcepto = DB::table("concepto","c")
                 ->where("c.idconcepto","=",$fkConcepto)
@@ -1024,8 +1034,7 @@ class DatosPasadosController extends Controller
 
                 $existeEmpleado = DB::table("empleado","e")
                 ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-                ->where("dp.numeroIdentificacion","=", $row[1])
-                ->where("dp.fkTipoIdentificacion","=", $row[0])
+                ->where("dp.numeroIdentificacion","=", $row[0])
                 ->first();
            
                     
@@ -1035,9 +1044,9 @@ class DatosPasadosController extends Controller
                         
                         "fkEmpleado" => $existeEmpleado->idempleado,
                         "fkConcepto" => $fkConcepto,
-                        "valor" => $row[3],
-                        "mes" => $row[4],
-                        "anio" => $row[5],
+                        "valor" => $row[2],
+                        "mes" => $row[3],
+                        "anio" => $row[4],
                         "fkCargaDatosPasados" => $idCarga,
                         "fkEstado" => "3"
                     ]);    
@@ -1045,9 +1054,9 @@ class DatosPasadosController extends Controller
                 else if(isset($existeConcepto)){
                     DB::table("datos_pasados_sal")->insert([
                         "fkConcepto" => $fkConcepto,
-                        "valor" => $row[3],
-                        "mes" => $row[4],
-                        "anio" => $row[5],
+                        "valor" => $row[2],
+                        "mes" => $row[3],
+                        "anio" => $row[4],
                         "fkCargaDatosPasados" => $idCarga,
                         "fkEstado" => "12"
                     ]);     
@@ -1055,18 +1064,18 @@ class DatosPasadosController extends Controller
                 else if(isset($existeEmpleado)){
                     DB::table("datos_pasados_sal")->insert([                        
                         "fkEmpleado" => $existeEmpleado->idempleado,
-                        "valor" => $row[3],
-                        "mes" => $row[4],
-                        "anio" => $row[5],
+                        "valor" => $row[2],
+                        "mes" => $row[3],
+                        "anio" => $row[4],
                         "fkCargaDatosPasados" => $idCarga,
                         "fkEstado" => "3"
                     ]); 
                 }
                 else{
                     DB::table("datos_pasados_sal")->insert([
-                        "valor" => $row[3],
-                        "mes" => $row[4],
-                        "anio" => $row[5],
+                        "valor" => $row[2],
+                        "mes" => $row[3],
+                        "anio" => $row[4],
                         "fkCargaDatosPasados" => $idCarga,
                         "fkEstado" => "14"
                     ]);
