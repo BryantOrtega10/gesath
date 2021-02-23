@@ -12,6 +12,11 @@ use App\TipoAfiliacionModel;
 use App\TerceroUbicacionModel;
 use App\EstadoModel;
 use App\Ubicacion;
+use Illuminate\Support\Facades\DB;
+use League\Csv\Writer;
+use League\Csv\Reader;
+use SplTempFileObject;          
+
 
 class TercerosController extends Controller
 {
@@ -54,6 +59,7 @@ class TercerosController extends Controller
         }
         $terceros->fkTipoIdentificacion = $request->fkTipoIdentificacion;
         $terceros->numeroIdentificacion = $request->numeroIdentificacion;
+        $terceros->digitoVer = $request->digitoVer;
         $terceros->fkEstado = $request->fkEstado;
         $terceros->direccion = $request->direccion;
         $terceros->telefono = $request->telefono;
@@ -250,4 +256,64 @@ class TercerosController extends Controller
         TerceroUbicacionModel::where('id_ter', $idTer)->delete();
         $this->agregarUbicacionesTercero($idTer, $arrUbis);
     }
+    public function exportar(){
+
+        $terceros = DB::table("tercero","t")
+        ->select("t.*","ae.nombre as actividadEco", "ti.nombre as tipoidentificacion", "tas.nombre as tipoAporteSS")
+        ->join("actividadeconomica as ae","ae.idactividadEconomica","=","t.fk_actividad_economica")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+        ->join("tipoaporteseguridadsocial as tas","tas.idTipoAporteSeguridadSocial", "=","t.fkTipoAporteSeguridadSocial")
+        ->get();
+        $arrDef = array([
+            "idTercero",
+            "Tipo Identificación",
+            "Numero Identificación",
+            "Digito de Verificación",
+            "Razon Social",
+            "Primer Nombre",
+            "Segundo Nombre",
+            "Primer Apellido",
+            "Segundo Apellido",
+            "Naturaleza Tributaria",
+            "Actividad Economica",
+            "Dirección",
+            "Teléfono",
+            "Fax",
+            "Correo",
+            "Codigo Tercero",
+            "Aporte seguridad social"
+
+        ]);
+        foreach ($terceros as $tercero){
+            array_push($arrDef, [
+                $tercero->idTercero,
+                $tercero->tipoidentificacion,
+                $tercero->numeroIdentificacion,
+                $tercero->digitoVer,
+                $tercero->razonSocial,
+                $tercero->primerNombre,
+                $tercero->segundoNombre,
+                $tercero->primerApellido,
+                $tercero->segundoApellido,
+                $tercero->naturalezaTributaria,
+                $tercero->actividadEco,
+                $tercero->direccion,
+                $tercero->telefono,
+                $tercero->fax,
+                $tercero->correo,
+                $tercero->codigoTercero,
+                $tercero->tipoAporteSS
+            ]);
+        }
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename=conceptos.csv');
+
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->setDelimiter(';');
+        $csv->insertAll($arrDef);
+        $csv->setOutputBOM(Reader::BOM_UTF8);
+        $csv->output('terceros.csv');
+    }   
 }

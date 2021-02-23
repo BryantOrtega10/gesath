@@ -28,7 +28,7 @@
         <div class="col-3">
             <div class="form-group">
                 <label for="fechaInicial{{$idRow}}" class="control-label">Fecha Inicial:</label>
-                <input type="date" class="form-control fechaInicial" data-id="{{$idRow}}" id="fechaInicial{{$idRow}}" name="fechaInicial[]" min="{{$req->fechaMinima}}" />
+                <input type="date" class="form-control fechaInicial" data-id="{{$idRow}}" id="fechaInicial{{$idRow}}" name="fechaInicial[]" />
             </div>
         </div>
         <div class="col-3">
@@ -43,7 +43,7 @@
         <div class="col-3">
             <div class="form-group">
                 <label for="fechaFinal{{$idRow}}" class="control-label">Fecha Final:</label>
-                <input type="date" class="form-control" id="fechaFinal{{$idRow}}" name="fechaFinal[]" readonly min="{{$req->fechaMinima}}" />
+                <input type="date" class="form-control" id="fechaFinal{{$idRow}}" name="fechaFinal[]" readonly  />
             </div>
         </div>
     </div>

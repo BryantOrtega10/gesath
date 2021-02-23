@@ -9,7 +9,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Modificar Mensaje</h1>
+        <h1 class="granAzul">Modificar Mensaje</h1>
     </div>
 </div>
 <div class="row">
@@ -21,9 +21,19 @@
             <form method="POST" action="/mensajes/modificar">
                 @csrf
                 <input type="hidden" name="idMensaje" value="{{$mensaje->idMensaje}}">
-                <label for="asunto">Asunto</label>
+                <div class="text-left">
+                    <label for="asunto">Asunto</label>
+                </div>
                 <input type="text" id="asunto" class="form-control" value="{{$mensaje->asunto}}" name="asunto">
                 <textarea name="html" id="tinyMce">{{$mensaje->html}}</textarea><br>
+                <div class="text-left">
+                    <b>Campos:</b>
+                </div>
+                <ul class="camposDisponibles">
+                    @foreach ($arrayCampos as $valor)
+                        <li>{{$valor}}</li>
+                    @endforeach
+                </ul>
                 <button type="submit" class="btnSubmitGen">Modificar Mensaje</button>
             </form>
         </div>
@@ -37,6 +47,12 @@
         language: 'es',
         plugins: 'a11ychecker advcode casechange formatpainter linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable',
         toolbar: 'a11ycheck addcomment showcomments casechange checklist code formatpainter pageembed permanentpen table',
+    });
+    $(document).ready(function(){
+        $(".camposDisponibles li").click(function(e){
+            tinymce.activeEditor.execCommand('mceInsertContent', false, $(this).html());    
+        });
+        
     });
     </script>
 @endsection

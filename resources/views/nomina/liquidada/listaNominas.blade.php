@@ -6,7 +6,7 @@
 
 @section('contenido')
 <div class="cajaGeneral text-left">
-    <h1>Liquidaciones terminadas</h1>
+    <h1 class="granAzul">Liquidaciones terminadas</h1>
     <form autocomplete="off" action="/nomina/nominasLiquidadas/" method="GET" class="formGeneral" id="filtrar">
         @csrf    
         <div class="row">
@@ -45,7 +45,7 @@
                 </div>
             </div>
 
-            <div class="col-3"  ><input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> </div>
+            <div class="col-3"  ><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/>  </div>
         </div>        
     </form>
     <div class="table-responsive">
@@ -68,9 +68,15 @@
                 <td>{{ $liquidacion->tipoLiquidacion }}</td>
                 <td>{{ $liquidacion->estado }}</td>
                 <td>
-                    <a href="/nomina/documentoRetencion/{{$liquidacion->idLiquidacionNomina}}">Documento retencion en la fuente</a><br>
-                    <a href="/nomina/reversar/{{$liquidacion->idLiquidacionNomina}}">Reversar nomina</a><br>
-                    <a href="/nomina/verSolicitudLiquidacionSinEdit/{{$liquidacion->idLiquidacionNomina}}">Ver</a>
+                    <div class="btn-group">
+                        <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                      
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a href="/nomina/documentoRetencion/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Documento retencion en la fuente</a>
+                            <a href="/nomina/reversar/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Reversar nomina</a>
+                            <a href="/nomina/verSolicitudLiquidacionSinEdit/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Ver</a>
+                        </div>
+                    </div>
                 </td>
             </tr>
             @endforeach

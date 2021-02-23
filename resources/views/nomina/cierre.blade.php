@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Cierre de periodo</h1>
+        <h1 class="granAzul">Cierre de periodo</h1>
     </div>
 </div>
 <div class="row">

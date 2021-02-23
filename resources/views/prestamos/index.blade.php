@@ -8,8 +8,11 @@
 
 @section('contenido')
 <div class="row">
-    <div class="col-8">
-        <h1>Prestamos</h1>
+    <div class="col-6">
+        <h1 class="granAzul">Prestamos</h1>
+    </div>
+    <div class="col-2 text-right">
+        <a href="/reportes/prestamos" class="btn btn-primary">Reportes de Prestamos/Embargo</a>
     </div>
     <div class="col-2 text-right">
         <a href="/prestamos/agregar" class="btn btn-primary" id="addPrestamo">Agregar Prestamo</a>

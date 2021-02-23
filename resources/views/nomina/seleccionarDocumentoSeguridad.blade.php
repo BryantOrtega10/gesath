@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Descargar archivo seguridad social</h1>
+        <h1 class="granAzul">Descargar archivo seguridad social</h1>
     </div>
 </div>
 <div class="row">

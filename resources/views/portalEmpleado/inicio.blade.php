@@ -4,10 +4,9 @@
 ])
 @section('title', 'Home | Portal Empleado')
 @section('contenidoPortal')
-<h1>Portal empleado</h1>
+<h1 class="granAzul">Portal empleado</h1>
 <!-- Sección de botones portal empleado -->
 <input type = "hidden" name = "idUsu" id = "idUsu" value = "{{ $dataUsu->fkEmpleado }}">
-{{--<input type = "hidden" name = "idUsu" id = "idUsu" value = "34">--}}
 <div class="row">
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
         <div class="card tarjeta_hover puntero alto_tarjeta info_laboral">
@@ -27,7 +26,7 @@
     </div>
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
         <div class="card tarjeta_hover puntero alto_tarjeta certificado_laboral"
-            data-idempleado = "{{ $dataEmpr->idempleado }}
+            data-idempleado = "{{ $dataUsu->fkEmpleado }}
         ">
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Certificado laboral</h5>
@@ -37,7 +36,7 @@
     </div>
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
         <div class="card tarjeta_hover puntero alto_tarjeta comprobantes_pago"
-            data-idempleado = "{{ $dataEmpr->idempleado }}"
+            data-idempleado = "{{ $dataUsu->fkEmpleado }}"
         >
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Comprobante de pago</h5>
@@ -49,7 +48,7 @@
         <div class="card tarjeta_hover puntero alto_tarjeta certificado_dosveinte"
             data-idempresa = "{{ $dataEmpr->idempresa }}"
             data-nomina = "{{ $dataEmpr->fkNomina }}"
-            data-idempleado = "{{ $dataEmpr->idempleado }}"
+            data-idempleado = "{{ $dataUsu->fkEmpleado }}"
             data-fechaexp = "2020"
             data-agente = "{{ $dataEmpr->razonSocial }}"
             >

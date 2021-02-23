@@ -5,7 +5,7 @@
 @endsection
 
 @section('contenido')
-<h1>Condiciones</h1>
+<h1 class="granAzul">Condiciones</h1>
     <a class="btn btn-primary" href="#" id="addCondicion">Agregar condicion</a>
     <input type="hidden" id="idConc" value="{{$idConcepto}}" />
     <div class="table-responsive">

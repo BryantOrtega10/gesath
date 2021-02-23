@@ -405,7 +405,7 @@ class EmpleadoController extends Controller
 
         $deptosTra = array();
         $ciudadesTra= array();
-
+        $localidadesTra = array();
         if(isset($empleado->ubi_pais_tra)){
             $deptosTra = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_pais_tra)->get();
             $ciudadesTra = Ubicacion::where("fkUbicacion", "=", $empleado->ubi_depto_tra)->get();    
@@ -582,8 +582,10 @@ class EmpleadoController extends Controller
         }
         $nivelesEstudios = DB::table("nivel_estudio")->get();
         $etnias = DB::table("etnia")->get();
-
-        $centrosTrabajo = DB::table("centrotrabajo")->get();
+        $centrosTrabajo = array();
+        if(isset($empleado->fkEmpresa)){
+            $centrosTrabajo = DB::table("centrotrabajo")->where("fkEmpresa","=",$empleado->fkEmpresa)->get();
+        }
 
         $usu = UsuarioController::dataAdminLogueado();
         $periocidad = array();
@@ -599,7 +601,14 @@ class EmpleadoController extends Controller
         
         
         $tiposcotizante = DB::table("tipo_cotizante")->get();
+
+        $cambiosTipoCotizante = DB::table("cambiotipocotizante", "ctc")
+        ->where("ctc.fkEmpleado","=",$idEmpleado)
+        ->where("ctc.fkEstado","=","7")
+        ->get();
+
         return view('/empleado.editEmpleado', [
+            'cambiosTipoCotizante' => $cambiosTipoCotizante,
             'paises'=>$paises,
             'dataUsu' => $usu,
             'usuExiste' => $existe,
@@ -1173,7 +1182,12 @@ class EmpleadoController extends Controller
             $usuarioNuevo->estado = 1;
             $usuarioNuevo->fkEmpleado = $req->idEmpleado;
             $usuarioNuevo->save();
-        }
+        }  
+
+
+
+
+
         $updateEmpleado = array("fkEmpresa" => $req->infoEmpresa, "fkNomina" => $req->infoNomina, "fechaIngreso" => $req->infoFechaIngreso,
             "tipoRegimen" => $req->infoTipoRegimen, "fkUbicacionLabora" => $req->infoLugarLabora,"fkLocalidad" => $req->infoLocalidad, "sabadoLaborable" => $req->infoSabadoLabora,
             "formaPago" => $req->infoFormaPago, "fkEntidad" => $req->infoEntidadFinanciera, "numeroCuenta" => $req->infoNoCuenta,
@@ -1253,8 +1267,79 @@ class EmpleadoController extends Controller
             DB::table('contrato')->insert($insertContrato);
         }
 
-        
-        
+        if(isset($req->infoNuevoTipoCotizanteCamb) && isset($req->infoFechaAplicaCambioTCotCamb)){
+            $cambioTipoCot = DB::table("cambiotipocotizante")
+            ->where("idCambioTipoCotizante","=",$req->infoIdCambioTipoCotizante)->first();
+
+            $nomina = DB::table("nomina")->where("idNomina","=",$req->infoNomina)->first();
+            $fechaInicio = date("Y-m-01", strtotime($req->infoFechaAplicaCambioTCotCamb));
+            if($nomina->periodo == 15 && intval(date("d", strtotime($req->infoFechaAplicaCambioTCotCamb))) > 15 ){
+                $fechaInicio = date("Y-m-16", strtotime($req->infoFechaAplicaCambioTCotCamb));
+            }
+            
+
+            $diasAntValor = $this->days_360($fechaInicio, $req->infoFechaAplicaCambioTCotCamb);
+
+            $valorNov = ($cambioTipoCot->valorCompletoAnt / 30) * $diasAntValor;
+
+            $arrInsCambioTipoCotizante = [
+                "fkNuevoTipoCotizante" => $req->infoNuevoTipoCotizanteCamb,
+                "fechaCambio" => $req->infoFechaAplicaCambioTCotCamb,
+                "dias" => $diasAntValor,
+                "valorNovedad" => $valorNov,
+                "fkEstado" => "7"
+            ];
+
+            DB::table("cambiotipocotizante")
+            ->where("idCambioTipoCotizante","=",$req->infoIdCambioTipoCotizante)
+            ->update($arrInsCambioTipoCotizante);
+
+            $updateEmpleado = array("fkTipoCotizante" => $req->infoNuevoTipoCotizanteCamb, "fechaIngreso" => $req->infoFechaAplicaCambioTCotCamb);
+            DB::table('empleado')
+            ->where('idempleado', $req->idEmpleado)
+            ->update($updateEmpleado);
+        }
+        if(isset($req->infoNuevoTipoCotizante) && isset($req->infoFechaAplicaCambioTCot)){
+            //Si el cambio ocurre este mes crear novedad de tipo otros con el calculo de dias
+            //Cambiar el tipo de cotizante
+
+            $conceptosFijos = DB::table('conceptofijo', 'cf')
+            ->where("cf.fkEmpleado", "=", $req->idEmpleado)
+            ->whereIn("cf.fkConcepto",[1,2,53,54])
+            ->first();
+
+            
+
+            $nomina = DB::table("nomina")->where("idNomina","=",$req->infoNomina)->first();
+            $fechaInicio = date("Y-m-01", strtotime($req->infoFechaAplicaCambioTCot));
+            if($nomina->periodo == 15 && intval(date("d", strtotime($req->infoFechaAplicaCambioTCot))) > 15 ){
+                $fechaInicio = date("Y-m-16", strtotime($req->infoFechaAplicaCambioTCot));
+            }
+            
+
+            $diasAntValor = $this->days_360($fechaInicio, $req->infoFechaAplicaCambioTCot);
+
+            $valorNov = ($conceptosFijos->valor / 30) * $diasAntValor;
+
+            $arrInsCambioTipoCotizante = [
+                "fkEmpleado" => $req->idEmpleado,
+                "fkNuevoTipoCotizante" => $req->infoNuevoTipoCotizante,
+                "fechaCambio" => $req->infoFechaAplicaCambioTCot,
+                "fkTipoCotizanteAnt" => $req->infoTipoCotizante,
+                "fkConceptoAnt" => $conceptosFijos->fkConcepto,
+                "valorCompletoAnt" => $conceptosFijos->valor,
+                "dias" => $diasAntValor,
+                "valorNovedad" => $valorNov,
+                "fkEstado" => "7"
+            ];
+            DB::table("cambiotipocotizante")->insert($arrInsCambioTipoCotizante);
+            DB::table("conceptofijo")->where("idConceptoFijo","=",$conceptosFijos->idConceptoFijo)->delete();
+            $updateEmpleado = array("fkTipoCotizante" => $req->infoNuevoTipoCotizante, "fechaIngreso" => $req->infoFechaAplicaCambioTCot);
+            DB::table('empleado')
+            ->where('idempleado', $req->idEmpleado)
+            ->update($updateEmpleado);
+        }
+       
         
         DB::table('empleado_centrocosto')->where("fkEmpleado","=",$req->idEmpleado)->delete();
         /*if($req->idEmpresaAnt != $req->infoEmpresa){
@@ -2577,7 +2662,7 @@ class EmpleadoController extends Controller
         $empleado = DB::table("empleado", "e")->where("idempleado", "=",$idEmpleado)->first();
         
         $camposOpcionalesInfoLab = array(
-            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo","fkTipoOtroDocumento", "fkUsuario"],
+            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo","fkTipoOtroDocumento", "fkUsuario", "fkLocalidad"],
             "cambiantes" => [
             array(
                 "campoCambia"=> array(
@@ -2839,7 +2924,7 @@ class EmpleadoController extends Controller
         
         $infoLaboral = DB::table("empleado", "e")->where('e.idempleado', $idEmpleado)->first();
         $camposOpcionalesInfoLab = array(
-            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo","fkTipoOtroDocumento","fkUsuario"],
+            "fijos" => ["tipoRegimenPensional", "porcentajeRetencion","esPensionado","otroDocumento","fkCentroTrabajo","fkTipoOtroDocumento","fkUsuario", "fkLocalidad"],
             "cambiantes" => [
             array(
                 "campoCambia"=> array(
@@ -3643,7 +3728,7 @@ class EmpleadoController extends Controller
                         "fkCentroTrabajo" => ((isset($row[18]) && !empty($row[18])) ? $row[18] : NULL),
                         "fkTipoCotizante" => $row[19],
                         "esPensionado" => $row[20],
-                        "aplicaSubsidio" => (isset($row[21]) && !empty($row[21]) ? $row[21] : NULL),
+                        "aplicaSubsidio" => (isset($row[21]) && !empty($row[21]) ? $row[21] : 0),
                         "procedimientoRetencion" => "TABLA",
                         "fkEstado" => 3                        
                     );
@@ -3661,7 +3746,7 @@ class EmpleadoController extends Controller
                         $infoUsuario = $datosPersonales->numeroIdentificacion.$empresa->dominio;
                         $idempleado = DB::table('empleado')->insertGetId($insertEmpleado, "idempleado");
                         $usuarioNuevo = new User;
-                        $usuarioNuevo->email = $datosPersonales->correo;
+                        $usuarioNuevo->email = $infoUsuario;
                         $usuarioNuevo->username = $infoUsuario;
                         $usuarioNuevo->password = ($datosPersonales->numeroIdentificacion."#".substr($datosPersonales->fechaNacimiento,0,4));
                         $usuarioNuevo->fkRol = 1;
@@ -5184,5 +5269,75 @@ class EmpleadoController extends Controller
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 
-
+    public function agregarUsuariosaEmpleados(){
+        $empleados = DB::table("empleado","e")
+        ->select("dp.*","emp.dominio","e.idempleado")
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa")
+        ->whereRaw("e.idempleado not in(Select u.fkEmpleado from users u WHERE u.fkEmpleado = e.idempleado)")->get();
+        
+        $i = 0;
+        foreach($empleados as $empleado){
+            if(strpos($empleado->dominio,"@")===false){
+                $empleado->dominio = "@".$empleado->dominio;
+            }
+            $infoUsuario = $empleado->numeroIdentificacion.$empleado->dominio;
+            
+            $usuarioNuevo = new User;
+            $usuarioNuevo->email = $infoUsuario;
+            $usuarioNuevo->username = $infoUsuario;
+            $usuarioNuevo->password = ($empleado->numeroIdentificacion."#".substr($empleado->fechaNacimiento,0,4));
+            $usuarioNuevo->fkRol = 1;
+            $usuarioNuevo->estado = 1;
+            $usuarioNuevo->fkEmpleado = $empleado->idempleado;
+            $usuarioNuevo->save();
+            $i++;
+        }
+        $usu = UsuarioController::dataAdminLogueado();
+        $mensaje = "Se crearon y vincularion ".$i." empleados"; 
+        $titulo = "Usuarios creados";
+        return view("/layouts/respuestaGen",[
+            "mensaje" => $mensaje,
+            "dataUsu" => $usu,
+            "titulo" => $titulo
+        ]);
+    }
+    public function days_360($fecha1,$fecha2,$europeo=true) {
+        //try switch dates: min to max
+        if( $fecha1 > $fecha2 ) {
+        $temf = $fecha1;
+        $fecha1 = $fecha2;
+        $fecha2 = $temf;
+        }
+    
+        list($yy1, $mm1, $dd1) = explode('-', $fecha1);
+        list($yy2, $mm2, $dd2) = explode('-', $fecha2);
+    
+        if( $dd1==31) { $dd1 = 30; }
+    
+        if(!$europeo) {
+        if( ($dd1==30) and ($dd2==31) ) {
+            $dd2=30;
+        } else {
+            if( $dd2==31 ) {
+            $dd2=30;
+            }
+        }
+        }
+    
+        if( ($dd1<1) or ($dd2<1) or ($dd1>30) or ($dd2>31) or
+            ($mm1<1) or ($mm2<1) or ($mm1>12) or ($mm2>12) or
+            ($yy1>$yy2) ) {
+        return(-1);
+        }
+        if( ($yy1==$yy2) and ($mm1>$mm2) ) { return(-1); }
+        if( ($yy1==$yy2) and ($mm1==$mm2) and ($dd1>$dd2) ) { return(-1); }
+    
+        //Calc
+        $yy = $yy2-$yy1;
+        $mm = $mm2-$mm1;
+        $dd = $dd2-$dd1;
+    
+        return( ($yy*360)+($mm*30)+$dd );
+    }
 }

@@ -113,6 +113,7 @@
                         <span class="textoMenu">Cargar VAC/LRN pasadas</span>
                     </a>
                 </li>
+                
                 <li>
                     <a href="/datosPasadosSal/" >
                         <span class="textoMenu">Cargar saldos</span>
@@ -148,6 +149,11 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/reportes/reportePorEmpleado/" >
+                        <span class="textoMenu">Reporte por empleado</span>
+                    </a>
+                </li>                
+                <li>
                     <a href="/reportes/seleccionarDocumentoSeguridad/" >
                         <span class="textoMenu">Documento Seguridad Social</span>
                     </a>
@@ -170,6 +176,11 @@
                 <li>
                     <a href="/reportes/novedades/" >
                         <span class="textoMenu">Reporte de novedades</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/reportes/prestamos/" >
+                        <span class="textoMenu">Reporte de prestamos</span>
                     </a>
                 </li>
                 <li>

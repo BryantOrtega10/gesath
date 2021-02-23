@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Subida conceptos fijos</h1>
+        <h1 class="granAzul">Subida conceptos fijos</h1>
     </div>
 </div>
 <div class="row">

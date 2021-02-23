@@ -7,19 +7,21 @@
 		<link rel="stylesheet" href="{{ URL::asset('css/styleGen.css') }}">
         <title>Bienvenido | Proyecto nomina</title>
     </head>
-    <body>        
+    <body class="blanco">        
         <div class="inicioSesion">
             <img src="{{ URL::asset('img/logo.png') }}" />
             <form method="POST" action="/login" id="iniciarSesion" autocomplete="off">
                 @csrf
                 <div class="form-group">
-                    <input type="text" class="form-control form_log" id="email" name="email" placeholder = "Usuario" />
+                    <label for="email">Usuario</label>
+                    <input type="text" class="form-control form_log" id="email" name="email" />
                 </div>
                 <div class="form-group">
-                    <input type="password" class="form-control form_log" id="password" name="password" placeholder = "Contrase&ntilde;a" />
+                    <label for="password">Contrase&ntilde;a</label>
+                    <input type="password" class="form-control form_log" id="password" name="password" />
                 </div>
                 
-                <input type="submit" value="Ingresar" />
+                <input type="submit" value="Ingresar" class="enfasis-background" />
                 <div class="contTerminos">
                     <input type="checkbox" value="aceptoTermino" id="aceptoTermino">
                     <label for="aceptoTermino">Aceptar T&eacute;rminos y Condiciones</label>

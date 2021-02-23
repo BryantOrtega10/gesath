@@ -524,6 +524,11 @@ $(document).ready(function() {
         e.preventDefault();
         $(".nuevoContrato").addClass("activo");
     });
+    $("#btnCambioCotizante").click(function(e) {
+        e.preventDefault();
+        $(".nuevoTipoCotizante").addClass("activo");
+    });
+
 
     $("body").on("change", ".infoTipoBeneficio", function(e) {
         e.preventDefault();

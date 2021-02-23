@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Descargar archivo seguridad social</h1>
+        <h1 class="granAzul">Descargar archivo seguridad social</h1>
     </div>
 </div>
 <div class="row">
@@ -34,12 +34,68 @@
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="text-center"><input type="submit" value="DESCARGAR" class="btnSubmitGen" /></div>
+                        <div class="text-center"><input type="button" id="enviarDocumento" value="DESCARGAR" class="btnSubmitGen" /></div>
                     </div>
                 </div>                
             </form>
         </div>
     </div>
 </div>
+<div class="modal fade" id="liquidacionPendienteModal" tabindex="-1" role="dialog" aria-labelledby="liquidacionPendiente" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="cerrarPop" data-dismiss="modal"></div>
+                <div class="camposVaciosText">
+                    <h4>Aun cuenta con liquidaciones sin terminar, desea continuar?</h4>
+                    <div class="text-center">
+                        <a href="#" data-accion="" data-form="" id="btnContinuarLiqPen" class="btn btn-secondary">Continuar</a>
+                        <a data-dismiss="modal" class="btn btn-primary" href="#">Volver</a>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function cargando() {
+        if (typeof $("#cargando")[0] !== 'undefined') {
+            $("#cargando").css("display", "flex");
+        } else {
+            $("body").append('<div id="cargando" style="display: flex;">Cargando...</div>');
+        }
+    }
+    $(document).ready(function() {
 
+        $("#enviarDocumento").click(function(){
+            cargando();
+            const idEmpresa = $("#infoEmpresa").val();
+            const fechaDocumento = $("#fechaDocumento").val();
+            $.ajax({
+                type:'GET',
+                url: "/reportes/verificarSiPendientes/" + idEmpresa + "/" + fechaDocumento,
+                success:function(data){
+                    $("#cargando").css("display", "none");
+                    if(data.success){
+                        $("#formDocumentoSS").submit();
+                    }
+                    else{
+                        $("#liquidacionPendienteModal").modal("show");
+                    }
+                    
+                },
+                error: function(data){
+                    console.log("error");
+                    console.log(data);
+                }
+            });		
+            
+        });    
+        $("#btnContinuarLiqPen").click(function(){
+            $("#formDocumentoSS").submit();
+        });
+        
+    });
+    
+    </script>
 @endsection

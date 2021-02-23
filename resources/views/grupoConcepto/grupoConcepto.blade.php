@@ -8,7 +8,7 @@
 
 
 @section('contenido')
-<h1>Grupo conceptos</h1>
+<h1 class="granAzul">Grupo conceptos</h1>
 <a class="btn btn-primary" href="#" id="addGrupoConcepto">Agregar grupo concepto</a>
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "grupo_concepto">

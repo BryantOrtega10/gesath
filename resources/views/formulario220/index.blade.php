@@ -6,7 +6,7 @@
 
 @section('contenido')
 <div class="cajaGeneral">
-    <h1>Administrar Formulario 220</h1>
+    <h1 class="granAzul">Administrar Formulario 220</h1>
     <a class="btn btn-primary" href="#" id="addFormulario220">Agregar Año</a>
     <div class="table-responsive">
         <table class="table table-hover table-striped" id = "formularios">

@@ -79,7 +79,7 @@
                 <div class="col-3 ">
                     <div class="form-group hasText">
                         <label for="fechaFinal" class="control-label">Fecha Final:</label>
-                        <input type="date" class="form-control" id="fechaFinal" name="fechaFinal" readonly value="{{$incapacidad->fechaFinal}}"  />
+                        <input type="date" class="form-control" id="fechaFinal" name="fechaFinal" value="{{$incapacidad->fechaFinal}}"  />
                     </div>
                 </div>
                 <div class="col-3">

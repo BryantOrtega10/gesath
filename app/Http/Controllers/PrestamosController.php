@@ -95,11 +95,12 @@ class PrestamosController extends Controller
             
 
             $tercerosJuzgado = DB::table("tercero")->where("fk_actividad_economica","=","9")->get();
-            $tercerosDemandante = DB::table("tercero")->where("fk_actividad_economica","=","7")->where("naturalezaTributaria", "=", "Natural")->get();
+            $tercerosDemandante = DB::table("tercero")->where("fk_actividad_economica","=","7")->get();
 
 
 
             return view('/prestamos.editEmbargo', [
+                'embargo' => $embargo,
                 "empresas" => $empresas,
                 "nominas" => $nominas,
                 "gruposConcepto" => $gruposConcepto,
@@ -148,8 +149,8 @@ class PrestamosController extends Controller
 
 
         $tercerosJuzgado = DB::table("tercero")->where("fk_actividad_economica","=","9")->get();
-        $tercerosDemandante = DB::table("tercero")->where("fk_actividad_economica","=","7")->where("naturalezaTributaria", "=", "Natural")->get();
-
+        $tercerosDemandante = DB::table("tercero")->where("fk_actividad_economica","=","7")->get();
+        
         $usu = UsuarioController::dataAdminLogueado();
 
         return view('/prestamos.addEmbargo', [

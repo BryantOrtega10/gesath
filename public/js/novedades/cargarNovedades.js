@@ -126,9 +126,8 @@ $(document).ready(function() {
                     $("#cargando").css("display", "none");
                     $(".respTipoNomina").html("Periodo: " + data.periodoNomina);
                     $("#fecha").val(data.fechaInicioDeseada);
-                    $("#fecha").prop("min", data.fechaInicioDeseada);
                     $("#fecha").trigger("change");
-                    $("#fechaMinima").val(data.fechaInicioDeseada);
+
                 },
                 error: function(data) {
                     console.log("error");

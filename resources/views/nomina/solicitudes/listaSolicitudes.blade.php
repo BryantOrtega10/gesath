@@ -6,8 +6,15 @@
 
 @section('contenido')
 <div class="cajaGeneral text-left">
-    <h1>Solicitudes de liquidaci&oacute;n</h1>
-    <a class="btn btn-primary" href="/nomina/agregarSolicitudLiquidacion">Agregar Solicitud</a>
+    <div class="row">
+        <div class="col-7"> 
+            <h1 class="granAzul">Solicitudes de liquidaci&oacute;n</h1>
+        </div>
+        <div class="col-5 text-right">
+            <a class="btnGeneral btnAzulGen btnMed text-center" href="/nomina/agregarSolicitudLiquidacion">Agregar Solicitud</a>
+        </div>
+    </div>
+    
     <br><br>
     <form autocomplete="off" action="/nomina/solicitudLiquidacion/" method="GET" class="formGeneral" id="filtrar">
         @csrf    
@@ -47,7 +54,7 @@
                 </div>
             </div>
 
-            <div class="col-3"  ><input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> </div>
+            <div class="col-3"  ><input type="submit" value="Consultar"/>  <input type="reset" class="recargar" value="" style="margin-left: 5px;"/></div>
         </div>        
     </form>
     <br>

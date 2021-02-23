@@ -746,7 +746,7 @@ class ReportesNominaController extends Controller
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
-        ->where("a.fkTipoAfilicacion","=","2") //2-CCF
+        ->where("a.fkTipoAfilicacion","=","1") //2-CCF
         ->first();
 
         $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
@@ -764,6 +764,24 @@ class ReportesNominaController extends Controller
         ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
         ->where("ibpfn.fkBoucherPago","=",$idBoucherPago)
         ->get();
+
+        $itemsBoucherPagoFueraNominaCesTras = DB::table("item_boucher_pago_fuera_nomina","ibpfn")
+        ->select("ibpfn.*","c.*")
+        ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
+        ->join("boucherpago as bp","bp.idBoucherPago","=","ibpfn.fkBoucherPago")
+        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
+        ->whereRaw("MONTH(ln.fechaLiquida)= MONTH('".$empresayLiquidacion->fechaLiquida."')")
+        ->whereRaw("YEAR(ln.fechaLiquida)= YEAR('".$empresayLiquidacion->fechaLiquida."')")
+        ->where("bp.fkEmpleado","=", $empleado->idempleado)
+        ->where("ln.idLiquidacionNomina","<>",$empresayLiquidacion->idLiquidacionNomina)
+        ->where("ln.fkTipoLiquidacion","=","11")
+        ->get();
+        foreach($itemsBoucherPagoFueraNominaCesTras as $itemBoucherPagoFueraNominaCesTras){
+            $itemsBoucherPagoFueraNomina->push($itemBoucherPagoFueraNominaCesTras);
+        }
+
+
+
 
         $periodoPasadoReintegro = DB::table("periodo")
         ->where("fkEstado","=","2")
@@ -808,11 +826,12 @@ class ReportesNominaController extends Controller
                     // alternatively specify an URL, if PHP settings allow
             $base64 = base64_encode($imagedata);
         }
+        $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
         $mensajeGen = array();
         $mensajeGen[8] = DB::table("mensaje")->where("idMensaje","=","8")->first();
         $mensajeGen[9] = DB::table("mensaje")->where("idMensaje","=","9")->first();
         
-        $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+       
 
         $dompdf = new Dompdf();
         $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
@@ -1323,8 +1342,45 @@ class ReportesNominaController extends Controller
                     </div>
                     <div style="border: 2px solid #000; padding: 10px 20px; font-size: 10px; font-weight: bold; margin-bottom: 5px;">
                         El valor neto a pagar es: '.strtoupper($valorText).' PESOS M/CTE
-                    </div>
-                    <div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                    </div><br>';
+                    if(sizeof($itemsBoucherPagoFueraNomina)>0){
+                        $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                        <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="5">Fuera de nómina</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;">Conceptos</th>
+                            <th style="background: #CCC; text-align: center;">Cantidad</th>
+                            <th style="background: #CCC; text-align: center;">Unidad</th>
+                            <th style="background: #CCC; text-align: center;">Pagos</th>
+                            <th style="background: #CCC; text-align: center;">Descuentos</th>
+                        </tr>
+                        ';
+                        foreach($itemsBoucherPagoFueraNomina as $itemBoucherPagoFueraNomina){
+                            $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                            <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->nombre.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->cantidad.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->tipoUnidad.'</td>';
+                            
+                            if($itemBoucherPagoFueraNomina->valor > 0){
+                                $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor,0, ",", ".").'</td>
+                                    <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                
+                            }
+                            else{
+                                $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor*-1,0, ",", ".").'</td>';
+                                
+                            }
+                            $html.='</tr>';
+                        }
+                        $html.='</table></div><br> 
+                        </div>
+                        <div class="page_break"></div>
+                        <div class="page">';
+                    }
+                    $html.='<div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
                         <center><h4 style="margin:0px;" >Observaciones</h4></center>
                         <table>
                             <tr>
@@ -1779,8 +1835,8 @@ class ReportesNominaController extends Controller
         $dompdf->setPaper('Letter', 'portrait');
         // Render the HTML as PDF
         $dompdf->render();
-
-        $dompdf->render();
+        
+        $dompdf->getCanvas()->get_cpdf()->setEncryption($empleado->numeroIdentificacion, $empleado->numeroIdentificacion);
         $pdf = $dompdf->output();
         return $pdf;       
     }
@@ -1879,7 +1935,7 @@ class ReportesNominaController extends Controller
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
-        ->where("a.fkTipoAfilicacion","=","2") //2-CCF
+        ->where("a.fkTipoAfilicacion","=","1") //2-CCF
         ->first();
 
         $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
@@ -1897,6 +1953,27 @@ class ReportesNominaController extends Controller
         ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
         ->where("ibpfn.fkBoucherPago","=",$idBoucherPago)
         ->get();
+
+        $itemsBoucherPagoFueraNominaCesTras = DB::table("item_boucher_pago_fuera_nomina","ibpfn")
+        ->select("ibpfn.*","c.*")
+        ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
+        ->join("boucherpago as bp","bp.idBoucherPago","=","ibpfn.fkBoucherPago")
+        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
+        ->whereRaw("MONTH(ln.fechaLiquida)= MONTH('".$empresayLiquidacion->fechaLiquida."')")
+        ->whereRaw("YEAR(ln.fechaLiquida)= YEAR('".$empresayLiquidacion->fechaLiquida."')")
+        ->where("bp.fkEmpleado","=", $empleado->idempleado)
+        ->where("ln.idLiquidacionNomina","<>",$empresayLiquidacion->idLiquidacionNomina)
+        ->where("ln.fkTipoLiquidacion","=","11")
+        ->where("ln.fkEstado","=","5")
+        ->get();
+
+
+        foreach($itemsBoucherPagoFueraNominaCesTras as $itemBoucherPagoFueraNominaCesTras){
+            $itemsBoucherPagoFueraNomina->push($itemBoucherPagoFueraNominaCesTras);
+        }
+
+
+
 
         $periodoPasadoReintegro = DB::table("periodo")
         ->where("fkEstado","=","2")
@@ -1951,7 +2028,7 @@ class ReportesNominaController extends Controller
         $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
         $dompdf->getOptions()->setIsPhpEnabled(true);
         $html='
-        <html>
+        <!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"</head><body>
         <body>
             <style>
             *{
@@ -2179,8 +2256,6 @@ class ReportesNominaController extends Controller
                 ->join("tipocontrato as tc","tc.idtipoContrato", "=","c.fkTipoContrato")
                 ->where("c.fkEmpleado","=",$empleado->idempleado)
                 ->whereIn("c.fkEstado",["1","2","4"])->first();
-                
-
 
                 $cambioSalario = DB::table("cambiosalario","cs")
                 ->where("cs.fkEmpleado","=",$empleado->idempleado)
@@ -2458,8 +2533,45 @@ class ReportesNominaController extends Controller
                     </div>
                     <div style="border: 2px solid #000; padding: 10px 20px; font-size: 10px; font-weight: bold; margin-bottom: 5px;">
                         El valor neto a pagar es: '.strtoupper($valorText).' PESOS M/CTE
-                    </div>
-                    <div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                    </div><br>';
+                    if(sizeof($itemsBoucherPagoFueraNomina)>0){
+                        $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                        <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="5">Fuera de nómina</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;">Conceptos</th>
+                            <th style="background: #CCC; text-align: center;">Cantidad</th>
+                            <th style="background: #CCC; text-align: center;">Unidad</th>
+                            <th style="background: #CCC; text-align: center;">Pagos</th>
+                            <th style="background: #CCC; text-align: center;">Descuentos</th>
+                        </tr>
+                        ';
+                        foreach($itemsBoucherPagoFueraNomina as $itemBoucherPagoFueraNomina){
+                            $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                            <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->nombre.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->cantidad.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->tipoUnidad.'</td>';
+                            
+                            if($itemBoucherPagoFueraNomina->valor > 0){
+                                $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor,0, ",", ".").'</td>
+                                    <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                
+                            }
+                            else{
+                                $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor*-1,0, ",", ".").'</td>';
+                                
+                            }
+                            $html.='</tr>';
+                        }
+                        $html.='</table></div><br> 
+                        </div>
+                        <div class="page_break"></div>
+                        <div class="page">';
+                    }
+                    $html.='<div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
                         <center><h4 style="margin:0px;" >Observaciones</h4></center>
                         <table>
                             <tr>
@@ -2495,7 +2607,6 @@ class ReportesNominaController extends Controller
                             </tr>
                         </table>
                     </div>
-
                 </div>';
             }
             else{
@@ -2559,8 +2670,9 @@ class ReportesNominaController extends Controller
                                 <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
                             </tr>
                         </table>
-                    </div><br>
-                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                    </div><br>';
+                    if(sizeof($idItemBoucherPago)>0){
+                        $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
                         <table style="width: 100%; text-align: left;">
                             <tr>
                                 <td></td>
@@ -2629,6 +2741,8 @@ class ReportesNominaController extends Controller
 
                     </div>
                     <br>';
+                    }
+                    
 
                     if(sizeof($itemsBoucherPagoFueraNomina)>0){
                         $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
@@ -2990,7 +3104,7 @@ class ReportesNominaController extends Controller
         $dompdf->render();
 
         // Output the generated PDF to Browser
-        $dompdf->stream("Comprobante de Pago ".$idBoucherPago.".pdf", array('compress' => 1, 'Attachment' => 0));
+        $dompdf->stream("Comprobante de Pago ".$idBoucherPago.".pdf", array('compress' => 1, 'Attachment' => 1));
     }
     
     public function diasVacacionesDisponibles($idEmpleado){
@@ -3234,7 +3348,7 @@ class ReportesNominaController extends Controller
             $arrayFila[41] = $this->plantillaTxt(round($ibcAFP),9,"0","right");
             
             //ING
-            if(strtotime($fechaInicioMesActual) < strtotime($empleado->fechaIngreso)){
+            if(strtotime($fechaInicioMesActual) <= strtotime($empleado->fechaIngreso)){
                 $arrayFila[14] = $this->plantillaTxt("X",1,"","left");
                 
                 $arrayFila[79] = $this->plantillaTxt($empleado->fechaIngreso,10,"","left");
@@ -4101,6 +4215,63 @@ class ReportesNominaController extends Controller
                 $arrayPlace[93] = $this->plantillaTxt($fechaFinIRL,10," ","left");
                 array_push($arrayNuevoRegistro, $arrayPlace);   
             }
+
+            //LINEA EN CASO DE CAMBIO DE TIPO DE AFILIACION
+            $cambioTipoCotizante = DB::table("cambiotipocotizante", "ctc")
+            ->join("concepto as c","c.idconcepto", "=","ctc.fkConceptoAnt")
+            ->whereBetween("ctc.fechaCambio",[$fechaInicioMesActual, $fechaFinMesActual])
+            ->where("ctc.fkEmpleado","=",$empleado->idempleado)
+            ->where("ctc.fkEstado","=","8")
+            ->first();
+            if(isset($cambioTipoCotizante)){
+                $arrayPlace = $arraySinNada;
+                $arrayPlace[36] = intval($cambioTipoCotizante->dias);
+                $arrayPlace[4] = $this->plantillaTxt($cambioTipoCotizante->fkTipoCotizanteAnt,2,"0","right");//Tipo cotizante
+                $arrayPlace[15] = $this->plantillaTxt("X",1," ","left");
+                if(intval(date("d",strtotime($cambioTipoCotizante->fechaCambio))) != 1){
+                    $cambioTipoCotizante->fechaCambio = date("Y-m-d", strtotime($cambioTipoCotizante->fechaCambio." -1 day"));
+                }
+                $arrayPlace[80] = $this->plantillaTxt($cambioTipoCotizante->fechaCambio,10,"","left");
+
+
+                $valorNovedad = (intval($ibcEPS)/30)*$cambioTipoCotizante->dias;
+
+                
+                
+                
+                
+                
+                if($ibcAFP > 0){
+                    $ibcAFP = $ibcAFP - round($valorNovedad);
+                    $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                }
+                if($ibcEPS > 0){
+                    $ibcEPS = $ibcEPS - round($valorNovedad);
+                    $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                }
+                if($ibcARL > 0){
+                    $ibcARL = $ibcARL - round($valorNovedad);
+                    $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                }
+                if($ibcCCF > 0){
+                    $ibcCCF = $ibcCCF - round($valorNovedad);
+                    $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                }
+
+                if($ibcOtros > 0){
+                    $ibcOtros = $ibcOtros - round($valorNovedad);
+                    $arrayPlace[94] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                }
+
+
+                array_push($arrayNuevoRegistro, $arrayPlace);   
+            }
+
+
+
+
+
+
             $arrayFila[29] = $this->plantillaTxt("",2,"0","right");
             $arrayFila[92] = $this->plantillaTxt("",10," ","left");
             $arrayFila[93] = $this->plantillaTxt("",10," ","left");
@@ -4397,9 +4568,7 @@ class ReportesNominaController extends Controller
                 }
                 else{
                     $totalPorcentajeEPS = $totalPorcentajeEPS + floatval($varEPS->valor);
-                }
-
-                
+                }                
             }
 
             $arrayFila[53] =$this->plantillaTxt($totalPorcentajeEPS,7,"0","left");   
@@ -4497,7 +4666,10 @@ class ReportesNominaController extends Controller
             if(isset($nivelesArl)){
                 $cotizacionArl = $ibcARL*($nivelesArl->porcentaje / 100);
             }else{
-                $cotizacionArl = 0;
+                if($empleado->fkTipoCotizante != "12"){
+                    $cotizacionArl = 0;
+                }
+                
             }
             
 
@@ -4720,11 +4892,28 @@ class ReportesNominaController extends Controller
             foreach($arrayNuevoRegistro as $arrayRegistroN){
             
                 $arrayFila2 = $arrayRegistroN;
+
+                $cambioTipoCotizante = DB::table("cambiotipocotizante", "ctc")
+                ->join("concepto as c","c.idconcepto", "=","ctc.fkConceptoAnt")
+                ->whereBetween("ctc.fechaCambio",[$fechaInicioMesActual, $fechaFinMesActual])
+                ->where("ctc.fkEmpleado","=",$empleado->idempleado)
+                ->where("ctc.fkEstado","=","8")
+                ->first();
+                if(isset($cambioTipoCotizante)){
+                    $empleado->fkTipoCotizante = $cambioTipoCotizante->fkTipoCotizanteAnt;
+                }
                 $arrayFila2[1] = $this->plantillaTxt($contador,5,"0","right");
                 $arrayFila2[14] = $this->plantillaTxt(" ",1,"","left");
                 $arrayFila2[79] = $this->plantillaTxt("",10," ","left");
-                $arrayFila2[15] = $this->plantillaTxt("",1," ","left");
-                $arrayFila2[80] = $this->plantillaTxt("",10," ","left");
+                if(!isset($arrayFila2[15])){
+                    $arrayFila2[15] = $this->plantillaTxt("",1," ","left");
+                }
+
+                if(!isset($arrayFila2[80])){
+                    $arrayFila2[80] = $this->plantillaTxt("",10," ","left");
+                }
+                
+                
                 if(!isset($arrayFila2[16])){
                     $arrayFila2[16] = $this->plantillaTxt(" ",1," ","left");
                 }
@@ -4801,7 +4990,7 @@ class ReportesNominaController extends Controller
                     $arrayFila2[92] = $this->plantillaTxt("",10," ","left");
                     $arrayFila2[93] = $this->plantillaTxt("",10," ","left");
                 }
-
+                
                 if($empleado->esPensionado == 0  && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
                     $pension = DB::table("afiliacion","a")
                     ->join("tercero as t", "t.idTercero", "=", "a.fkTercero")
@@ -4832,7 +5021,7 @@ class ReportesNominaController extends Controller
                     ->first();
                     $arrayFila2[34] = $this->plantillaTxt($ccf->codigoTercero,6," ","left");
                 }else{
-                    $arrayFila2[34] = $this->plantillaTxt($ccf->codigoTercero,6," ","left");
+                    $arrayFila2[34] = $this->plantillaTxt("",6," ","left");
                 }
                 
                 
@@ -4953,7 +5142,9 @@ class ReportesNominaController extends Controller
                 if($ibcARL < $minimosRedondeo->ibc && $ibcARL > 0){
                     $ibcARL = $minimosRedondeo->ibc;
                 }
-
+                if($empleado->fkTipoCotizante == "12"){
+                    $ibcARL = 0;
+                }
 
             
                 $arrayFila2[43] = $this->plantillaTxt(round($ibcARL),9,"0","right");
@@ -5106,11 +5297,11 @@ class ReportesNominaController extends Controller
                 $arrayFila2[52] = $this->plantillaTxt("",9,"0","right");
     
     
-    
+
                 $varsEPS = DB::table("variable", "v")->whereIn("v.idVariable",["49","50"])->get();
                 $totalPorcentajeEPS = 0;
                 foreach($varsEPS as $varEPS){
-                    if($ultimoBoucher->ibc_otros==0 && $varEPS->idVariable == "50"){
+                    if($ultimoBoucher->ibc_otros==0 && $varEPS->idVariable == "50" && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                         
                     }
                     else{
@@ -5221,6 +5412,10 @@ class ReportesNominaController extends Controller
                     $cotizacionArl = $cotizacionArl + $parafiscal->suma_arl;
                 }
     
+                if(isset($nivelesArl)){
+                    $cotizacionArl = $ibcARL*($nivelesArl->porcentaje / 100);
+                }
+                
                 //$cotizacionArl = round(($cotizacionArl/30) * $periodoTrabajadoSinNov, -2);
                 $cotizacionArl = $ibcARL*($nivelesArl->porcentaje / 100);
 
@@ -5251,6 +5446,10 @@ class ReportesNominaController extends Controller
                     }
                 }
 
+                if($empleado->fkTipoCotizante == "12"){
+                    $cotizacionArl = 0;
+                }
+
                 //Parte 2
                 if(!isset($arrayFila2[62])){
                     $arrayFila2[62] = $this->plantillaTxt(round($cotizacionArl),9,"0","right");
@@ -5259,11 +5458,18 @@ class ReportesNominaController extends Controller
     
     
                 //TARIFA CCF
-                $varsCCF = DB::table("variable", "v")->whereIn("v.idVariable",["53"])->get();
-                $totalPorcentajeCCF = 0;
-                foreach($varsCCF as $varCCF){
-                    $totalPorcentajeCCF = $totalPorcentajeCCF + floatval($varCCF->valor);
+                if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
+                    $varsCCF = DB::table("variable", "v")->whereIn("v.idVariable",["53"])->get();
+                    $totalPorcentajeCCF = 0;
+                    foreach($varsCCF as $varCCF){
+                        $totalPorcentajeCCF = $totalPorcentajeCCF + floatval($varCCF->valor);
+                    }
                 }
+                else{
+                    $totalPorcentajeCCF = "0.0";
+                }
+            
+                
                 if(!isset($arrayFila2[63])){
                     $arrayFila2[63] = $this->plantillaTxt($totalPorcentajeCCF,7,"0","left");    
                 }
@@ -8053,7 +8259,13 @@ class ReportesNominaController extends Controller
             }
             $sql = implode(",",$arrSelect);
             $consulta = $consulta->selectRaw($sql);
-            $consulta = $consulta->join("cargo","cargo.idCargo", "=","e.fkCargo","left")
+            $consulta = $consulta
+            ->joinSub("(
+                SELECT    MAX(idPeriodo) max_id, fkEmpleado 
+                FROM      periodo 
+                GROUP BY  fkEmpleado
+            )","ultimo_p","ultimo_p.fkEmpleado", "=","e.idempleado","left")
+            ->join("cargo","cargo.idCargo", "=","e.fkCargo","left")
             ->join("tipoidentificacion as tio","tio.idtipoIdentificacion", "=", "e.fkTipoOtroDocumento","left")
             ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
             ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
@@ -8102,13 +8314,14 @@ class ReportesNominaController extends Controller
             ->leftJoin('novedad AS nRet', function ($join) {
                 $join->on('nRet.fkEmpleado', '=', 'e.idempleado')
                     ->whereNotNull('nRet.fkRetiro')
+                    ->where("nRet.fkPeriodoActivo","=","ultimo_p.max_id")
                     ->where('nRet.fkEstado',"=","8");
             })
             ->leftJoin('contrato', function ($join) {
                 $join->on('contrato.idcontrato', '=', 'e.idempleado')
                     ->where('contrato.fkEstado',"=","1");
             })
-            ->join("tipocontrato", "tipocontrato.idtipoContrato","=","contrato.fkTipoContrato")
+            ->join("tipocontrato", "tipocontrato.idtipoContrato","=","contrato.fkTipoContrato","left")
             ->join('tercero AS terceroArl','terceroArl.idTercero', '=', 'emp.fkTercero_ARL',"left")
             ->join('retiro AS r','r.idRetiro', '=', 'nRet.fkRetiro',"left")
             ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro","left");
@@ -8426,7 +8639,7 @@ class ReportesNominaController extends Controller
             ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
             ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
             ->where("a.fkEmpleado","=",$empleado->idempleado)
-            ->where("a.fkTipoAfilicacion","=","2") //2-CCF
+            ->where("a.fkTipoAfilicacion","=","1") //2-CCF
             ->first();
 
             $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
@@ -8445,6 +8658,23 @@ class ReportesNominaController extends Controller
             ->where("ibpfn.fkBoucherPago","=",$idBoucherPago)
             ->get();
 
+            $itemsBoucherPagoFueraNominaCesTras = DB::table("item_boucher_pago_fuera_nomina","ibpfn")
+            ->select("ibpfn.*","c.*")
+            ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
+            ->join("boucherpago as bp","bp.idBoucherPago","=","ibpfn.fkBoucherPago")
+            ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
+            ->whereRaw("MONTH(ln.fechaLiquida)= MONTH('".$empresayLiquidacion->fechaLiquida."')")
+            ->whereRaw("YEAR(ln.fechaLiquida)= YEAR('".$empresayLiquidacion->fechaLiquida."')")
+            ->where("bp.fkEmpleado","=", $empleado->idempleado)
+            ->where("ln.idLiquidacionNomina","<>",$empresayLiquidacion->idLiquidacionNomina)
+            ->where("ln.fkTipoLiquidacion","=","11")
+            ->get();
+            foreach($itemsBoucherPagoFueraNominaCesTras as $itemBoucherPagoFueraNominaCesTras){
+                $itemsBoucherPagoFueraNomina->push($itemBoucherPagoFueraNominaCesTras);
+            }
+
+
+            
             $periodoPasadoReintegro = DB::table("periodo")
             ->where("fkEstado","=","2")
             ->where("fkEmpleado", "=", $empleado->idempleado)
@@ -8979,7 +9209,45 @@ class ReportesNominaController extends Controller
                     </div>
                     <div style="border: 2px solid #000; padding: 10px 20px; font-size: 10px; font-weight: bold; margin-bottom: 5px;">
                         El valor neto a pagar es: '.strtoupper($valorText).' PESOS M/CTE
-                    </div>
+                    </div><br>';
+                    if(sizeof($itemsBoucherPagoFueraNomina)>0){
+                        $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                        <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="5">Fuera de nómina</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;">Conceptos</th>
+                            <th style="background: #CCC; text-align: center;">Cantidad</th>
+                            <th style="background: #CCC; text-align: center;">Unidad</th>
+                            <th style="background: #CCC; text-align: center;">Pagos</th>
+                            <th style="background: #CCC; text-align: center;">Descuentos</th>
+                        </tr>
+                        ';
+                        foreach($itemsBoucherPagoFueraNomina as $itemBoucherPagoFueraNomina){
+                            $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                            <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->nombre.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->cantidad.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->tipoUnidad.'</td>';
+                            
+                            if($itemBoucherPagoFueraNomina->valor > 0){
+                                $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor,0, ",", ".").'</td>
+                                    <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                
+                            }
+                            else{
+                                $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor*-1,0, ",", ".").'</td>';
+                                
+                            }
+                            $html.='</tr>';
+                        }
+                        $html.='</table></div><br> 
+                        </div>
+                        <div class="page_break"></div>
+                        <div class="page">';
+                    }
+                    $html.='
                     <div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
                         <center><h4 style="margin:0px;" >Observaciones</h4></center>
                         <table>
@@ -9442,5 +9710,586 @@ class ReportesNominaController extends Controller
         // Output the generated PDF to Browser
         $dompdf->stream("Comprobante de Pago ".$idLiquidacionNomina.".pdf", array('compress' => 1, 'Attachment' => 0));
     }
-}
 
+    public function verificarSiPendientes($idEmpresa, $fecha){
+        $liquidacionesPendientes = DB::table("liquidacionnomina","ln")
+        ->join("nomina as n", "n.idNomina", "=","ln.fkNomina")
+        ->where("n.fkEmpresa","=",$idEmpresa)
+        ->whereRaw("MONTH(ln.fechaLiquida) = MONTH('".$fecha."')")
+        ->where("ln.fkEstado","=","6")//6- SOLICITADA
+        ->first();
+
+        if(isset($liquidacionesPendientes)){
+            return response()->json([
+                "success" => false
+            ]);
+        }
+        else{
+            return response()->json([
+                "success" => true
+            ]);
+        }
+    }  
+
+    public function reporteBoucherPdfNuevoDiseno($idLiquidacionNomina){
+
+        $empresayLiquidacion = DB::table("empresa", "e")
+        ->select("e.*", "ln.*", "n.nombre as nom_nombre")
+        ->join("nomina as n","n.fkEmpresa", "e.idempresa")
+        ->join("liquidacionnomina as ln","ln.fkNomina", "n.idNomina")
+        ->where("ln.idLiquidacionNomina","=",$idLiquidacionNomina)
+        ->first();
+
+
+        $base64 = "";
+        if(is_file($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa)){
+            $imagedata = file_get_contents($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa);
+                    // alternatively specify an URL, if PHP settings allow
+            $base64 = base64_encode($imagedata);
+        }
+        $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+        $dataUsu = Auth::user();
+
+        $dompdf = new Dompdf();
+        $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
+        $dompdf->getOptions()->setIsPhpEnabled(true);
+        $bouchersPago = DB::table("boucherpago","bp")->where("fkLiquidacion","=",$idLiquidacionNomina)->get();
+        
+        ob_start();?>
+        <!DOCTYPE html>
+            <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <style>
+                        /** 
+                            Set the margins of the page to 0, so the footer and the header
+                            can be of the full height and width !
+                        **/
+                        @page {
+                            margin: 0.5cm 0.5cm;
+                        }
+
+                        /** Define now the real margins of every page in the PDF **/
+                        body {
+                            margin-top: 3.5cm;
+                            margin-left: 0cm;
+                            margin-right: 0cm;
+                            margin-bottom: 0cm;
+                            font-family: sans-serif;
+                            font-size: 12px;
+                            padding: 0 20px;
+                        }
+
+                        /** Define the header rules **/
+                        header {
+                            position: fixed;
+                            top: 0.5cm;
+                            left: 0.5cm;
+                            right: 0.5cm;
+                            height: 3cm;
+                        }
+                        .logoEmpresa{
+                            max-width: 3cm;
+                            max-height: 3cm;
+                        }
+                        .tablaHeader{
+                            border: 1px solid;
+                            width: 100%;
+                        }
+                        .tablaHeader th, .tablaHeader td{
+                            text-align: left;
+                        }
+                        .tablaDatos{
+                            border-collapse: collapse;
+                            width: 100%
+                        }
+                        .tablaDatos td{
+                            
+                            font-size: 9px;
+                        }
+                        .tablaDatos th{
+                            font-size: 9px;
+                        }
+                        .tablaDatos{
+                            width: 100% !important;
+                        }
+                        .tablaDatos td.left{
+                            text-align: left;
+                        }
+                        .tablaDatos td.arriba *, .tablaDatos td.arriba{
+                            vertical-align: top;
+                            padding: 0 5px;
+                        }
+                        .azul1{
+                            background: #afeeee;
+                        }
+                        .azul2{
+                            background: #add8e6;
+                        }
+                        .datosEmpleado b,.datosEmpleado span{
+                            padding: 5px 10px;
+                        }
+                        .totalFinal{
+                            width: 100%;
+                        }
+                        .totalFinal th{
+                            font-size: 20px;
+                        }
+                        .boucherTab{
+                            border: 1px solid;
+                            width: 100%;
+                            margin-bottom: 5px;
+                        }
+                        .boucherTab th{
+                            background: #CCC;
+                            font-size: 16px;
+                        }
+                    </style>
+                    <title>Reporte Nomina <?php echo $idLiquidacionNomina; ?></title>
+                </head>
+                <body>
+                    <header>
+                        <table class="tablaHeader">
+                            <tr>
+                                <td rowspan="4">
+                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="<?php echo (isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : ''); ?>" class="logoEmpresa" />
+                                </td>
+                                <th>LISTADO DE NOMINA</th>
+                                <th>Fecha</th>
+                                <td><?php echo date("Y-m-d H:i:s"); ?></td>
+                            </tr>
+                            <tr>
+                                <th><?php echo $empresayLiquidacion->razonSocial; ?></th>
+                                <th>Usuario:</th>
+                                <td><?php echo $dataUsu->username; ?></td>
+                            </tr>
+                            <tr>
+                                <th><?php echo number_format($empresayLiquidacion->documento,0)." - ".$empresayLiquidacion->digitoVerificacion; ?></th>
+                                <th>Reporte:</th>
+                                <td>NOM_U_<?php echo $idLiquidacionNomina; ?></td>
+                            </tr>
+                            <tr>
+                                <th>PRENÓMINA <?php echo $arrMeses[intval(date("m",strtotime($empresayLiquidacion->fechaLiquida))) - 1]." - ".date("Y",strtotime($empresayLiquidacion->fechaLiquida)); ?></th>
+                                <th>Página:</th>
+                                <td>
+                                    <script type="text/php">
+                                    $text = '{PAGE_NUM} / {PAGE_COUNT}';
+                                    $font = $fontMetrics->getFont("Arial", "normal");
+                                    $pdf->page_text(546, 72, $text, $font, 9);
+                                    echo $text;
+                                    </script>
+                                </td>
+                            </tr>
+                        </table>
+                    </header>
+                    
+                        <table class="tablaDatos">
+                            <?php
+                                $totalGeneralPag = 0;
+                                $totalGeneralDesc = 0;
+                                $totalGeneral = 0;
+                                foreach($bouchersPago as $boucherPago){
+                                    $idBoucherPago = $boucherPago->idBoucherPago;
+                                    $empleado = DB::table("empleado","e")
+                                        ->select("e.idempleado", "e.fechaIngreso","e.tipoRegimen", "e.fkNomina",
+                                        "dp.primerNombre","dp.segundoNombre", 
+                                        "dp.primerApellido","dp.segundoApellido","ti.nombre as tipoidentificacion", 
+                                        "dp.numeroIdentificacion", "cargo.nombreCargo")
+                                        ->join("boucherpago as bp","bp.fkEmpleado", "e.idempleado")
+                                        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+                                        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
+                                        ->join("cargo","cargo.idCargo","=","e.fkCargo")
+                                        ->where("bp.idBoucherPago","=",$idBoucherPago)
+                                        ->first();
+                                    $centroCosto = DB::table("centrocosto","cc")
+                                    ->join("empleado_centrocosto as ecc","ecc.fkCentroCosto","=","cc.idcentroCosto")
+                                    ->where("ecc.fkEmpleado","=",$empleado->idempleado)
+                                    ->first();
+
+
+                                    $nomina = DB::table("nomina","n")
+                                    ->where("n.idNomina","=",$empleado->fkNomina)->first();
+                                    $pension = DB::table("tercero", "t")->
+                                    select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero", "ti.nombre as tipoidentificacion", "t.digitoVer"])
+                                    ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+                                    ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+                                    ->where("a.fkEmpleado","=",$empleado->idempleado)
+                                    ->where("a.fkTipoAfilicacion","=","4") //4-Pensión Obligatoria 
+                                    ->first();
+                        
+                                    $salud = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
+                                    "ti.nombre as tipoidentificacion", "t.digitoVer"])
+                                    ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+                                    ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+                                    ->where("a.fkEmpleado","=",$empleado->idempleado)
+                                    ->where("a.fkTipoAfilicacion","=","3") //3-Salud
+                                    ->first();
+                        
+                                    $cesantiasEmp = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
+                                        "ti.nombre as tipoidentificacion", "t.digitoVer"])
+                                    ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+                                    ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+                                    ->where("a.fkEmpleado","=",$empleado->idempleado)
+                                    ->where("a.fkTipoAfilicacion","=","1") //2-FONDO CESANTIAS
+                                    ->first();
+                        
+                                    $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
+                                    ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+                                    ->join("empleado as e", "e.fkEntidad", "=","t.idTercero")
+                                    ->where("e.idempleado","=",$empleado->idempleado)
+                                    ->first();
+                        
+                                    $idItemBoucherPago = DB::table("item_boucher_pago","ibp")
+                                    ->join("concepto AS c","c.idconcepto","=", "ibp.fkConcepto")
+                                    ->where("ibp.fkBoucherPago","=",$idBoucherPago)
+                                    ->get();
+                        
+                                    $itemsBoucherPagoFueraNomina = DB::table("item_boucher_pago_fuera_nomina","ibpfn")
+                                    ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
+                                    ->where("ibpfn.fkBoucherPago","=",$idBoucherPago)
+                                    ->get();
+                        
+                                    $periodoPasadoReintegro = DB::table("periodo")
+                                    ->where("fkEstado","=","2")
+                                    ->where("fkEmpleado", "=", $empleado->idempleado)
+                                    ->where("fechaFin",">=",$empresayLiquidacion->fechaInicio)
+                                    ->where("fkNomina","=",$empresayLiquidacion->fkNomina)
+                                    ->first();
+                        
+                                    if(isset($periodoPasadoReintegro)){
+                                        $conceptoSalario = new stdClass;
+                                        $conceptoSalario->valor = $periodoPasadoReintegro->salario;
+                                    }
+                                    else{
+                                        $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
+                                        ->whereIn("fkConcepto",[1,2,53,54])->first();
+                                    }
+
+
+                                    $novedadesRetiro = DB::table("novedad","n")
+                                    ->select("r.fecha", "r.fechaReal","mr.nombre as motivoRet")
+                                    ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+                                    ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro")
+                                    ->where("n.fkEmpleado", "=", $empleado->idempleado)
+                                    ->whereIn("n.fkEstado",["7", "8"])
+                                    ->whereNotNull("n.fkRetiro")
+                                    ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
+
+                                    $liquidacion = "Liquidación de Nómina";
+                                    if(($empresayLiquidacion->fkTipoLiquidacion == "2"||$empresayLiquidacion->fkTipoLiquidacion == "3")
+                                        && isset($novedadesRetiro->fecha)){
+                                            $liquidacion = "Liquidación de contrato";
+                                    }
+
+                                    echo "<tr><td style='padding: 0px;'>
+                                    <table class='boucherTab'>";
+                                    echo '<tr>
+                                        <td colspan="7">
+                                            <div class="datosEmpleado">
+                                                <div class="row">
+                                                    <b>Empleado:</b>
+                                                    <span>'.$empleado->tipoidentificacion.' - '.$empleado->numeroIdentificacion.'</span>
+                                                    <span>'.$empleado->primerApellido.' '.$empleado->segundoApellido.' '.$empleado->primerNombre.' '.$empleado->segundoNombre.'</span>
+                                                    <b>Fecha de ingreso:</b>
+                                                    <span>'.$empleado->fechaIngreso.'</span>
+                                                </div>
+                                                <div class="row">
+                                                    <b>Sueldo básico:</b>
+                                                    <span>'.number_format($conceptoSalario->valor,0, ",", ".").'</span>
+                                                    <b>C. Costo:</b>
+                                                    <span>'.$centroCosto->nombre.'</span>
+                                                    <b>Cargo:</b>
+                                                    <span>'.$empleado->nombreCargo.'</span>
+                                                </div>
+                                                <div>
+                                                    <b>IBC Salud:</b>
+                                                    <span>'.number_format($boucherPago->ibc_eps,0, ",", ".").'</span>
+                                                    <b>IBC Pensión:</b>
+                                                    <span>'.number_format($boucherPago->ibc_eps,0, ",", ".").'</span>
+                                                    <b>Salud:</b>
+                                                    <span>'.(isset($salud->razonSocial) ? $salud->razonSocial : '').'</span>
+                                                    <b>Pensión:</b>
+                                                    <span>'.(isset($pension->razonSocial) ? $pension->razonSocial : '').'</span>
+                                                    <b>Cesantias:</b>
+                                                    <span>'.(isset($cesantiasEmp->razonSocial) ? $cesantiasEmp->razonSocial : '').'</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th>Liquidación</th>
+                                        <th>Cant</th>
+                                        <th>Unidad</th>
+                                        <th>Devengos</th>
+                                        <th>Deducidos</th>   
+                                        <th>Neto a Pagar</th>   
+                                    </tr>
+                                    ';
+                                    $totalPag = 0;
+                                    $totalDesc = 0;
+                                    foreach($idItemBoucherPago as $itemBoucherPago){
+                                        echo '<tr>
+                                            <td>'.$itemBoucherPago->nombre.'</td>
+                                            <td>'.$liquidacion.'</td>
+                                            <td style="text-align: right;">'.$itemBoucherPago->cantidad.'</td>
+                                            <td style="text-align: right;">'.$itemBoucherPago->tipoUnidad.'</td>';
+                                            
+                                            if($itemBoucherPago->valor > 0){
+                                                echo '<td style="text-align: right;">$'.number_format($itemBoucherPago->valor,0, ",", ".").'</td>
+                                                    <td></td>';
+                                                $totalPag = $totalPag + $itemBoucherPago->valor;
+                                            }
+                                            else{
+                                                echo '<td></td>
+                                                    <td style="text-align: right;">$'.number_format($itemBoucherPago->valor*-1,0, ",", ".").'</td>';
+                                                $totalDesc = $totalDesc + $itemBoucherPago->valor;
+                                            }
+                                            echo '<td></td>';
+                                        echo '</tr>';
+                                    }
+                                    $totalBoucher = $totalPag + $totalDesc;
+                                    echo '<tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td style="border-top: 1px solid #B0B0B0;">Total</td>
+                                        <td style="border-top: 1px solid #B0B0B0;text-align: right;">$'.number_format($totalPag, 0, ",", ".").'</td>
+                                        <td style="border-top: 1px solid #B0B0B0;text-align: right;">$'.number_format($totalDesc*-1,0, ",", ".").'</td>
+                                        <td style="border-top: 1px solid #B0B0B0;text-align: right;">$'.number_format($totalBoucher,0, ",", ".").'</td>
+                                    </tr>';
+                                    $totalGeneralPag = $totalGeneralPag + $totalPag;
+                                    $totalGeneralDesc = $totalGeneralDesc + $totalDesc;
+                                    $totalGeneral = $totalGeneral + $totalBoucher;
+                                    echo "</table></td></tr>";
+                                }
+                            ?>
+                            <tr>
+                                <table class="totalFinal">
+                                    <tr>
+                                        <th>Empleados: <span><?php echo sizeof($bouchersPago); ?></span></th>
+                                        <th>Total General: </th>
+                                        <th><?php echo number_format($totalGeneralPag,0, ",", "."); ?></th>
+                                        <th><?php echo number_format($totalGeneralDesc*-1,0, ",", "."); ?></th>
+                                        <th><?php echo number_format($totalGeneral,0, ",", "."); ?></th>
+                                    </tr>
+                                </table>
+                            </tr>
+                        </table>
+                </body>
+            </html>
+        <?php
+        $html = ob_get_clean();
+        
+        $dompdf->loadHtml($html ,'UTF-8');
+    
+        // (Optional) Setup the paper size and orientation
+        $dompdf->setPaper('letter', 'landscape');
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF to Browser
+        $dompdf->stream("Reporte Nomina ".$idLiquidacionNomina.".pdf", array('compress' => 1, 'Attachment' => 0));
+
+    }
+
+    public function reportePorEmpleado(){
+        $empresas = DB::table("empresa","e")->get();
+
+        return view('/reportes.porEmpleado',["empresas" => $empresas]);
+    }   
+    public function liquidacionesxEmpleado($idEmpleado){
+        $liquidaciones = DB::table("liquidacionnomina","ln")
+        ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")
+        ->where("bp.fkEmpleado","=",$idEmpleado)->get();
+        $html = '<option value=""></option>';
+
+        foreach($liquidaciones as $liquidacion){
+            $html .='<option value="'.$liquidacion->idBoucherPago.'">'.$liquidacion->fechaLiquida.'</option>';
+        }
+        return response()->json([
+            "success" => true,
+            "mensaje" => $html
+        ]);
+    }
+
+    public function indexReportePrestamos(){
+        $empresas = DB::table("empresa","e")->get();
+        $conceptos = DB::table("concepto","c")
+        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
+        ->whereIn("gcc.fkGrupoConcepto",["41","42"])
+        ->orderBy("nombre")->get();
+
+        return view('/reportes.prestamos',["empresas" => $empresas, "conceptos" => $conceptos]);
+    }
+    public function conceptosPorTipo($tipoReporte){
+
+        $conceptos = array();
+        if($tipoReporte == "Ambos"){
+            $conceptos = DB::table("concepto","c")
+            ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
+            ->whereIn("gcc.fkGrupoConcepto",["41","42"])
+            ->orderBy("nombre")->get();
+        }
+        else if($tipoReporte == "Solo Prestamos"){
+            $conceptos = DB::table("concepto","c")
+            ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
+            ->where("gcc.fkGrupoConcepto","=","41")
+            ->orderBy("nombre")->get();
+        }
+        else if($tipoReporte == "Solo Embargos"){
+            $conceptos = DB::table("concepto","c")
+            ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
+            ->where("gcc.fkGrupoConcepto","=","42")
+            ->orderBy("nombre")->get();
+        }
+        $html = "<option value=''></option>";
+        foreach($conceptos as $concepto){
+            $html .= '<option value="'.$concepto->idconcepto.'">'.$concepto->nombre.'</option>';
+        }
+        
+        return response()->json([
+            "html" => $html
+        ]);
+        
+    }
+    public function generarReportePrestamo(Request $req){
+        
+
+        $columnas = ["p.*", 
+        "ti.nombre as tipoidentificacion", 
+        "dp.primerApellido", "dp.segundoApellido", 
+        "dp.primerNombre", 
+        "dp.segundoNombre",
+        "dp.numeroIdentificacion", 
+        "concepto.nombre as nm_concepto", 
+        "periocidad.per_nombre as nm_periocidad", 
+        "estado.nombre as nm_estado"];
+        if($req->tipoReporte=="Ambos" || $req->tipoReporte=="Solo Embargos"){
+            array_push($columnas, "embargo.*", "terceroJuzgado.razonSocial as nombreJuzgado", 
+            "terceroDemandante.primerApellido as primerApellidoDem", "terceroDemandante.segundoApellido as segundoApellidoDem", 
+            "terceroDemandante.primerNombre as primerNombreDem", "terceroDemandante.segundoNombre as segundoNombreDem");
+        }
+
+        $prestamo = DB::table("prestamo","p")
+        ->select($columnas)
+        ->join("empleado as e","e.idempleado", "=","p.fkEmpleado")
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
+        ->join("periocidad","periocidad.per_id", "=", "p.fkPeriocidad")
+        ->join("concepto","concepto.idconcepto","=","p.fkConcepto")
+        ->join("estado","estado.idestado","=","p.fkEstado");
+
+        if($req->tipoReporte=="Ambos"){
+            $prestamo = $prestamo->leftJoin("embargo","embargo.fkPrestamo", "=", "p.idPrestamo");
+        }
+        else if($req->tipoReporte=="Solo Embargos"){
+            $prestamo = $prestamo->join("embargo","embargo.fkPrestamo", "=", "p.idPrestamo");
+        } 
+
+        if($req->tipoReporte=="Ambos" || $req->tipoReporte=="Solo Embargos"){
+            $prestamo = $prestamo->leftJoin("tercero as terceroJuzgado","terceroJuzgado.idtercero", "=", "embargo.fkTerceroJuzgado");
+            $prestamo = $prestamo->leftJoin("tercero as terceroDemandante","terceroDemandante.idtercero", "=", "embargo.fkTerceroDemandante");
+        }
+         
+        if(isset($req->infoEmpresa)){
+            $prestamo = $prestamo->where("e.fkEmpresa","=",$req->infoEmpresa);
+        }
+        if(isset($req->infoNomina)){
+            $prestamo = $prestamo->where("e.fkNomina","=",$req->infoNomina);
+        }
+        if(isset($req->idEmpleado)){
+            $prestamo = $prestamo->where("e.idempleado","=",$req->idEmpleado);
+        }
+        if(isset($req->concepto)){
+            $prestamo = $prestamo->where("concepto.idconcepto","=",$req->concepto);
+        }        
+        $prestamo = $prestamo->get();
+        
+
+
+
+
+        $arrDef = array([
+            "Tipo Documento",
+            "Documento",
+            "Primer Nombre",
+            "Segundo Nombre",
+            "Primer Apellido",
+            "Segundo Apellido",
+            "Concepto",
+            "Codigo Prestamo",
+            "Motivo Prestamo",
+            "Monto Inicial",
+            "Saldo Actual",
+            "Periocidad",
+            "Tipo Descuento",
+            "Número de Cuotas",
+            "Valor Cuota",
+            "Porcentaje Cuota",
+            "Fecha Inicio",
+            "Fecha Desembolso",
+            "Pignoracion",
+            "Desde Salario Minimo",
+            "Estado"
+        ]);
+        if($req->tipoReporte=="Ambos" || $req->tipoReporte=="Solo Embargos"){
+            array_push($arrDef[0], 
+            "Número de Embargo", 
+            "Número de Oficio",
+            "Número de Proceso", 
+            "Juzgado",
+            "Demandante",
+            "Número de Cuenta Judicial",
+            "Número de Cuenta Demandante",
+            "Valor Total Embargo"
+            );
+        }
+
+        foreach($prestamo as $pres){
+            $arrFila = [
+                $pres->tipoidentificacion,
+                $pres->numeroIdentificacion,
+                $pres->primerNombre,
+                $pres->segundoNombre,
+                $pres->primerApellido,
+                $pres->segundoApellido,
+                $pres->nm_concepto,
+                $pres->codPrestamo,
+                $pres->motivoPrestamo,
+                $pres->montoInicial,
+                $pres->saldoActual,
+                $pres->nm_periocidad,
+                ($pres->tipoDescuento == "1" ? "Cuotas" : ($pres->tipoDescuento == "2" ? "Valor Fijo" : ($pres->tipoDescuento == "3" ? "Porcentaje" : ""))),
+                $pres->numCuotas,
+                $pres->valorCuota,
+                $pres->porcentajeCuota,
+                $pres->fechaInicio,
+                $pres->fechaDesembolso,
+                ($pres->pignoracion == "1" ? "SI" : "NO"),
+                ($pres->hastaSalarioMinimo == "1" ? "SI" : "NO"),
+                $pres->nm_estado
+            ];
+            if($req->tipoReporte=="Ambos" || $req->tipoReporte=="Solo Embargos"){
+                array_push(
+                    $arrFila, $pres->numeroEmbargo, $pres->numeroOficio, $pres->numeroProceso, $pres->nombreJuzgado,
+                    ($pres->primerApellidoDem." ".$pres->segundoApellidoDem." ".$pres->primerNombreDem." ".$pres->segundoNombreDem),
+                    $pres->numeroCuentaJudicial, $pres->numeroCuentaDemandante, $pres->valorTotalEmbargo                    
+                );
+            }
+            array_push($arrDef, $arrFila);
+        }
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename=ReportePrestamos.csv');
+
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->setDelimiter(';');
+        $csv->insertAll($arrDef);
+        $csv->setOutputBOM(Reader::BOM_UTF8);
+        $csv->output('ReportePrestamos.csv');
+
+    }
+
+}

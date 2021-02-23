@@ -11,7 +11,15 @@ $(document).ready(function() {
 
     var camposOpciones = {
         opcionales: ["infoOtroDocumento", "password", "infoOtroTIdentificacion", "infoLocalidad"],
-        opcionalesAVeces: [{
+        opcionalesAVeces: [
+
+
+            {
+                camposQueSonOb: ["infoNuevoTipoCotizante", "infoFechaAplicaCambioTCot"],
+                camposCambia: [{ campo: "infoNuevoTipoCotizante", valorCambia: [""] }],
+                tipoBloqueo: 1
+            },
+            {
                 camposQueSonOb: ["infoTipoContratoN", "infoTipoDuracionContratoN", "infoDuracionContratoN", "infoFechaFinN"],
                 camposCambia: [{ campo: "infoTipoContratoN", valorCambia: [""] }],
                 tipoBloqueo: 1
@@ -504,6 +512,10 @@ $(document).ready(function() {
         $(".nuevoContrato").addClass("activo");
     });
 
+    $("#btnCambioCotizante").click(function(e) {
+        e.preventDefault();
+        $(".nuevoTipoCotizante").addClass("activo");
+    });
     $("body").on("change", ".infoTipoBeneficio", function(e) {
         e.preventDefault();
         let dataid = $(this).attr("data-id");

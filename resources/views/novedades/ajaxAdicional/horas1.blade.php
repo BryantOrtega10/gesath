@@ -28,13 +28,13 @@
         <div class="col-3">
             <div class="form-group">
                 <label for="horaInicial{{$idRow}}" class="control-label">Hora Inicial:</label>
-                <input type="datetime-local" class="form-control" id="horaInicial{{$idRow}}" name="horaInicial[]" min="{{$req->fechaMinima}}T00:00:00" />
+                <input type="datetime-local" class="form-control" id="horaInicial{{$idRow}}" name="horaInicial[]" />
             </div>
         </div>
         <div class="col-3">
             <div class="form-group">
                 <label for="horaFinal{{$idRow}}" class="control-label">Hora Final:</label>
-                <input type="datetime-local" class="form-control" id="horaFinal{{$idRow}}" name="horaFinal[]" min="{{$req->fechaMinima}}T00:00:00" />
+                <input type="datetime-local" class="form-control" id="horaFinal{{$idRow}}" name="horaFinal[]"  />
             </div>
         </div>
     </div>   

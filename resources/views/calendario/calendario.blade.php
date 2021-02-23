@@ -7,7 +7,7 @@
 @endsection
 
 @section('contenido')
-<h1>Calendario festivos</h1>
+<h1 class="granAzul">Calendario festivos</h1>
 <a class="btn btn-primary" href="#" id="addCalendario">Agregar calendario</a>	<div class="row">
     <div class="col">
         <a class="btn btn-primary" href="#" id="verCalendario">Ver fechas</a>

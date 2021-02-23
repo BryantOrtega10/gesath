@@ -7,7 +7,7 @@
 @endsection
 
 @section('contenido')
-<h1>Usurarios</h1>
+<h1 class="granAzul">Usurarios</h1>
 <a class="btn btn-primary" href="#" id="addUsuario">Agregar usuario</a>
 <div class="cajaGeneral">
     <div class="table-responsive">

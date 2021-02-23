@@ -77,7 +77,7 @@
             <input type="number" class="form-control" id="numeroIdentificacion" name = "numeroIdentificacion" value = "{{ $tercero->numeroIdentificacion}}">
         </div>
         <div class="col form-group">
-            <label for="numeroIdentificacion">Digito Verificación</label>
+            <label for="digitoVer">Digito Verificación</label>
             <input type="number" class="form-control" id="digitoVer" name = "digitoVer" value = "{{ $tercero->digitoVer}}">
         </div>
         

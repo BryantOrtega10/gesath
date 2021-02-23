@@ -136,9 +136,10 @@ $(document).ready(function() {
 
     function verificarDocumento(e) {
         e.preventDefault();
-        cargando();
+
 
         if ($("#numIdentificacion").val() != $("#numIdentificacionAnt").val() || $("#tIdentificacion").val() != $("#tIdentificacionAnt").val()) {
+            cargando();
             $.ajax({
                 type: 'POST',
                 data: { numIdentificacion: $("#numIdentificacion").val(), tIdentificacion: $("#tIdentificacion").val() },
@@ -479,7 +480,6 @@ $(document).ready(function() {
 
     $("body").on("click", ".quitarUpcAdicional", function(e) {
         e.preventDefault();
-        cargando();
         var dataid = $(this).attr("data-id");
 
         $(this).attr("data-num", dataid);
@@ -508,7 +508,6 @@ $(document).ready(function() {
 
     $("body").on("click", ".quitarPersonaVive", function(e) {
         e.preventDefault();
-        cargando();
         var dataid = $(this).attr("data-id");
 
         $(this).attr("data-num", dataid);
@@ -536,7 +535,7 @@ $(document).ready(function() {
 
     $("body").on("click", ".quitarContactoEmergencia", function(e) {
         e.preventDefault();
-        cargando();
+
         var dataid = $(this).attr("data-id");
 
         $(this).attr("data-num", dataid);

@@ -7,8 +7,9 @@
 @endsection
 
 @section('contenido')
-<h1>Terceros</h1>
+<h1 class="granAzul">Terceros</h1>
 <a class="btn btn-primary" href="#" id="addTercero">Agregar tercero</a>
+<a class="btn btn-primary" href="/terceros/exportar">Exportar lista terceros</a>
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "terceros">
         <thead>

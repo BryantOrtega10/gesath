@@ -5,7 +5,7 @@
 @endsection
 
 @section('contenido')
-<div class="cajaGeneral text-left">
+<div class="cajaGeneral text-left verSolicitud">
     <h1>Ver solicitud de liquidaci&oacute;n</h1>
     <form method="POST" class="formGeneral" id="formModificarSolicitud" autocomplete="off">
     <div class="row">
@@ -55,18 +55,18 @@
             </form>
         </div>
         <div class="col-3 text-center">
-            <a href="/nomina/documentoRetencion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">ReteFuente</a><br>
-        </div>
-        <div class="col-3 text-center">
             <a href="/nomina/recalcularNomina/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen recalcularNomina">Recalcular nomina</a><br>
         </div>
     </div>  
     <div class="row">
         <div class="col-3 text-center"><br>
-            <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Nomina horizontal</a><br>
+            <a href="/nomina/documentoRetencion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> ReteFuente</a><br>
         </div>
         <div class="col-3 text-center"><br>
-            <a href="/reportes/boucherPdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">PDF Consolidado</a><br>
+            <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Nomina horizontal</a><br>
+        </div>
+        <div class="col-3 text-center"><br>
+            <a href="/reportes/comprobantePdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> PDF Consolidado</a><br>
         </div>
     
     </div>
@@ -88,7 +88,7 @@
                 </div>               
             </div>
             <div class="col-4">
-                <input type="submit" value="Consultar"/><input type="reset" class="recargar" data-url="{{Request::url()}}" value="" /> 
+                <input type="submit" value="Consultar"/><input type="reset" class="recargar" style="margin-left: 5px;" data-url="{{Request::url()}}" value="" /> 
             </div>
         </div>
        
@@ -104,6 +104,7 @@
 
         @php 
             $totalNetos = 0;
+            $totalPersonas = 0;
         @endphp
     
         @foreach ($bouchers as $boucher)
@@ -114,13 +115,21 @@
                 <td>$<span class="netoPagar" data-id="{{$boucher->idBoucherPago}}">{{number_format($boucher->netoPagar,0, ",", ".")}}</span>
                 @php 
                 $totalNetos = $totalNetos + $boucher->netoPagar;
+                $totalPersonas++;
                 @endphp
                 </td>
                 <td>
-                    <a href="#" class="verDetalle" data-id="{{$boucher->idBoucherPago}}">Ver Detalle</a><br>
-                    <a href="/reportes/boucherPdf/{{$boucher->idBoucherPago}}" target="_blank" >Comprobante de pago</a><br>
-                    <a href="/nomina/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo">Enviar por correo</a><br>
-                    <a href="/nomina/recalcularBoucher/{{$boucher->idBoucherPago}}" class="recalcular" data-id="{{$boucher->idBoucherPago}}">Recalcular</a>
+                    <a href="#" class="verDetalle verDetalleCompro" data-id="{{$boucher->idBoucherPago}}"><i class="fas fa-eye"></i></a><br>
+                    <div class="btn-group">
+                        <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                      
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a href="/reportes/comprobantePdf/{{$boucher->idBoucherPago}}" target="_blank" class="dropdown-item" >Comprobante de pago</a>
+                            <a href="/nomina/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo dropdown-item">Enviar por correo</a>
+                            <a href="/nomina/recalcularComprobante/{{$boucher->idBoucherPago}}" class="recalcular dropdown-item" data-id="{{$boucher->idBoucherPago}}">Recalcular</a>
+                        </div>
+                    </div>
+                    
                 </td>
             </tr>
             <tr>
@@ -136,6 +145,7 @@
                 <th>$<span id="totalNomina">{{number_format($totalNetos,0, ",", ".")}}</span></th>
             </tr>
     </table>
+    <h3>Total empleados: <b>{{$totalPersonas}}</b></h3>
 </div>
 <div class="modal fade" id="comoCalculoModal" tabindex="-1" role="dialog" aria-labelledby="comoCalculoModal" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

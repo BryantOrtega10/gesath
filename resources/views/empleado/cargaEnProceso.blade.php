@@ -9,7 +9,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Carga masiva Empleados</h1>
+        <h1 class="granAzul">Carga masiva Empleados</h1>
     </div>
 </div>
 <div class="row">

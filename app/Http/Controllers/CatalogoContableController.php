@@ -1761,7 +1761,8 @@ class CatalogoContableController extends Controller
                 "Valor Débito",
                 "Valor Crédito",
                 "Tipo Cuenta",
-                "Valor"
+                "Valor",
+                "Tercero"
             ]
         );
         $mesInforme = date("m",strtotime($req->fechaReporte));
@@ -1808,7 +1809,8 @@ class CatalogoContableController extends Controller
                                 $valorDebito,//13
                                 $valorCredito,//14
                                 $tipoCuenta,//15
-                                $arrSalid4["valor"]//16
+                                $arrSalid4["valor"],//16
+                                $arrSalid4["tercero"]["idTercero"].($arrSalid4["tercero"]["digitoVer"] != "" ? "-".$arrSalid4["tercero"]["digitoVer"] : "")
                             ];
                             $val = true;
                             /*ifforeach($arrDef as $row => $val){

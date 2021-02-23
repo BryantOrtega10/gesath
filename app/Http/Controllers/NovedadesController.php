@@ -15,12 +15,11 @@ class NovedadesController extends Controller
     public function index(){
         $nominas = DB::table("nomina")->get();
         $tipos_novedades = DB::table("tiponovedad")->get();
-        $fechaMinima = date('Y-m-01');
+        
         $dataUsu = UsuarioController::dataAdminLogueado();
         return view('/novedades.cargarNovedad',[
             'nominas' => $nominas,
             'tipos_novedades' => $tipos_novedades,
-            'fechaMinima' =>  $fechaMinima,
             'dataUsu' => $dataUsu
         ]);
     }
@@ -237,7 +236,7 @@ class NovedadesController extends Controller
             ->join("tercero AS t","t.idTercero","=","a.fkTercero")
             ->where("a.fkTipoAfilicacion","=", $tipoAfiliacion)
             ->where("a.fkEmpleado","=",$idEmpleado)->first();
-            return response()->json(['success'=>true, 'nombreTercero' => $tercero->razonSocial, 'idTercero' => $tercero->idTercero]);
+            return response()->json(['success'=>true, 'nombreTercero' => (isset($tercero->razonSocial) ? $tercero->razonSocial : ""), 'idTercero' => (isset($tercero->idTercero) ? $tercero->idTercero : "")]);
         }
         
     }

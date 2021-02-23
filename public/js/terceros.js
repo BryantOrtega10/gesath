@@ -88,6 +88,7 @@ $(document).ready(function() {
             contentType: false,
             data: formdata,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
                     retornarAlerta(
                         '¡Hecho!',
@@ -147,6 +148,7 @@ $(document).ready(function() {
             contentType: false,
             data: formdata,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
                     retornarAlerta(
                         '¡Hecho!',
@@ -203,6 +205,7 @@ $(document).ready(function() {
                 processData: false,
                 contentType: false,
                 success: function(data) {
+                    $("#cargando").css("display", "none");
                     if (data.success) {
                         window.location.reload();
                     } else {

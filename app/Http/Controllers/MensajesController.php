@@ -19,9 +19,14 @@ class MensajesController extends Controller
     public function getFormEdit($idMensaje){
         $mensaje = DB::table("mensaje")->where("idMensaje","=", $idMensaje)->first();
         $usu = UsuarioController::dataAdminLogueado();
+        $adminController = new AdminCorreosController();
+        $arrayCampos = $adminController->arrayCampos;
+        
+
         return view('/mensajes.edit', [
             "mensaje" => $mensaje,
-            "dataUsu" => $usu
+            "dataUsu" => $usu,
+            "arrayCampos" => $arrayCampos
         ]);
     }
 
@@ -32,12 +37,17 @@ class MensajesController extends Controller
             "asunto" => $req->asunto
         ]);
 
+        $adminController = new AdminCorreosController();
+        $arrayCampos = $adminController->arrayCampos;
+        
+        
         $mensaje = DB::table("mensaje")->where("idMensaje","=", $req->idMensaje)->first();
         $usu = UsuarioController::dataAdminLogueado();
         return view('/mensajes.edit', [
             "mensaje" => $mensaje,
             "dataUsu" => $usu,
-            "modificacion" => "1"
+            "modificacion" => "1",
+            "arrayCampos" => $arrayCampos
         ]);
     }
 }

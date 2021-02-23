@@ -1,6 +1,6 @@
 .menuLateral {
     min-width: 108px;
-    background: #166F93;
+    background: #0055C8;
 }
 
 section.contenido {
@@ -10,7 +10,7 @@ section.contenido {
 
 .menuLateral a {
     display: block;
-    color: #166F93;
+    color: #0055C8;
     font-size: 20px;
 }
 
@@ -164,13 +164,13 @@ section.contenido {
     color: #9F9F9F;
     text-align: center;
     font-family: 'Roboto';
-    font-weight: 500;
-    font-size: 17px;
+    font-size: 19px;
     margin-top: 40px;
+    font-weight: bold;
 }
 
 .olvidePass a {
-    color: #166F93;
+    color: #0055C8;
 }
 
 .contTerminos label {
@@ -211,7 +211,7 @@ ul.itemsMenu>li {
 span.textoMenu {
     position: absolute;
     left: 108px;
-    background: #1E8AB6;
+    background: #0073FF;
     font-size: 24px;
     font-family: 'Roboto';
     font-weight: bold;
@@ -232,11 +232,11 @@ span.textoMenu {
 
 ul.itemsMenu li.active,
 ul.itemsMenu li:hover {
-    background: #1E8AB6;
+    background: #0073FF;
 }
 
 .itemsMenu li:hover span.textoMenu {
-    width: 310px;
+    width: 400px;
     padding: 0 42px;
 }
 
@@ -271,7 +271,7 @@ ul.itemsMenu li:hover {
 }
 
 .headMenu {
-    background: #166F93;
+    background: #0055C8;
     user-select: none;
     display: flex;
     flex-wrap: wrap;
@@ -316,7 +316,7 @@ span.nombreUsuario {
     height: auto;
     line-height: normal;
     font-size: 24px;
-    color: #166F93;
+    color: #0055C8;
     /* display: block; */
     margin-bottom: 24px;
     width: auto;
@@ -369,7 +369,7 @@ span.nombreUsuario {
 .active.menuLateral ul.subMenu>li.active:before,
 .active.menuLateral ul.subMenu>li:hover:before {
     content: "";
-    background: #166F93;
+    background: #0055C8;
 }
 
 body {
@@ -428,7 +428,7 @@ body {
 }
 
 .cajaGeneral input[type="submit"] {
-    background: #166F93;
+    background: #FF6A41;
     color: #FFF;
     font-family: Roboto;
     font-weight: bold;
@@ -437,6 +437,8 @@ body {
     border: 0;
     border-radius: 2px;
     outline: none;
+    transition: all 0.5s;
+    border-radius: 4px;
 }
 
 .cajaGeneral input[type="reset"] {
@@ -444,36 +446,38 @@ body {
     width: 44px;
     height: 44px;
     vertical-align: middle;
-    background-color: #A9A9A9;
+    background-color: #FFF;
+    border: 1px solid #0055c8;
     border-radius: 2px;
     background-repeat: no-repeat;
     background-position: center;
-    border: 0;
     margin: 0;
     border-radius: 50%;
     outline: none;
-    margin-left: 15px;
+    /* margin-left: 15px; */
+    transition: all 0.5s;
 }
 
 a.btnGeneral {
-    display: block;
-    border: 1px solid #EDEDED;
+    display: inline-block;
+    border: 1px solid #FFF;
     box-sizing: border-box;
     border-radius: 2px;
     font-family: Roboto;
     font-style: normal;
     font-weight: bold;
-    font-size: 16px;
-    color: #A9A9A9;
-    padding: 8px 0;
+    font-size: 17px;
+    color: #FFF;
+    padding: 8px 20px;
+    background: #0073FF;
     margin-bottom: 18px;
     transition: all 0.2s;
 }
 
 a.btnGeneral:hover {
-    color: #FFF;
-    background: #166F93;
-    border-radius: 2px;
+    color: #0073FF;
+    background: #FFF;
+    border-color: #0073FF;
     text-decoration: none;
 }
 
@@ -487,6 +491,12 @@ a.btnGeneral:hover {
     font-weight: normal;
     font-size: 12px;
     padding: 3px 10px;
+}
+
+a.btnGeneral .far {
+    margin-right: 10px;
+    display: inline-block;
+    font-weight: normal;
 }
 
 .contenidoInterno h3 {
@@ -504,7 +514,7 @@ div.tabGeneral {
 .navGeneral.nav-tabs .nav-item.show .nav-link,
 .navGeneral.nav-tabs .nav-link.active {
     border-color: #979797 #979797 #fff;
-    color: #6B6B6B;
+    color: #FF6A41;
 }
 
 .nav-tabs.navGeneral {
@@ -567,7 +577,7 @@ form.formGeneral .form-group.hasText label {
 }
 
 form.formGeneral .form-group input {
-    border: 1px solid #E7E7E7;
+    border: 1px solid #E0E0E0;
     box-sizing: border-box;
     border-radius: 4px;
     height: 42px;
@@ -634,7 +644,7 @@ form.formGeneral .form-group input[type="datetime-local"] {
 }
 
 .contMasMenos .mas {
-    background: #166f93;
+    background: #0073fe;
     color: #FFF;
     width: 24px;
     text-align: center;
@@ -651,19 +661,19 @@ a.quitarPersonaVive {
 }
 
 .btnSubmitGen {
-    background: #166F93;
+    background: #FF6A41;
     color: #FFF;
     font-family: Roboto;
     font-weight: bold;
     font-size: 16px;
     padding: 11px 46px;
     border: 0;
-    border-radius: 2px;
     outline: none;
+    border-radius: 4px;
 }
 
 .navGeneral.nav-tabs .nav-link {
-    color: #166F93;
+    color: #0073FF;
     font-family: Roboto;
     font-weight: 500;
     font-size: 18px;
@@ -676,7 +686,7 @@ h1.ordenSuperior {
     font-size: 36px;
     line-height: 42px;
     letter-spacing: -1px;
-    color: #166F93;
+    color: #0055C8;
     margin-bottom: 40px;
 }
 
@@ -807,7 +817,7 @@ ul.itemsMenu>li:hover>ul.subMenu {
     color: #000;
     box-shadow: none;
     padding: 0 10px;
-    width: 291px;
+    width: 380px;
 }
 
 .itemsMenu ul.subMenu>li>a>span.textoMenu:hover {
@@ -1165,7 +1175,7 @@ div#cargando {
 
 .contMasMenos.masNovedades.activo {
     display: block;
-    background: #166f93;
+    background: #0073FF;
     color: #FFF;
     width: 24px;
     text-align: center;
@@ -1177,12 +1187,240 @@ div#cargando {
 
 .contMasMenos.resetNovedades {
     right: 60px;
-    color: #166f93;
+    color: #0073FF;
     cursor: pointer;
     z-index: 999;
     display: none;
 }
 
 .contMasMenos.resetNovedades.activo {
+    display: block;
+}
+
+ul.camposDisponibles {
+    text-align: left;
+    list-style: none;
+    padding: 0;
+}
+
+ul.camposDisponibles li:hover {
+    cursor: pointer;
+    color: #000;
+    border: 1px solid #CCC;
+}
+
+ul.camposDisponibles li {
+    display: block;
+    border: 1px solid #F0F0F0;
+    padding: 7px 10px;
+    transition: all 0.5s;
+    color: #656565;
+    margin: 7px 6px;
+    width: 240px;
+}
+
+
+/*DISEÑO FINAL*/
+
+body.blanco {
+    background: #FFF;
+}
+
+input[type="submit"].enfasis-background {
+    background: #FF6A41;
+}
+
+.inicioSesion input[type="text"],
+.inicioSesion input[type="email"],
+.inicioSesion input[type="password"] {
+    padding-left: 135px;
+}
+
+a.btnMed {
+    max-width: 200px;
+}
+
+.cajaGeneral input[type="reset"]:hover {
+    background-image: url(../img/empleado/refresh_1.png);
+    background-color: #0055c8;
+}
+
+h3.grisClaro {
+    color: #BDBDBD;
+    font-weight: normal;
+}
+
+.dropdown-toggle {
+    min-width: 30px;
+    min-height: 30px;
+    cursor: pointer;
+}
+
+h1.granAzul {
+    color: #0055C8;
+    font-size: 35px;
+}
+
+.afiliacion button.btn.btn-success.btnCambioAfiliacion,
+.conceptoFijo button.btn.btn-success.btnCambioConceto {
+    background: #0073fe;
+    border: #0055c8;
+}
+
+.cajaGeneral input[type="submit"]:hover {
+    background-color: #FF8563;
+}
+
+ul.pagination {
+    justify-content: center;
+}
+
+li.page-item {
+    margin: 0 6px;
+}
+
+a.page-link {
+    border-radius: 4px;
+    color: #707070;
+}
+
+.page-link:hover {
+    background: #0055C8;
+    color: #FFF;
+    border-color: #0055C8;
+}
+
+.page-item:last-child .page-link,
+.page-item:first-child .page-link {
+    border: 0;
+    font-size: 55px;
+    padding: 0;
+    line-height: 23px;
+}
+
+.page-item:last-child .page-link:hover,
+.page-item:first-child .page-link:hover {
+    background: transparent;
+    color: #0055C8;
+}
+
+.page-item.active .page-link {
+    background: #0055C8;
+    color: #FFF;
+    border-color: #0055C8;
+    border-radius: 4px;
+}
+
+.col-7 input.btnSubmitGen,
+.col-3 input.btnSubmitGen {
+    width: 100%;
+}
+
+a.seleccionarEmpleado {
+    color: #047AFF;
+}
+
+.seleccionarArchivo input {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+}
+
+.seleccionarArchivo label {
+    font-size: 16px;
+    display: block;
+    background: #EBEBEB;
+    border: 1px solid #DEDEDE;
+    color: #898989;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.seleccionarArchivo {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+}
+
+.seleccionarArchivo label:hover {
+    background: #0073FF;
+    color: #FFF;
+    border-color: #FFF;
+}
+
+a {
+    color: #0073FF;
+}
+
+a:hover {
+    color: #0055C8;
+}
+
+input[type="submit"].secundarioVerdadero {
+    background: #047AFF;
+}
+
+a.btnAzulGen {
+    color: #FFF;
+    background: #047AFF;
+    transition: all 0.5s;
+    border: 1px solid #047AFF;
+}
+
+a.btnAzulGen .fas {
+    margin-right: 15px;
+}
+
+a.btnAzulGen:hover {
+    color: #047AFF;
+    background: #FFF;
+    border: 1px solid #047AFF;
+}
+
+a.btnSubmitGen.btnAzulGen {
+    padding: 8px 0;
+    width: 100%;
+    border-radius: 2px;
+}
+
+.cajaGeneral.verSolicitud .btnSubmitGen:not(.btnAzulGen) {
+    background: #FFF;
+    color: #FF6A41;
+    border: 1px solid;
+    padding: 10px 0;
+    width: 100%;
+    transition: all 0.5s;
+}
+
+.cajaGeneral.verSolicitud .btnSubmitGen:hover:not(.btnAzulGen) {
+    background: #FF6A41;
+    color: #FFF;
+}
+
+a.verDetalleCompro {
+    position: absolute;
+    right: 0;
+    bottom: 0px;
+    background: #0055C8;
+    color: #FFF;
+    width: 30px;
+    text-align: center;
+    padding: 0;
+}
+
+table.table tr td {
+    position: relative;
+}
+
+.nuevoTipoCotizante {
+    display: none;
+}
+
+.nuevoTipoCotizante.activo {
     display: block;
 }

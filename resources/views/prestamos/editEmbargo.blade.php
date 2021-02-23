@@ -9,7 +9,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-10">
-        <h1>Datos Prestamo</h1>
+        <h1 class="granAzul">Datos Prestamo</h1>
     </div>
 </div>
 <div class="row">
@@ -170,29 +170,29 @@
                 </div>
             </div>    
             <br>
-            <h1>Datos Embargo</h1>
+            <h1 class="granAzul">Datos Embargo</h1>
             <div class="cajaGeneral">
                 <div class="row">
                     <div class="col-3">
-                        <div class="form-group">
+                        <div class="form-group  @isset($embargo->numeroEmbargo) hasText @endisset">
                             <label for="numeroEmbargo" class="control-label">Número Embargo:</label>
                             <input type="text" class="form-control" id="numeroEmbargo" name="numeroEmbargo" value="{{$embargo->numeroEmbargo}}" />
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="form-group">
+                        <div class="form-group @isset($embargo->numeroOficio) hasText @endisset">
                             <label for="numeroOficio" class="control-label">Número Oficio:</label>
                             <input type="text" class="form-control" id="numeroOficio" name="numeroOficio" value="{{$embargo->numeroOficio}}" />
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="form-group">
+                        <div class="form-group @isset($embargo->numeroProceso) hasText @endisset">
                             <label for="numeroProceso" class="control-label">Número proceso:</label>
                             <input type="text" class="form-control" id="numeroProceso" name="numeroProceso" value="{{$embargo->numeroProceso}}"  />
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="form-group">
+                        <div class="form-group @isset($embargo->fechaRecepcionCarta) hasText @endisset">
                             <label for="fechaCargaOficio" class="control-label">Fecha Carga Oficio:</label>
                             <input type="date" class="form-control" id="fechaCargaOficio" name="fechaCargaOficio"  value="{{$embargo->fechaCargaOficio}}"/>
                         </div>
@@ -201,7 +201,7 @@
                 </div>
                 <div class="row">
                     <div class="col-3">
-                        <div class="form-group">
+                        <div class="form-group @isset($embargo->fechaRecepcionCarta) hasText @endisset">
                             <label for="fechaRecepcionCarta" class="control-label">Fecha Recepción Carta:</label>
                             <input type="date" class="form-control" id="fechaRecepcionCarta" name="fechaRecepcionCarta"  value="{{$embargo->fechaRecepcionCarta}}" />
                         </div>
@@ -256,7 +256,7 @@
                                 @foreach ($tercerosDemandante as $terceroDemandante)
                                     <option value="{{$terceroDemandante->idTercero}}" @if($terceroDemandante->idTercero == $embargo->fkTerceroDemandante)
                                         selected
-                                    @endif>@if($terceroDemandante->naturalezaTributaria == "Juridica")    
+                                    @endif>@if($terceroDemandante->naturalezaTributaria == "Juridico")    
                                         {{$terceroDemandante->razonSocial}}
                                     @else
                                         {{$terceroDemandante->primerApellido}} {{$terceroDemandante->segundoApellido}} {{$terceroDemandante->primerNombre}} {{$terceroDemandante->segundoNombre}}

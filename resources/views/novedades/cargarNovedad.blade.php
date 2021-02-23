@@ -28,7 +28,7 @@
                 <div class="col-3">
                     <div class="form-group">
                         <label for="fecha" class="control-label">Fecha novedad:</label>
-                        <input type="date" class="form-control" id="fecha" name="fecha" min="{{$fechaMinima}}"/>
+                        <input type="date" class="form-control" id="fecha" name="fecha"/>
                     </div>
                 </div>
                 <div class="col-3">

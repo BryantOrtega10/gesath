@@ -31,6 +31,10 @@
             <label for="numeroIdentificacion">Número de identificación</label>
             <input type="number" class="form-control" id="numeroIdentificacion" name = "numeroIdentificacion">
         </div>
+        <div class="col form-group">
+            <label for="digitoVer">Digito Verificación</label>
+            <input type="number" class="form-control" id="digitoVer" name = "digitoVer">
+        </div>
     </div>
     <div class="row">
         <div class="col form-group">

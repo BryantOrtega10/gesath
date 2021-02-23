@@ -30,16 +30,7 @@ class TercerosRequest extends FormRequest
             'fk_actividad_economica' => 'required',
             'naturalezaTributaria' => 'required',
             'fkTipoIdentificacion' => 'required',
-            'numeroIdentificacion' => 'required',
-            'fkEstado' => 'required',
-            'direccion' => 'required',
-            'fkUbicacion' => 'required',
-            'telefono' => 'required',
-            'fax' => 'required',
-            'correo' => 'required|email:rfc,dns',
-            'codigoTercero' => 'required',
-            'fkTipoAporteSeguridadSocial' => 'required',
-            'codigoSuperIntendencia' => 'required'
+            'numeroIdentificacion' => 'required'
         ];
     }
 

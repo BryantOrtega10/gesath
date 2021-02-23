@@ -5,7 +5,7 @@
 @endsection
 
 @section('contenido')
-<h1>Cargos</h1>
+<h1 class="granAzul">Cargos</h1>
 <a class="btn btn-primary" href="#" id="addCargo">Agregar cargo</a>
 <a class="btn btn-primary" href="/cargos/subirPlano" id="addCargo">Subir archivo plano</a>
 <div class="cajaGeneral">

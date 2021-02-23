@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Reporte Formulario 220</h1>
+        <h1 class="granAzul">Reporte Formulario 220</h1>
     </div>
 </div>
 <div class="row">

@@ -9,12 +9,12 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Reintegro Empleados</h1>
+        <h1 class="granAzul">Reintegro Empleados</h1>
     </div>
 </div>
-<div class="row">
-    <div class="col-12">
-        <div class="cajaGeneral">
+<div class="cajaGeneral">
+    <div class="row">
+        <div class="col-12">
             <div class="row">
                 <div class="col-10"><h2>Filtros de B&uacute;squeda</h2></div>
             </div>
@@ -58,7 +58,14 @@
                     </div>
                     
                     <div class="col-2">
-                        <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+                        <div class="row">
+                            <div class="col-7">
+                                <input type="submit" value="Consultar" />
+                            </div>
+                            <div class="col-5">
+                                <input type="reset" class="recargar" value="" />
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -78,13 +85,11 @@
                 </select>-->
                 
                 
-               
+                
             </form>
         </div>
-
-    </div>
-    <div class="col-12">
-        <div class="cajaGeneral">
+        <div class="col-12">
+            
             <h2>Resultado B&uacute;squeda</h2>
             <hr>
             <h3>Se encontraron {{$numResultados}} resultados.</h3>
@@ -107,12 +112,20 @@
                     <td>{{ $empleado->centroCosto }}</td>
                     <td><div class="estdoEmp{{ $empleado->claseEstado }}">{{ $empleado->estado }}</div></td>
                     <td>
-                        <a href="/empleado/formReintegro/{{ $empleado->idempleado }}" class="editar"><i class="fas fa-redo"></i></a>
+                        <div class="btn-group">
+                            <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                          
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a href="/empleado/formReintegro/{{ $empleado->idempleado }}" class="dropdown-item editar"><i class="fas fa-redo"></i> Reintegrar</a>
+                            </div>
+                        </div>
+                        
                     </td>
                 </tr>
                 @endforeach
             </table>
             {{ $empleados->appends($arrConsulta)->links() }}
+            
         </div>
     </div>
 </div>

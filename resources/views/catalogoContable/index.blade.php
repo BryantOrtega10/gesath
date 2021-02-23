@@ -6,7 +6,10 @@
 
 @section('contenido')
 <div class="cajaGeneral">
-    <h1>Catalogo contable</h1>
+    <div class="row">
+        <div class="col-7"><h1 class="granAzul">Catalogo contable</h1></div>
+        <div class="col-5 text-right"><a  class="btnGeneral btnAzulGen btnGrande text-center" href="/catalogo-contable/descargarPlano"><i class="fas fa-download"></i> Descargar plano</a></div>
+    </div>
     <form autocomplete="off" action="/catalogo-contable/" method="GET"  class="formGeneral" id="filtrar">
         @csrf    
         <div class="row">
@@ -38,16 +41,15 @@
                     </select>
                 </div>
             </div>
-            <div class="col-3"><input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> </div>
+            <div class="col-3"><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/> </div>
         </div>        
     </form>
 
     <div class="text-left">
-        <a class="btn btn-primary" href="#" id="addCuenta">Agregar cuenta</a>
-        <a class="btn btn-primary" href="/catalogo-contable/subirPlano" >Agregar por archivo plano</a>
-        <a class="btn btn-primary" href="/catalogo-contable/descargarPlano">Descargar archivo plano</a>
-
+        <a class="btn btnAzulGen" href="#" id="addCuenta">Agregar cuenta</a>
+        <a class="btn btnAzulGen" href="/catalogo-contable/subirPlano" >Agregar por archivo plano</a>
     </div>
+    <br>
     <div class="table-responsive">
         <table class="table table-hover table-striped">
             <tr>

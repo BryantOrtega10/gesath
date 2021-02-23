@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Concepto;
 use App\Variable;
+use League\Csv\Writer;
+use League\Csv\Reader;
+use SplTempFileObject;          
+
 
 class ConceptoController extends Controller
 {
@@ -517,5 +521,33 @@ class ConceptoController extends Controller
 
 
     }
-    
+    public function exportar(){
+
+        $conceptos = DB::table("concepto", "c")
+        ->select("c.*","n.nombre as naturaleza")
+        ->join("naturalezaconcepto as n","n.idnaturalezaConcepto", "=","c.fkNaturaleza")
+        ->where("fkEstado","=","1")->get();
+        $arrDef = array([
+            "idConcepto",
+            "Nombre",
+            "Naturaleza"
+        ]);
+        foreach ($conceptos as $concepto){
+            array_push($arrDef, [
+                $concepto->idconcepto,
+                $concepto->nombre,
+                $concepto->naturaleza
+            ]);
+        }
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename=conceptos.csv');
+
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->setDelimiter(';');
+        $csv->insertAll($arrDef);
+        $csv->setOutputBOM(Reader::BOM_UTF8);
+        $csv->output('conceptos.csv');
+    }   
 }

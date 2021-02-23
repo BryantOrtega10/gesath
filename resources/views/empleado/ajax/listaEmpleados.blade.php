@@ -24,7 +24,7 @@
                 <option value="{{$centroDeCosto->idcentroCosto}}"  @isset($req->centroCosto) @if ($req->centroCosto == $centroDeCosto->idcentroCosto) selected @endif @endisset>{{$centroDeCosto->nombre}}</option>   
             @endforeach
         </select>
-        <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+        <input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/> 
     </form>
 </div>
 <div class="cajaGeneral">
@@ -38,13 +38,13 @@
             <div class="row">
                 <div class="col-3 font-weight-bold">{{$empleado->numeroIdentificacion}}</div>
                 <div class="col-3 font-weight-bold">{{$empleado->nombre}}</div>
-                <div class="col-6">
+                <div class="col-6 text-left">
                     <a href="#" class="seleccionarEmpleado" data-id="{{$empleado->idempleado}}">
                     {{$empleado->primerNombre." ".$empleado->segundoNombre." ".$empleado->primerApellido." ".$empleado->segundoApellido}}
                     </a>
                 </div>
             </div>
         @endforeach
-    </div>
+    </div><br>
     {{ $empleados->appends($arrConsulta)->links() }}
 </div>

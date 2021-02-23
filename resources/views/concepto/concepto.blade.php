@@ -7,8 +7,9 @@
 @endsection
 
 @section('contenido')
-<h1>Concepto</h1>
+<h1 class="granAzul">Concepto</h1>
 <a class="btn btn-primary" href="#" id="addConcepto">Agregar concepto</a>
+<a class="btn btn-primary" href="/concepto/exportar">Exportar lista conceptos</a>
 <div class="cajaGeneral">
     <form autocomplete="off" action="/concepto/" method="GET" id="filtrarEmpleado">
         @csrf    

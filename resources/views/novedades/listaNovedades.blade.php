@@ -46,7 +46,7 @@
                     </div>
                 </div>
     
-                <div class="col-3"  ><input type="submit" value="Consultar"/><input type="reset" class="recargar recargarPage" value="" /> </div>
+                <div class="col-3"  ><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/>  </div>
             </div>        
         </form>
 
@@ -54,7 +54,7 @@
             @csrf
             <div class="row">
                 <div class="col-3 text-left">
-                    <input type="submit" value="Eliminar seleccionados" />
+                    <input type="submit" class="secundarioVerdadero" value="Eliminar seleccionados" />
                 </div>
             </div><br>            
             <table class="table table-hover table-striped">
@@ -106,8 +106,15 @@
                         </td>
                         <td>{{$novedad->fechaRegistro}}</td>                        
                         <td>{{$novedad->nombreEstado}}</td>                        
-                        <td><a href="/novedades/modificarNovedad/{{ $novedad->idNovedad }}" class="editar"><i class="fas fa-edit"></i></a>
-                            <a href="#" data-id="{{ $novedad->idNovedad }}" class="eliminar"><i class="fas fa-trash"></i></a>
+                        <td>
+                            <div class="btn-group">
+                                <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                              
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a href="/novedades/modificarNovedad/{{ $novedad->idNovedad }}" class="editar dropdown-item"><i class="fas fa-edit"></i> Modificar</a>
+                                    <a href="#" data-id="{{ $novedad->idNovedad }}" class="eliminar dropdown-item"><i class="fas fa-trash"></i> Eliminar</a>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 @endforeach

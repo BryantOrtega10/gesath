@@ -7,7 +7,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Carga masiva novedades</h1>
+        <h1 class="granAzul">Carga masiva novedades</h1>
     </div>
 </div>
 <div class="row">
@@ -27,12 +27,13 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-9">
-                        <label for="archivoCSV">Seleccione el archivo</label> <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
+                    <div class="col-3">
+                        <div class="seleccionarArchivo">
+                            <label for="archivoCSV">Seleccione un archivo CSV</label>
+                            <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div  class="col-12">
+                    <div  class="col-3">
                         <div class="text-center"><input type="submit" value="Cargar novedades" class="btnSubmitGen" /></div>
                     </div>
                 </div>

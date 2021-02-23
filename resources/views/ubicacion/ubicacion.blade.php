@@ -9,7 +9,7 @@
 
 @section('contenido')
 <div class="cajaGeneral">
-    <h1>Ubicaci&oacute;n</h1>
+    <h1 class="granAzul">Ubicaci&oacute;n</h1>
     <a class="btn btn-primary" href="#" id="addVariable">Agregar ubicaci&oacute;n</a>
     <div class="table-responsive">
         <table class="table table-hover table-striped" id = "ubicaciones">

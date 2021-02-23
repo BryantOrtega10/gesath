@@ -25,7 +25,7 @@
         <table class="table table-hover table-striped" id="comprobantes">
             <thead>
                 <tr>
-                    <td>ID Boucher</td>
+                    <td>ID comprobante</td>
                     <td>Fecha inicio</td>
                     <td>Fecha Fin</td>
                     <td></td>
@@ -86,7 +86,7 @@
                 'searchable': false,
                 "render": (data, type, full, meta) => {
                     return `
-                        <form method = "GET" action = "/reportes/boucherPdf/${data}">
+                        <form method = "GET" action = "/reportes/comprobantePdf/${data}">
                             <button class "btn btn-link">Descargar&nbsp;<i class="fas fa-download"></i></button>
                         </form>
                     `;

@@ -8,7 +8,7 @@
 
 @section('contenido')
 <div class="cajaGeneral">
-    <h1>Transacciones</h1>
+    <h1 class="granAzul">Transacciones</h1>
     <a class="btn btn-primary" href="#" id="addTransaccion">Agregar transaccion</a>
     <div class="table-responsive">
         <table class="table table-hover table-striped">

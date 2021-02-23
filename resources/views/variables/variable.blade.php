@@ -9,7 +9,7 @@
 @section('contenido')
 
 <div class="cajaGeneral">
-    <h1>Variables</h1>
+    <h1 class="granAzul">Variables</h1>
     <a class="btn btn-primary" href="#" id="addVariable">Agregar variable</a>
 
     <div class="table-responsive">

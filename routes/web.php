@@ -56,6 +56,8 @@ Route::group([
 	'middleware' => ['auth', 'guest:2,3'],
 ], function(){
 	Route::get('','ConceptoController@index');
+	Route::get('exportar','ConceptoController@exportar');
+	
 	Route::get('getForm/add', 'ConceptoController@getFormAdd');
 	Route::post('crear','ConceptoController@insert');
 	Route::get('getFormulaConcepto', 'ConceptoController@getFormulaConceptoAdd');
@@ -153,10 +155,11 @@ Route::group([
 
 	Route::get('/subirFotos', 'EmpleadoController@indexSubirFotos');
 	Route::post('/cargaMasivaFotosEmpleados', 'EmpleadoController@cargaMasivaFotosEmpleados');
-
-	
-
 	Route::get('/dataEmpContrasenia/{id}', 'EmpleadoController@getDataPass');
+
+
+	Route::get('/agregarUsuariosaEmpleados', 'EmpleadoController@agregarUsuariosaEmpleados');
+	
 	
 });
 
@@ -171,8 +174,8 @@ Route::group([
 	Route::get('cargarEmpleadosxNomina/{id}/{tipoNomina}','NominaController@cargarEmpleadosxNomina');
 	Route::post('insertarSolicitud','NominaController@insertarSolicitud');
 	Route::get('verSolicitudLiquidacion/{id}','NominaController@verSolicitudLiquidacion');
-	Route::get('recalcularBoucher/{id}','NominaController@recalcularBoucher');
-	Route::get('cargarInfoxBoucher/{id}','NominaController@cargarInfoxBoucher');
+	Route::get('recalcularComprobante/{id}','NominaController@recalcularBoucher');
+	Route::get('cargarInfoxComprobante/{id}','NominaController@cargarInfoxBoucher');
 	Route::post('aprobarSolicitud','NominaController@aprobarSolicitud');
 	Route::post('cancelarSolicitud','NominaController@cancelarSolicitud');
 	Route::get('comoCalculo/{id}','NominaController@comoCalculo');
@@ -196,7 +199,21 @@ Route::group([
 	Route::get('cambiarConceptosFijos','NominaController@cambiarConceptosFijosIndex');
 	Route::post('subirCambioConceptoFijo','NominaController@subirCambioConceptoFijo');
 	
-	Route::get('enviarComprobante/{idBoucher}','NominaController@enviarCorreoBoucher');
+	
+
+	
+	Route::group(['prefix' => 'envioCorreos'], function(){
+
+		Route::get('/{idLiquidacionNomina}','AdminCorreosController@indexEnviarCorreosxLiquidacion');
+		Route::post('/crearPeticion','AdminCorreosController@crearEnvioCorreo');
+		
+		Route::get('/verEnviarCorreo/{idEnvioCorreoLiq}','AdminCorreosController@verEnvioCorreo');
+		Route::get('/enviarProximosRegistro/{idEnvioCorreoLiq}','AdminCorreosController@enviarProximosRegistro');
+		Route::get('/enviarComprobante/{idBoucher}','AdminCorreosController@enviarCorreoBoucher');
+		
+		
+	});	
+
 	Route::group(['prefix' => 'distri'], function(){
 		Route::get('add','NominaController@centroCostoPeriodoFormAdd');
 		Route::post('crear','NominaController@insertDistri');
@@ -222,7 +239,7 @@ Route::group([
 	
 	Route::get('reporteNominaHorizontal','ReportesNominaController@reporteNominaHorizontalIndex');
 	Route::post('documentoNominaHorizontalFechas','ReportesNominaController@documentoNominaHorizontalFechas');
-	Route::get('boucherPdf/{idBoucher}','ReportesNominaController@boucherPagoPdf');	
+	Route::get('comprobantePdf/{idBoucher}','ReportesNominaController@boucherPagoPdf');	
 	Route::post('documentoSSTxt','ReportesNominaController@documentoSSTxt');	
 	Route::post('documentoProv','ReportesNominaController@documentoProv');
 	Route::get('seleccionarDocumentoSeguridad','ReportesNominaController@seleccionarDocumentoSeguridad');
@@ -254,7 +271,19 @@ Route::group([
 	Route::post('reporteador/modificar','ReportesNominaController@modificarReporte');
 	Route::post('reporteador/generarFinalReporteador','ReportesNominaController@generarFinalReporteador');
 	
-	Route::get('boucherPdfConsolidado/{idLiquidacion}','ReportesNominaController@boucherPdfConsolidado');	
+	Route::get('comprobantePdfConsolidado/{idLiquidacion}','ReportesNominaController@boucherPdfConsolidado');	
+	
+	Route::get('verificarSiPendientes/{idEmpresa}/{fecha}','ReportesNominaController@verificarSiPendientes');	
+	Route::get('comprobantePdfNuevoD/{idLiquidacion}','ReportesNominaController@reporteBoucherPdfNuevoDiseno');	
+	Route::get('reportePorEmpleado','ReportesNominaController@reportePorEmpleado');	
+	Route::get('liquidacionesxEmpleado/{id}','ReportesNominaController@liquidacionesxEmpleado');	
+	
+	Route::get('prestamos','ReportesNominaController@indexReportePrestamos');	
+	Route::get('conceptosPorTipo/{id}','ReportesNominaController@conceptosPorTipo');
+	Route::post('generarReportePrestamo','ReportesNominaController@generarReportePrestamo');
+	
+
+
 	
 });
 
@@ -308,7 +337,7 @@ Route::group([
 
 	Route::post('/modificarRegistro','DatosPasadosController@modificarRegistroVac');
 	
-	
+	Route::post('/insertarManualmente','DatosPasadosController@insertarManualmenteVac');
 	
 });
 
@@ -425,6 +454,8 @@ Route::group([
 	'middleware' => ['auth', 'guest:2,3'],
 ], function() {
 	Route::get('/', 'TercerosController@index');
+	Route::get('/exportar', 'TercerosController@exportar');
+	
 	Route::get('/getForm/add', 'TercerosController@getFormAdd');
 	Route::post('/agregarTercero', 'TercerosController@create');
 	Route::get('/datosTerceroXId/{id}', 'TercerosController@edit');

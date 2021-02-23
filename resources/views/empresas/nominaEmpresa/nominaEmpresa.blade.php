@@ -6,7 +6,7 @@
     ])
 @endsection
 @section('contenido')
-<h1>Nómina empresa</h1>
+<h1 class="granAzul">Nómina empresa</h1>
 <a class="btn btn-primary" href="#" id="addNominaEmpresa" dataId = "{{ request()->route()->parameters['idNomina'] }}">Agregar Nómina</a>
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "nominas">

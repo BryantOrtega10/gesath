@@ -19,13 +19,13 @@ $(document).ready(function() {
         const dataid = $(this).attr("data-id");
         $.ajax({
             type: 'GET',
-            url: "/nomina/cargarInfoxBoucher/" + dataid,
+            url: "/nomina/cargarInfoxComprobante/" + dataid,
             success: function(data) {
                 $("#cargando").css("display", "none");
                 $(".detalleBoucher[data-id='" + dataid + "']").html(data);
                 $(".detalleBoucher[data-id='" + dataid + "']").addClass("activo");
                 $(".verDetalle[data-id=" + dataid + "]").addClass("ocultarDetalle");
-                $(".verDetalle[data-id=" + dataid + "]").html("Ocultar Detalle");
+                $(".verDetalle[data-id=" + dataid + "]").html('<i class="fas fa-eye-slash"></i>');
                 $(".verDetalle[data-id=" + dataid + "]").removeClass("verDetalle");
             },
             error: function(data) {
@@ -39,7 +39,7 @@ $(document).ready(function() {
         $(".detalleBoucher[data-id='" + dataid + "']").html("");
         $(".detalleBoucher[data-id='" + dataid + "']").removeClass("activo");
         $(".ocultarDetalle[data-id=" + dataid + "]").addClass("verDetalle");
-        $(".ocultarDetalle[data-id=" + dataid + "]").html("Ver Detalle");
+        $(".ocultarDetalle[data-id=" + dataid + "]").html('<i class="fas fa-eye" aria-hidden="true"></i>');
         $(".ocultarDetalle[data-id=" + dataid + "]").removeClass("ocultarDetalle");
     });
 
@@ -128,33 +128,35 @@ $(document).ready(function() {
 
     $("body").on("submit", "#formModificarSolicitud", function(e) {
         e.preventDefault();
-        cargando();
-        var formdata = new FormData(this);
-        $.ajax({
-            type: 'POST',
-            url: $(this).attr("action"),
-            cache: false,
-            processData: false,
-            contentType: false,
-            data: formdata,
-            success: function(data) {
+        if (confirm("En verdad desea aprobar la solicitud?")) {
+            cargando();
+            var formdata = new FormData(this);
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr("action"),
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: formdata,
+                success: function(data) {
 
-                if (data.success) {
-                    alert("Solicitud modificada correctamente");
-                    window.open("/nomina/solicitudLiquidacion/", "_self");
-                } else {
-                    $(".print-error-msg-Liquida").find("ul").html('');
-                    $(".print-error-msg-Liquida").css('display', 'block');
-                    $.each(data.error, function(key, value) {
-                        $(".print-error-msg-Liquida").find("ul").append('<li>' + value + '</li>');
-                    });
+                    if (data.success) {
+                        alert("Solicitud modificada correctamente");
+                        window.open("/nomina/solicitudLiquidacion/", "_self");
+                    } else {
+                        $(".print-error-msg-Liquida").find("ul").html('');
+                        $(".print-error-msg-Liquida").css('display', 'block');
+                        $.each(data.error, function(key, value) {
+                            $(".print-error-msg-Liquida").find("ul").append('<li>' + value + '</li>');
+                        });
+                    }
+                },
+                error: function(data) {
+                    console.log("error");
+                    console.log(data);
                 }
-            },
-            error: function(data) {
-                console.log("error");
-                console.log(data);
-            }
-        });
+            });
+        }
     });
     $("body").on("submit", "#formModificarSolicitud2", function(e) {
         e.preventDefault();

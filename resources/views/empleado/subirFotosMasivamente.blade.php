@@ -9,7 +9,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>Subir fotos empleados masivamente</h1>
+        <h1 class="granAzul">Subir fotos empleados masivamente</h1>
     </div>
 </div>
 <div class="row">
@@ -17,9 +17,17 @@
         <div class="cajaGeneral">
             <form method="POST" id="" autocomplete="off" class="formGeneral" action="/empleado/cargaMasivaFotosEmpleados" enctype="multipart/form-data">
                 @csrf
-                <label for="archivoZip">Seleccione el archivo Zip</label> 
-                <input type="file" name="archivoZip" id="archivoZip" required  accept=".zip"/>
-                <div class="text-center"><input type="submit" value="Cargar Fotos Empleados" class="btnSubmitGen" /></div>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="seleccionarArchivo">
+                            <label for="archivoZip">Seleccione un archivo Zip</label>
+                            <input type="file" name="archivoZip" id="archivoZip" required  accept=".zip"/>
+                        </div>
+                    </div>    
+                    <div class="col-3">
+                        <div class="text-center"><input type="submit" value="Cargar Fotos Empleados" class="btnSubmitGen secundario" /></div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

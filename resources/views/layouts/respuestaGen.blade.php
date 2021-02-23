@@ -9,7 +9,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1>{{$titulo}}</h1>
+        <h1 class="granAzul">{{$titulo}}</h1>
         <p>{{$mensaje}}</p>
     </div>
 </div>

@@ -5,7 +5,7 @@
 @endsection
 
 @section('contenido')
-<h1>Códigos diagnósticos</h1>
+<h1 class="granAzul">Códigos diagnósticos</h1>
 <a class="btn btn-primary" href="#" id="addCodigo">Agregar cóidigo diagnóstico</a>
 <div class="cajaGeneral">
     <div class="table-responsive">

@@ -28,13 +28,13 @@
         <div class="col-3">
             <div class="form-group">
                 <label for="fechaAusenciaInicial{{$idRow}}" class="control-label">Fecha Inicial:</label>
-                <input type="date" class="form-control" id="fechaAusenciaInicial{{$idRow}}" name="fechaAusenciaInicial[]" min="{{$req->fechaMinima}}" />
+                <input type="date" class="form-control" id="fechaAusenciaInicial{{$idRow}}" name="fechaAusenciaInicial[]" />
             </div>
         </div>
         <div class="col-3">
             <div class="form-group">
                 <label for="fechaAusenciaFinal{{$idRow}}" class="control-label">Fecha Final:</label>
-                <input type="date" class="form-control" id="fechaAusenciaFinal{{$idRow}}" name="fechaAusenciaFinal[]" min="{{$req->fechaMinima}}" />
+                <input type="date" class="form-control" id="fechaAusenciaFinal{{$idRow}}" name="fechaAusenciaFinal[]" />
             </div>
         </div>
     </div>

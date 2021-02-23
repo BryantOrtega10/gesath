@@ -490,8 +490,116 @@ class DatosPasadosController extends Controller
         ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
         ->orderBy("cdp.idCargaDatosPasados", "desc")
         ->get();
+        $empresas = DB::table("empresa","e")->get();
 
-        return view('/datosPasadosVac.index', ["cargasDatosPasados" => $cargasDatosPasados]);
+
+        return view('/datosPasadosVac.index', [
+            "cargasDatosPasados" => $cargasDatosPasados,
+            "empresas" => $empresas
+        ]);
+    }
+    
+    public function insertarManualmenteVac(Request $req){
+
+
+        $idCargaDatosPasados  = DB::table("carga_datos_pasados_vac")->insertGetId([
+            "rutaArchivo" => "",
+            "fkEstado" => "11",
+            "numActual" => 1,
+            "numRegistros" => 1,
+            "tipo" => "MANUAL"
+        ], "idCargaDatosPasados");
+        
+        $idDatosPasados = DB::table("datos_pasados_vac")->insertGetId([
+            "fkEmpleado" => $req->idEmpleado,
+            "tipo" => $req->tipo,
+            "fecha" => $req->fecha,
+            "fechaInicial" => ((isset($req->fechaInicio) && !empty($req->fechaInicio)) ? $req->fechaInicio : NULL),
+            "fechaFinal" => ((isset($req->fechaFin) && !empty($req->fechaFin)) ? $req->fechaFin : NULL),
+            "dias" => $req->dias,
+            "fkCargaDatosPasados" => $idCargaDatosPasados,
+            "fkEstado" => "11"
+        ],"idDatosPasados");
+
+        $datoPasado = DB::table("datos_pasados_vac","dp")
+        ->join("empleado as e", "e.idempleado", "=", "dp.fkEmpleado")
+        ->where("dp.idDatosPasados","=",$idDatosPasados)
+        ->orderBy("dp.fecha")
+        ->orderBy("dp.fkEmpleado")
+        ->orderBy("e.fkNomina")
+        ->first();
+        
+        if($datoPasado->tipo == "VAC"){
+            $arrInsertVac = [
+                "fechaInicio" => $datoPasado->fechaInicial,
+                "fechaFin" => $datoPasado->fechaFinal,
+                "diasCompensar" => $datoPasado->dias,
+                "diasCompletos" => $datoPasado->dias,
+                "pagoAnticipado" => "1"
+            ];
+            $idVacaciones = DB::table("vacaciones")->insertGetId($arrInsertVac, "idVacaciones");
+      
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+            if(!isset($periodoActivoReintegro)){
+                $periodoActivoReintegro = DB::table("periodo")
+                ->where("fkEstado","=","2")
+                ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+            }
+
+
+            $arrInsertNovedad =[
+                "fkTipoNovedad" => 6,
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $datoPasado->fkNomina,
+                "fkEmpleado" => $datoPasado->fkEmpleado,
+                "fkEstado" => "8",
+                "fechaRegistro" => $datoPasado->fecha,
+                "fkConcepto" => "29",
+                "fkVacaciones" => $idVacaciones,
+                "fkCargaDatosPasadosVac" => $idCargaDatosPasados,
+                "fkDatosPasadosVac" => $datoPasado->idDatosPasados
+            ];
+
+
+
+
+            
+            DB::table("novedad")->insert($arrInsertNovedad);
+        }
+        else if($datoPasado->tipo == "LNR"){
+            $arrInsertAus = [
+                "fechaInicio" => $datoPasado->fechaInicial,
+                "fechaFin" => $datoPasado->fechaFinal,
+                "cantidadDias" => $datoPasado->dias
+            ];
+            $idAusencia = DB::table("ausencia")->insertGetId($arrInsertAus, "idAusencia");
+      
+
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+
+            $arrInsertNovedad =[
+                "fkTipoNovedad" => 1,
+                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                "fkNomina" => $datoPasado->fkNomina,
+                "fkEmpleado" => $datoPasado->fkEmpleado,
+                "fkEstado" => "8",
+                "fechaRegistro" => $datoPasado->fecha,
+                "fkConcepto" => "24",
+                "fkAusencia" => $idAusencia,
+                "fkCargaDatosPasadosVac" => $idCargaDatosPasados,
+                "fkDatosPasadosVac" => $datoPasado->idDatosPasados
+            ];
+            DB::table("novedad")->insert($arrInsertNovedad);
+        }
+        else{
+            dd($datoPasado);
+        }
+        return redirect('/datosPasadosVac/verCarga/'.$idCargaDatosPasados);
+
     }
     public function subirArchivoVac(Request $req){
     

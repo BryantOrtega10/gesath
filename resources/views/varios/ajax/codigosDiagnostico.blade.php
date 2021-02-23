@@ -5,7 +5,7 @@
         @csrf
         <input type="text" name="codigo" placeholder="C&oacute;digo:" @isset($req->codigo) value="{{$req->codigo}}" @endisset/><br>
         <input type="text" name="nombre" placeholder="Nombre:"  @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
-        <input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> 
+        <input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/> 
     </form>
 </div>
 <div class="cajaGeneral">

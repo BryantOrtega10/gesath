@@ -7,7 +7,7 @@
 @endsection
 
 @section('contenido')
-<h1>Centros de costo empresa</h1>
+<h1 class="granAzul">Centros de costo empresa</h1>
 <a class="btn btn-primary" href="#" id="addCentroCosto" dataId = "{{ request()->route()->parameters['idEmpresa'] }}">Agregar Centro de costo</a>
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "centros_costos">

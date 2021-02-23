@@ -5,8 +5,8 @@
 @endsection
 
 @section('contenido')
-<div class="cajaGeneral text-left">
-    <h1>Ver solicitud de liquidaci&oacute;n</h1>
+<div class="cajaGeneral text-left verSolicitud">
+    <h1 class="granAzul">Ver solicitud de liquidaci&oacute;n</h1>
     <div class="row">
         <div class="col-3">
             <div class="form-group hasText">
@@ -40,6 +40,13 @@
     </div>
 
     <div class="row">
+        
+        <div class="col-3 text-center">
+            <a href="/nomina/reversar/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Reversar nomina</a><br>
+        </div>
+        <div class="col-3 text-center">
+            <a href="/nomina/documentoRetencion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">ReteFuente</a><br>
+        </div>
         <div class="col-3">
             @if ($liquidaciones->fkTipoLiquidacion == 8)
                 <form action="/nomina/cancelarSolicitud" method="POST" class="formGeneral" id="formModificarSolicitud2" autocomplete="off">
@@ -49,25 +56,42 @@
                 </form>
             @endif
         </div>
-        <div class="col-3 text-center">
-            <a href="/nomina/reversar/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Reversar nomina</a><br>
-        </div>
-        <div class="col-3 text-center">
-            <a href="/nomina/documentoRetencion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">ReteFuente</a><br>
-        </div>
-        <div class="col-3 text-center">
-            <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Nomina horizontal</a><br>
-        </div>
     </div>
     <div class="row">
         <div class="col-3 text-center"><br>
-            <a href="/reportes/boucherPdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Boucher PDF Consolidado</a><br>
+            <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Nomina horizontal</a><br>
         </div>
         <div class="col-3 text-center"><br>
-            <a href="#" class="btnSubmitGen" s>Enviar bouchers por email</a><br>
+            <a href="/reportes/comprobantePdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Comprobantes PDF Consolidado</a><br>
+        </div>
+        <div class="col-3 text-center"><br>
+            <a href="/reportes/comprobantePdfNuevoD/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Reporte Pdf </a><br>
+        </div>
+        <div class="col-3 text-center"><br>
+            <a href="/nomina/envioCorreos/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-envelope"></i>Enviar comprobantes por email</a><br>
         </div>
     </div>  
     <br>
+    <form autocomplete="off" action="{{ Request::url() }}" method="GET" id="filtrarEmpleado" class="formGeneral">
+        <div class="row">
+            <div class="col-4">
+                <div class="form-group @isset($req->nombre) hasText @endisset">
+                    <label for="nombre" class="control-label">Nombre:</label>
+                    <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
+                </div>               
+            </div>
+            <div class="col-4">
+                <div class="form-group @isset($req->numDoc) hasText @endisset">
+                    <label for="numDoc" class="control-label">Número Identificación:</label>
+                    <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
+                </div>               
+            </div>
+            <div class="col-4">
+                <input type="submit" value="Consultar"/><input type="reset" class="recargar" data-url="{{Request::url()}}" value=""  style="margin-left: 5px;"/> 
+            </div>
+        </div>
+       
+    </form>
     <table class="table ">
         <tr>
             <th>Identificación</th>
@@ -79,6 +103,7 @@
 
         @php 
             $totalNetos = 0;
+            $totalPersonas = 0;
         @endphp
     
         @foreach ($bouchers as $boucher)
@@ -89,12 +114,18 @@
                 <td>$<span class="netoPagar" data-id="{{$boucher->idBoucherPago}}">{{number_format($boucher->netoPagar,0, ",", ".")}}</span>
                 @php 
                 $totalNetos = $totalNetos + $boucher->netoPagar;
+                $totalPersonas++;
                 @endphp
                 </td>
                 <td>
-                    <a href="#" class="verDetalle" data-id="{{$boucher->idBoucherPago}}">Ver Detalle</a><br>
-                    <a href="/reportes/boucherPdf/{{$boucher->idBoucherPago}}" target="_blank" >Comprobante de pago</a><br>
-                    <a href="/nomina/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo">Enviar por correo</a>
+                    <a href="#" class="verDetalle verDetalleCompro" data-id="{{$boucher->idBoucherPago}}"><i class="fas fa-eye"></i></a><br>
+                    <div class="btn-group">
+                        <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a href="/reportes/comprobantePdf/{{$boucher->idBoucherPago}}" target="_blank" class="dropdown-item">Comprobante de pago</a>
+                            <a href="/nomina/envioCorreos/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo dropdown-item">Enviar por correo</a>
+                        </div>
+                    </div>
                 </td>
             </tr>
             <tr>
@@ -110,6 +141,7 @@
                 <th>$<span id="totalNomina">{{number_format($totalNetos,0, ",", ".")}}</span></th>
             </tr>
     </table>
+    <h3>Total empleados: <b>{{$totalPersonas}}</b></h3>
 </div>
 <div class="modal fade" id="comoCalculoModal" tabindex="-1" role="dialog" aria-labelledby="comoCalculoModal" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

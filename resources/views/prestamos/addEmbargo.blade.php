@@ -9,7 +9,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-10">
-        <h1>Datos Prestamo</h1>
+        <h1 class="granAzul">Datos Prestamo</h1>
     </div>
 </div>
 <div class="row">
@@ -140,7 +140,7 @@
                 </div>
             </div>    
             <br>
-            <h1>Datos Embargo</h1>
+            <h1 class="granAzul">Datos Embargo</h1>
             <div class="cajaGeneral">
                 <div class="row">
                     <div class="col-3">
@@ -215,7 +215,7 @@
                             <select class="form-control" id="fkTerceroDemandante" name="fkTerceroDemandante">
                                 <option value=""></option>          
                                 @foreach ($tercerosDemandante as $terceroDemandante)
-                                    <option value="{{$terceroDemandante->idTercero}}">@if($terceroDemandante->naturalezaTributaria == "Juridica")    
+                                    <option value="{{$terceroDemandante->idTercero}}">@if($terceroDemandante->naturalezaTributaria == "Juridico")    
                                         {{$terceroDemandante->razonSocial}}
                                     @else
                                         {{$terceroDemandante->primerApellido}} {{$terceroDemandante->segundoApellido}} {{$terceroDemandante->primerNombre}} {{$terceroDemandante->segundoNombre}}

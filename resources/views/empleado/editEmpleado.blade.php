@@ -871,6 +871,74 @@
                             </div>
                         </div>
                     </div>
+                    
+                    @if (sizeof($cambiosTipoCotizante)>0)
+                        <div class="subTitulo">
+                            <h2>Cambio activo cotizante</h2>
+                            <hr />
+                        </div>
+                        @foreach ($cambiosTipoCotizante as $cambioTipoCotizante)
+                            <input type="hidden"  value="{{$cambioTipoCotizante->idCambioTipoCotizante}}" name="infoIdCambioTipoCotizante"/>
+                            <div class="row">
+                                <div class="col-3">
+                                    <div class="form-group hasText">
+                                        <label for="infoNuevoTipoCotizanteCamb" class="control-label">Nuevo tipo cotizante</label>
+                                        <select class="form-control" id="infoNuevoTipoCotizanteCamb" name="infoNuevoTipoCotizanteCamb">
+                                            <option value=""></option>
+                                            @foreach ($tiposcotizante as $tipocotizante)
+                                                <option value="{{$tipocotizante->idTipoCotizante}}" 
+                                                    @if ($cambioTipoCotizante->fkNuevoTipoCotizante==$tipocotizante->idTipoCotizante)
+                                                        selected
+                                                    @endif
+                                                >{{$tipocotizante->codigo." - ".$tipocotizante->nombre}}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group hasText">
+                                        <label for="infoFechaAplicaCambioTCotCamb" class="control-label">Fecha cambio</label>
+                                        <input type="date" class="form-control" id="infoFechaAplicaCambioTCotCamb" name="infoFechaAplicaCambioTCotCamb" value="{{$cambioTipoCotizante->fechaCambio }}"/>                    
+                                    </div>
+                                </div>
+                            </div>    
+                        @endforeach
+                    @else
+                        <div class="row">
+                            <div class="col-3">
+                                <button type="button" id="btnCambioCotizante" class="btn btn-success">Cambio tipo cotizante</button>
+                            </div>
+                        </div>
+                        <div class="nuevoTipoCotizante">
+                            <div class="subTitulo">
+                                <h2>Informaci&oacute;n cambio tipo cotizante</h2>
+                                <hr />
+                            </div>
+                            <div class="row">
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="infoNuevoTipoCotizante" class="control-label">Nuevo tipo cotizante</label>
+                                        <select class="form-control" id="infoNuevoTipoCotizante" name="infoNuevoTipoCotizante">
+                                            <option value=""></option>
+                                            @foreach ($tiposcotizante as $tipocotizante)
+                                                <option value="{{$tipocotizante->idTipoCotizante}}">{{$tipocotizante->codigo." - ".$tipocotizante->nombre}}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="infoFechaAplicaCambioTCot" class="control-label">Fecha cambio</label>
+                                        <input type="date" class="form-control" id="infoFechaAplicaCambioTCot" name="infoFechaAplicaCambioTCot"/>                    
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                    
+                   
+                  
+                    
                 </section>
                 <section>
                     <div class="row">
