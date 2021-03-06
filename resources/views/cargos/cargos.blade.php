@@ -5,9 +5,17 @@
 @endsection
 
 @section('contenido')
-<h1 class="granAzul">Cargos</h1>
-<a class="btn btn-primary" href="#" id="addCargo">Agregar cargo</a>
-<a class="btn btn-primary" href="/cargos/subirPlano" id="addCargo">Subir archivo plano</a>
+<div class="row">
+    <div class="col-8">
+        <h1 class="granAzul">Cargos</h1>
+    </div>
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="/cargos/subirPlano"> <i class="fas fa-upload"></i> Subir archivo plano</a>
+    </div>
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center"  href="#" id="addCargo">Agregar cargo</a>
+    </div>
+</div>
 <div class="cajaGeneral">
     <div class="table-responsive">
         <table class="table table-hover table-striped" id = "cargos">

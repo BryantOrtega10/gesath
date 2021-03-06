@@ -68,6 +68,9 @@
         <div class="col-3 text-center"><br>
             <a href="/reportes/comprobantePdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> PDF Consolidado</a><br>
         </div>
+        <div class="col-3 text-center"><br>
+            <a href="/reportes/comprobantePdfNuevoD/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download" aria-hidden="true"></i> Reporte PDF corto</a><br>
+        </div>
     
     </div>
     

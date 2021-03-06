@@ -5,8 +5,14 @@
 @endsection
 
 @section('contenido')
-<h1 class="granAzul">Códigos diagnósticos</h1>
-<a class="btn btn-primary" href="#" id="addCodigo">Agregar cóidigo diagnóstico</a>
+<div class="row">
+    <div class="col-9">
+        <h1 class="granAzul">Códigos diagnósticos</h1>
+    </div>
+    <div class="col-3 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addCodigo">Agregar código diagnóstico</a> 
+    </div>
+</div>
 <div class="cajaGeneral">
     <div class="table-responsive">
         <table class="table table-hover table-striped" id = "codigos">

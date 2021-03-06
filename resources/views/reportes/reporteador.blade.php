@@ -6,15 +6,17 @@
 
 @section('contenido')
 <div class="row">
-    <div class="col-12">
+    <div class="col-9">
         <h1 class="granAzul">Reporteador</h1>
+    </div>
+    <div class="col-3 text-right">
+        <a class="btn btnGeneral btnAzulGen text-center" href="#" id="addReporte">Agregar Reporte</a>
     </div>
 </div>
 
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
-            <a class="btn btn-primary" href="#" id="addReporte">Agregar Reporte</a>
             <div class="table-responsive">
                 <table class="table table-hover table-striped" id = "formularios">
                     <thead>
@@ -32,8 +34,13 @@
                                 <td>{{$reporte->nombre}}</td>
                                 <td>{{$reporte->fechaCreacion}}</td>
                                 <td>
-                                    <a href="/reportes/reporteador/getForm/edit/{{$reporte->idReporte}}" class="editar">Editar</a>
-                                    <a href="/reportes/reporteador/generarReporte/{{$reporte->idReporte}}" class="generarReporte">Generar Reporte</a>
+                                    <div class="btn-group">
+                                        <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a href="/reportes/reporteador/getForm/edit/{{$reporte->idReporte}}" class="editar dropdown-item">Editar</a>
+                                            <a href="/reportes/reporteador/generarReporte/{{$reporte->idReporte}}" class="generarReporte dropdown-item">Generar Reporte</a>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

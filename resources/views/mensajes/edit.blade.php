@@ -15,7 +15,7 @@
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
-            @if (isset($modificacion))
+            @if (isset($modificacion) && $modificacion)
                 <div class="p-3 mb-2 bg-success text-white desaparece">Modificación exitosa</div>
             @endif
             <form method="POST" action="/mensajes/modificar">
@@ -45,8 +45,8 @@
         height: 500,
         selector: '#tinyMce',
         language: 'es',
-        plugins: 'a11ychecker advcode casechange formatpainter linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable',
-        toolbar: 'a11ycheck addcomment showcomments casechange checklist code formatpainter pageembed permanentpen table',
+        plugins: 'autolink lists media table',
+        toolbar: 'addcomment showcomments casechange checklist code formatpainter pageembed permanentpen table',
     });
     $(document).ready(function(){
         $(".camposDisponibles li").click(function(e){

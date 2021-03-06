@@ -9,21 +9,21 @@
     <div class="cajaGeneral">
 
         <form autocomplete="off" action="/novedades/listaNovedades/" method="GET" class="formGeneral" id="filtrar">
-            @csrf    
+            
             <div class="row">
-                <div class="col-2">
+                <div class="col-3">
                     <div class="form-group @isset($req->fechaInicio) hasText @endisset">
                         <label for="fechaInicio" class="control-label">Fecha inicio:</label>
                         <input type="date" name="fechaInicio" class="form-control" placeholder="Fecha Inicio" @isset($req->fechaInicio) value="{{$req->fechaInicio}}" @endisset/>
                     </div>
                 </div>
-                <div class="col-2">
+                <div class="col-3">
                     <div class="form-group @isset($req->fechaFin) hasText @endisset">
                         <label for="fechaFin" class="control-label">Fecha Fin:</label>
                         <input type="date" name="fechaFin" class="form-control" placeholder="Fecha Fin" @isset($req->fechaFin) value="{{$req->fechaFin}}" @endisset/>
                     </div>
                 </div>
-                <div class="col-2">
+                <div class="col-3">
                     <div class="form-group @isset($req->nomina) hasText @endisset">
                         <label for="fechaInicio" class="control-label">Nomina:</label>
                         <select class="form-control" name="nomina">
@@ -34,7 +34,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-2">
+                <div class="col-3">
                     <div class="form-group @isset($req->tipoNovedad) hasText @endisset">
                         <label for="tipoNovedad" class="control-label">Tipo:</label>
                         <select class="form-control" name="tipoNovedad" id="tipoNovedad">
@@ -45,9 +45,33 @@
                         </select>
                     </div>
                 </div>
-    
-                <div class="col-3"  ><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/>  </div>
             </div>        
+            <div class="row">
+                <div class="col-3">
+                    <div class="form-group @isset($req->estado) hasText @endisset">
+                        <label for="estado" class="control-label">Estado:</label>
+                        <select class="form-control" name="estado" id="estado">
+                            <option value=""></option>
+                            @foreach($estados as $estado)
+                                <option value="{{$estado->idestado}}" @isset($req->estado) @if ($req->estado == $estado->idestado) selected @endif @endisset>{{$estado->nombre}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="form-group @isset($req->nombre) hasText @endisset">
+                        <label for="nombre" class="control-label">Nombre:</label>
+                        <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
+                    </div>               
+                </div>
+                <div class="col-3">
+                    <div class="form-group @isset($req->numDoc) hasText @endisset">
+                        <label for="numDoc" class="control-label">Número Identificación:</label>
+                        <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
+                    </div>               
+                </div>
+                <div class="col-3"  ><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/>  </div>
+            </div>
         </form>
 
         <form action="/novedades/eliminarSeleccionados" method="POST" class="formGeneral" id="formEliminarNovedades" autocomplete="off">
@@ -112,6 +136,7 @@
                               
                                 <div class="dropdown-menu dropdown-menu-right">
                                     <a href="/novedades/modificarNovedad/{{ $novedad->idNovedad }}" class="editar dropdown-item"><i class="fas fa-edit"></i> Modificar</a>
+                                    <a href="/novedades/verNovedad/{{ $novedad->idNovedad }}" class="ver dropdown-item"><i class="fas fa-eye"></i> Ver</a>
                                     <a href="#" data-id="{{ $novedad->idNovedad }}" class="eliminar dropdown-item"><i class="fas fa-trash"></i> Eliminar</a>
                                 </div>
                             </div>
@@ -119,8 +144,8 @@
                     </tr>
                 @endforeach
             </table>
+            {{$novedades->appends($arrConsulta)->links()}}
         </form>
     </div>
     <script type="text/javascript" src="{{ URL::asset('js/novedades/cargarNovedades.js') }}"></script>
-    
 @endsection

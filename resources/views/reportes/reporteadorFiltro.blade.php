@@ -14,7 +14,7 @@
         @if ($idReporteItem == "41")
             <select class="form-control"name="filtro[]" required="">
                 @foreach ($estados as $estado)
-                    <option value="{{$estado->idestado}}">{{ $estado->nombre }}</option>
+                    <option value="{{$estado->nombre}}">{{ $estado->nombre }}</option>
                 @endforeach
             </select>
         @else

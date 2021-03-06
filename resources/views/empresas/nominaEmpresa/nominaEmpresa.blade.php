@@ -6,8 +6,15 @@
     ])
 @endsection
 @section('contenido')
-<h1 class="granAzul">Nómina empresa</h1>
-<a class="btn btn-primary" href="#" id="addNominaEmpresa" dataId = "{{ request()->route()->parameters['idNomina'] }}">Agregar Nómina</a>
+<div class="row">
+    <div class="col-9">
+        <h1 class="granAzul">Nómina empresa</h1>
+    </div>
+    <div class="col-3 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addNominaEmpresa" dataId = "{{ request()->route()->parameters['idNomina'] }}">Agregar Nómina</a>
+    </div>
+</div>
+<div class="cajaGeneral">
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "nominas">
         <thead>
@@ -42,6 +49,7 @@
             @endforeach
         </tbody>
     </table>
+</div>
 </div>
 <div class="modal fade" id="nominaEmpresaModal" tabindex="-1" role="dialog" aria-labelledby="nominaEmpresaModal" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

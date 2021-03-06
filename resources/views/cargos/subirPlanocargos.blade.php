@@ -15,8 +15,17 @@
         <div class="cajaGeneral">
             <form method="POST" id="" autocomplete="off" class="formGeneral" action="/cargos/subirArchivo" enctype="multipart/form-data">
                 @csrf
-                <label for="archivoCSV">Seleccione el archivo</label> <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
-                <div class="text-center"><input type="submit" value="Subir cargos" class="btnSubmitGen" /></div>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="seleccionarArchivo">
+                            <label for="archivoCSV">Seleccione un archivo CSV</label>
+                            <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="text-center"><input type="submit" value="Subir cargos" class="btnSubmitGen" /></div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

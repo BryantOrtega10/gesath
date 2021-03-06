@@ -12,13 +12,8 @@
     <div class="row">
         <div class="col">
             <div class="form-check">
-                <input value = "{{ $smtp->fkSmtpConf ?? 1 }}" type="checkbox" class="form-check-input" id="check_smtp"
-                @if(!empty($smtp->fkSmtpConf))
-                    @if($smtp->fkSmtpConf != 11)
-                        checked
-                    @endif
-                @endif
-                >
+                <input value = "1" type="checkbox" class="form-check-input" id="check_smtp"
+                @if(!empty($smtp->fkSmtpConf)) checked @endif>
                 <label class="form-check-label" for="check_smtp">¿Tiene configuración SMTP propia?</label>
             </div>
             <form autocomplete="off" class = "smtp_configuracion" method = "POST">
@@ -27,40 +22,32 @@
                 <div class="form-group">
                     <label for="smtp_host">Host</label>
                     <input autocomplete="false" type="text" class="form-control" name = "smtp_host" id="smtp_host" placeholder="Host SMTP" value = "{{ $smtp->smtp_host ?? $smtpDefault['host'] }}"
-                    @if(!empty($smtp->fkSmtpConf))
-                        @if($smtp->fkSmtpConf == 11)
-                            readonly
-                        @endif
+                    @if(empty($smtp->fkSmtpConf))
+                        readonly
                     @endif
                     >
                 </div>
                 <div class="form-group">
                     <label for="smtp_username">Usuario</label>
                     <input autocomplete="false" type="email" name = "smtp_username" class="form-control" id="smtp_username" placeholder="Usuario SMTP" value = "{{ $smtp->smtp_username ?? $smtpDefault['user'] }}"
-                    @if(!empty($smtp->fkSmtpConf))
-                        @if($smtp->fkSmtpConf == 11)
-                        readonly
-                        @endif
+                    @if(empty($smtp->fkSmtpConf))                       
+                        readonly                        
                     @endif
                     >
                 </div>
                 <div class="form-group">
                     <label for="smtp_password">Contraseña</label>
                     <input autocomplete="new-password" type="password" class="form-control" id="smtp_password" name = "smtp_password" placeholder="Contraseña SMTP" value = "{{ $smtp->smtp_password ?? $smtpDefault['pass'] }}"
-                    @if(!empty($smtp->fkSmtpConf))
-                        @if($smtp->fkSmtpConf == 11)
-                        readonly
-                        @endif
+                    @if(empty($smtp->fkSmtpConf))                        
+                        readonly                       
                     @endif
                     >
                 </div>
                 <div class="form-group">
                     <label for="smtp_encrypt">Encriptación</label>
                     <select name="smtp_encrypt" id="smtp_encrypt" class="form-control"
-                    @if(!empty($smtp->fkSmtpConf))
-                        @if($smtp->fkSmtpConf == 11)
+                    @if(empty($smtp->fkSmtpConf))
                         readonly
-                        @endif
                     @endif
                     >
                         <option value="">-- Seleccione una opción --</option>
@@ -75,23 +62,31 @@
                 </div>
                 <div class="form-group">
                     <label for="smtp_port">Puerto</label>
-                    <input autocomplete="false" type="numbr" class="form-control" id="smtp_port" name = "smtp_port" placeholder="Contraseña SMTP" value = "{{ $smtp->smtp_port ?? $smtpDefault['port']}}"
-                    @if(!empty($smtp->fkSmtpConf))
-                        @if($smtp->fkSmtpConf == 11)
+                    <input autocomplete="false" type="numbr" class="form-control" id="smtp_port" name = "smtp_port" placeholder="Puerto SMTP" value = "{{ $smtp->smtp_port ?? $smtpDefault['port']}}"
+                    @if(empty($smtp->fkSmtpConf))
                         readonly
-                        @endif
                     @endif
                     >
                 </div>
                 <div class="form-group">
                     <label for="smtp_mail_envia">Correo Envía</label>
-                    <input autocomplete="false" type="email" class="form-control" name = "smtp_mail_envia" id="smtp_mail_envia" placeholder="Correo envía" value = "{{ $smtp->smtp_mail_envia ?? $smtpDefault['sender_mail'] }}">
+                    <input autocomplete="false" type="email" class="form-control" name = "smtp_mail_envia" id="smtp_mail_envia" placeholder="Correo envía" value = "{{ $smtp->smtp_mail_envia ?? $smtpDefault['sender_mail'] }}"
+                    @if(empty($smtp->fkSmtpConf))
+                        readonly
+                    @endif
+                    >
                 </div>
                 <div class="form-group">
                     <label for="smtp_nombre_envia">Nombre Envía</label>
-                    <input autocomplete="false" type="text" class="form-control" name = "smtp_nombre_envia" id="smtp_nombre_envia" placeholder="Nombre envía" value = "{{ $smtp->smtp_nombre_envia ?? $smtpDefault['sender_name'] }}">
+                    <input autocomplete="false" type="text" class="form-control" name = "smtp_nombre_envia" id="smtp_nombre_envia" placeholder="Nombre envía" value = "{{ $smtp->smtp_nombre_envia ?? $smtpDefault['sender_name'] }}"
+                    @if(empty($smtp->fkSmtpConf))
+                        readonly
+                    @endif
+                    >
                 </div>
-                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <button type="submit" id="envio" class="btn btn-primary @if(empty($smtp->fkSmtpConf))
+                    d-none
+                @endif">Guardar cambios</button>
             </form>
         </div>
     </div>
@@ -102,13 +97,13 @@
         let errorTit = '¡Error!';
         let ic = 'error';
         const arrDefaultSmtp = [
-            'smtp-mail.outlook.com',
-            'noreply@gesath.com',
-            'NI900020391',
-            'TLS',
-            '587',
-            'noreply@gesath.com',
-            'PRUEBAS GESATH'
+            '{{$smtpDefault['host']}}',
+            '{{$smtpDefault['user']}}',
+            '{{$smtpDefault['pass']}}',
+            '{{$smtpDefault['encrypt']}}',
+            '{{$smtpDefault['port']}}',
+            '{{$smtpDefault['sender_mail']}}',
+            '{{$smtpDefault['sender_name']}}'
         ];
         const arrAntSmtp = '{{ $smtp }}';
         
@@ -133,6 +128,16 @@
             Object.keys(inputsForm).forEach((i, el) => {
                 const idInput = inputsForm[i].id;
                 if (idInput !== '' && idInput !== undefined) {
+                    if(valCheck){
+                        $("#envio").removeClass("d-none");
+                        $("#envio").addClass("d-inline-block");
+                       
+                    }
+                    else{
+                        $("#envio").addClass("d-none");
+                        $("#envio").removeClass("d-inline-block");
+                    }
+                    
                     $('#' + idInput).attr('readonly', !valCheck);
                     if (valCheck == true) {
                         if (arrSmtpActual !== undefined) {

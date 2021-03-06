@@ -490,7 +490,7 @@ class DatosPasadosController extends Controller
         ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
         ->orderBy("cdp.idCargaDatosPasados", "desc")
         ->get();
-        $empresas = DB::table("empresa","e")->get();
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
 
 
         return view('/datosPasadosVac.index', [

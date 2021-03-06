@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class MensajesController extends Controller
 {
     public function index(){
-        $mensajes = DB::table("mensaje")->get();
+        $mensajes = DB::table("mensaje")->whereNull("fkEmpresa")->get();
         $usu = UsuarioController::dataAdminLogueado();
         return view('/mensajes.index', [
             "mensajes" => $mensajes,
@@ -16,6 +16,54 @@ class MensajesController extends Controller
         ]);
     }
 
+    public function mensajesxEmpresa($fkEmpresa){
+        $mensajes = DB::table("mensaje")->where("fkEmpresa","=",$fkEmpresa)->get();
+        $tipos = array();
+        foreach ($mensajes as $mensaje){
+            array_push($tipos, $mensaje->tipo);
+        }
+        
+        $mensajesDefault = DB::table("mensaje")
+        ->whereNull("fkEmpresa")
+        ->whereNotIn("tipo",$tipos)
+        ->get();
+
+        $usu = UsuarioController::dataAdminLogueado();
+        return view('/mensajes.indexMensajeEmpresa', [
+            "mensajes" => $mensajes,
+            "mensajesDefault" => $mensajesDefault,
+            "dataUsu" => $usu,
+            "fkEmpresa" => $fkEmpresa
+        ]);
+    }
+    public function getFormEditxEmpresa($idMensaje, $idEmpresa){
+        $mensaje = DB::table("mensaje")->where("idMensaje","=",$idMensaje)->first();
+        $mensajeEmp = DB::table("mensaje")
+        ->where("tipo","=",$mensaje->tipo)
+        ->where("fkEmpresa","=", $idEmpresa)
+        ->first();
+
+        if(!isset($mensajeEmp)){
+            $idMensaje = DB::table("mensaje")->insertGetId([
+                "nombre" => $mensaje->nombre,
+                "asunto" => $mensaje->asunto,
+                "html" => $mensaje->html,
+                "fkEmpresa" => $idEmpresa,
+                "tipo" => $mensaje->tipo
+            ],"idMensaje");
+
+        }
+        $mensaje = DB::table("mensaje")->where("idMensaje","=",$idMensaje)->first();
+        $usu = UsuarioController::dataAdminLogueado();
+        $adminController = new AdminCorreosController();
+        $arrayCampos = $adminController->arrayCampos;
+        return view('/mensajes.edit', [
+            "mensaje" => $mensaje,
+            "dataUsu" => $usu,
+            "arrayCampos" => $arrayCampos          
+        ]);
+
+    }
     public function getFormEdit($idMensaje){
         $mensaje = DB::table("mensaje")->where("idMensaje","=", $idMensaje)->first();
         $usu = UsuarioController::dataAdminLogueado();
@@ -26,7 +74,7 @@ class MensajesController extends Controller
         return view('/mensajes.edit', [
             "mensaje" => $mensaje,
             "dataUsu" => $usu,
-            "arrayCampos" => $arrayCampos
+            "arrayCampos" => $arrayCampos          
         ]);
     }
 
@@ -43,11 +91,6 @@ class MensajesController extends Controller
         
         $mensaje = DB::table("mensaje")->where("idMensaje","=", $req->idMensaje)->first();
         $usu = UsuarioController::dataAdminLogueado();
-        return view('/mensajes.edit', [
-            "mensaje" => $mensaje,
-            "dataUsu" => $usu,
-            "modificacion" => "1",
-            "arrayCampos" => $arrayCampos
-        ]);
+        return redirect(action("MensajesController@getFormEdit",[$req->idMensaje]));
     }
 }

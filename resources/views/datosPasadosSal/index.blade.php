@@ -5,21 +5,25 @@
 @endsection
 
 @section('contenido')
-<div class="row">
-    <div class="col-12">
-        <h1 class="granAzul">Carga saldos</h1>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12">
-        <div class="cajaGeneral">
-            <form method="POST" id="" autocomplete="off" class="formGeneral" action="/datosPasadosSal/subirArchivo" enctype="multipart/form-data">
-                @csrf
-                <label for="archivoCSV">Seleccione el archivo</label> <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
-                <div class="text-center"><input type="submit" value="Cargar datos pasados" class="btnSubmitGen" /></div>
-            </form>
+<form method="POST" id="" autocomplete="off" class="formGeneral" action="/datosPasadosSal/subirArchivo" enctype="multipart/form-data">
+                    @csrf
+    <div class="row">
+        <div class="col-8">
+            <h1 class="granAzul">Carga saldos</h1>
+        </div>
+        <div class="col-2">
+            <div class="seleccionarArchivo gris">
+                <label for="archivoCSV">Seleccione un archivo CSV</label>
+                <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="text-center"><input type="submit" value="Cargar csv" class="btnSubmitGen btnAzulGen" /></div>
         </div>
     </div>
+</form>
+<div class="cajaGeneral">
+<div class="row">
     <div class="col-12">
         <table class="table table-hover table-striped ">
             <tr>
@@ -40,6 +44,7 @@
             @endforeach
         </table>
     </div>
+</div>
 </div>
 
 @endsection

@@ -1,4 +1,4 @@
-<form method = "POST" class="submit_2020" action = "/reportes/generarFormulario220">
+<form method = "POST" target="_blank" class="submit_2020" action = "/reportes/generarFormulario220">
     <div class="form-group">
         @csrf
         <input type="hidden" id = "empresa" name="empresa">

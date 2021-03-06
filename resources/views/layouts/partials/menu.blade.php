@@ -184,6 +184,11 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/reportes/envioCorreosReporte/" >
+                        <span class="textoMenu">Enviar Correos</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/reportes/reporteador/" >
                         <span class="textoMenu">Reporteador</span>
                     </a>
@@ -246,6 +251,11 @@
                         <span class="textoMenu">Admin Mensajes General</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/smtpGeneral/" >
+                        <span class="textoMenu">SMTP General</span>
+                    </a>
+                </li>
                 <li  class="{{ Request::is('codigos') ? 'active' : '' }}">
                     <a href="/codigos/">
                         <span class="textoMenu">Códigos diagnóstico</span>
@@ -266,12 +276,10 @@
                 </li>
             </ul>
         </li>
-        <li>
-            <a class = "cerrar_sesion">
-                <form action = "/logout" method = "GET">
-                    @csrf
-                    <button class = "boton_transparente" type = "submit"><span class="textoMenu">Cerrar sesión</span></button>
-                </form>
+        <li class="cerrar_sesion">
+            <a href="/logout" >
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="textoMenu">Cerrar sesión</span>
             </a>
         </li>
 

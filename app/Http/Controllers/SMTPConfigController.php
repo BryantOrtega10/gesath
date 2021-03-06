@@ -11,15 +11,18 @@ use Illuminate\Http\Request;
 class SMTPConfigController extends Controller
 {
     public function index($id) {
+        $smtpDef = SMTPConfigModel::find(1);
+
         $arrSMTPDefault = array(
-            'host' => 'smtp-mail.outlook.com',
-            'user' => 'noreply@gesath.com',
-            'pass' => 'NI900020391',
-            'encrypt' => 'TLS',
-            'port' => '587',
-            'sender_mail' => 'noreply@gesath.com',
-            'sender_name' => 'PRUEBAS GESATH'
+            'host' => $smtpDef->smtp_host,
+            'user' => $smtpDef->smtp_username,
+            'pass' => $smtpDef->smtp_password,
+            'encrypt' => $smtpDef->smtp_encrypt,
+            'port' => $smtpDef->smtp_port,
+            'sender_mail' => $smtpDef->smtp_mail_envia,
+            'sender_name' => $smtpDef->smtp_nombre_envia
         );
+
         $smtp = SMTPConfigModel::select([
             'smtp_config.*',
             'empresa.fkSmtpConf'
@@ -112,4 +115,33 @@ class SMTPConfigController extends Controller
 
         return $retorno;
     }
+
+    public function getSmtpGeneral(){
+        $smtp = SMTPConfigModel::where("id_smpt","=","1")->first();
+        $usu = UsuarioController::dataAdminLogueado();
+        $url = action('SMTPConfigController@modificarSmtpGeneral');
+
+        return view('/smtpGeneral/index', [
+            "smtp" => $smtp,
+            'dataUsu' => $usu,
+            "url" => $url
+        ]);
+    }
+
+    public function modificarSmtpGeneral(SMTPConfigRequest $request){
+        
+        $smtp = SMTPConfigModel::find($request->id_smpt);
+        $smtp->smtp_host = $request->smtp_host;
+        $smtp->smtp_port = $request->smtp_port;
+        $smtp->smtp_username = $request->smtp_username;
+        $smtp->smtp_password = $request->smtp_password;
+        $smtp->smtp_encrypt = $request->smtp_encrypt;
+        $smtp->smtp_mail_envia = $request->smtp_mail_envia;
+        $smtp->smtp_nombre_envia = $request->smtp_nombre_envia;
+        $update = $smtp->save();
+
+        return response()->json(["success" => true, "mensaje" => "Se modificó correctamente"]);
+    }
+
+
 }

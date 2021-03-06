@@ -50,6 +50,7 @@ class UsuarioController extends Controller
             'idempresa',
             'razonSocial'
         )
+        ->orderBy("razonSocial")
         ->get();
         return view('/usuarios/addUsuario', [
             'empresas' => $empresas

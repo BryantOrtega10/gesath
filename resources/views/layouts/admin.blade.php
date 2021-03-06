@@ -12,7 +12,7 @@
         <section class="contenido">
             <div class="menuLateral">
                 @yield('menuLateral')
-                Version: 1.8
+                Version: 2
             </div>
             <div class="contenidoInterno">
                 @yield('contenido')

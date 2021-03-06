@@ -282,9 +282,10 @@ Route::group([
 	Route::get('conceptosPorTipo/{id}','ReportesNominaController@conceptosPorTipo');
 	Route::post('generarReportePrestamo','ReportesNominaController@generarReportePrestamo');
 	
-
-
-	
+	Route::get('envioCorreosReporte', 'ReportesNominaController@envioCorreosReporte');
+	Route::post('generarColaCorreo', 'ReportesNominaController@generarColaCorreo');
+	Route::get('verColaCorreo/{idEnvio}', 'ReportesNominaController@verColaCorreo');
+	Route::get('enviarProximosRegistro/{idEnvio}', 'AdminCorreosController@enviarProximosRegistroReporte');
 });
 
 Route::group([
@@ -384,6 +385,7 @@ Route::group([
 	
 	Route::get('listaNovedades','NovedadesController@lista');
 	Route::get('modificarNovedad/{id}', 'NovedadesController@modificarNovedad');
+	Route::get('verNovedad/{id}', 'NovedadesController@verNovedad');
 	Route::get('eliminarNovedad/{id}', 'NovedadesController@eliminarNovedad');
 
 	Route::get('eliminarNovedadDef/{id}', 'NovedadesController@eliminarNovedadDef');
@@ -407,6 +409,10 @@ Route::group([
 
 	Route::get('cancelarSubida/{id}','NovedadesController@cancelarSubida');
 	Route::get('aprobarSubida/{id}','NovedadesController@aprobarSubida');
+
+	Route::get('/novedadesxLiquidacion/{id}', 'NovedadesController@novedadesxLiquidacion');
+
+	
 });
 
 Route::group(['prefix' => 'catalogo-contable', 'middleware' => ['auth', 'guest:2,3']], function() {
@@ -551,11 +557,12 @@ Route::group([
 	'as' => 'mensajes'
 ], function(){
 	Route::get('/', 'MensajesController@index');
-
+	Route::get('/mensajesxEmpresa/{idEmpresa}', 'MensajesController@mensajesxEmpresa');
+	
 	Route::get('/getForm/edit/{id}','MensajesController@getFormEdit');
 	Route::post('modificar','MensajesController@modificar');
 	
-	
+	Route::get('/getForm/editxEmpresa/{id}/{empresa}','MensajesController@getFormEditxEmpresa');
 
 });
 
@@ -618,6 +625,19 @@ Route::group([
 	Route::post('/editarCodigo/{id}', 'CodDiagnosticoController@update');
 	Route::post('/eliminarCodigo/{id}', 'CodDiagnosticoController@delete');
 });
+
+Route::group([
+	'prefix' => 'smtpGeneral',
+	'middleware' => ['auth', 'guest:2,3'],
+], function() {
+	Route::get('/', 'SMTPConfigController@getSmtpGeneral');
+	Route::post('modificar', 'SMTPConfigController@modificarSmtpGeneral');
+	
+});
+
+
+
+
 
 
 Route::get('/recuperar_pass', 'InicioController@vistaRecuperarMail');

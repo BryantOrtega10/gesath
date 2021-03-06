@@ -23,12 +23,12 @@ class ReportesNominaController extends Controller
     
 
     public function reporteNominaHorizontalIndex(){
-        $empresas = DB::table("empresa","e")->get();
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
 
         return view('/reportes.nominaHorizontal',["empresas" => $empresas]);
     }
     public function reporteNominaAcumuladoIndex(){
-        $empresas = DB::table("empresa","e")->get();
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
         $conceptos = DB::table("concepto","c")->orderBy("c.nombre")->get();
         return view('/reportes.nominaAcumulado',["empresas" => $empresas, "conceptos" => $conceptos]);
     }
@@ -73,6 +73,26 @@ class ReportesNominaController extends Controller
         ->orderBy("c.idconcepto")
         ->get();
         
+
+        /*
+        $itemsBoucherPagoFueraNominaCesTras = DB::table("item_boucher_pago_fuera_nomina","ibpfn")
+        ->select("ibpfn.*","c.*")
+        ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
+        ->join("boucherpago as bp","bp.idBoucherPago","=","ibpfn.fkBoucherPago")
+        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
+        ->whereRaw("MONTH(ln.fechaLiquida)= MONTH('".$empresayLiquidacion->fechaLiquida."')")
+        ->whereRaw("YEAR(ln.fechaLiquida)= YEAR('".$empresayLiquidacion->fechaLiquida."')")
+        ->where("bp.fkEmpleado","=", $empleado->idempleado)
+        ->where("ln.idLiquidacionNomina","<>",$empresayLiquidacion->idLiquidacionNomina)
+        ->where("ln.fkTipoLiquidacion","=","11")
+        ->get();
+        foreach($itemsBoucherPagoFueraNominaCesTras as $itemBoucherPagoFueraNominaCesTras){
+            $itemsBoucherPagoFueraNomina->push($itemBoucherPagoFueraNominaCesTras);
+        }
+
+        */
+
+
        
         $matrizReporte = array();
         
@@ -627,7 +647,7 @@ class ReportesNominaController extends Controller
             }
             else{
                 foreach($reporteFinal[$i] as $row => $columna){
-                    if(is_numeric($columna) && $row!=5 && $row!=8 && $row!=7 && is_numeric($reporteDatosJuntos[$existeEmp][$row])){
+                    if(is_numeric($columna) && $row!=5 && $row!=8 && is_numeric($reporteDatosJuntos[$existeEmp][$row])){
                         try{
                             $reporteDatosJuntos[$existeEmp][$row] = $reporteDatosJuntos[$existeEmp][$row] + $columna;
                         }
@@ -1837,6 +1857,8 @@ class ReportesNominaController extends Controller
         $dompdf->render();
         
         $dompdf->getCanvas()->get_cpdf()->setEncryption($empleado->numeroIdentificacion, $empleado->numeroIdentificacion);
+
+
         $pdf = $dompdf->output();
         return $pdf;       
     }
@@ -3163,6 +3185,7 @@ class ReportesNominaController extends Controller
     }
     public function seleccionarDocumentoSeguridad(){
         $empresas = DB::table("empresa", "e")
+        ->orderBy("razonSocial")
         ->get();
 
         return view('/reportes.seleccionarDocumentoSeguridad',[
@@ -5824,6 +5847,7 @@ class ReportesNominaController extends Controller
     }
     public function seleccionarDocumentoProvisiones(){
         $empresas = DB::table("empresa", "e")
+        ->orderBy("razonSocial")
         ->get();
 
         return view('/reportes.seleccionarDocumentoProvisiones',[
@@ -5970,19 +5994,24 @@ class ReportesNominaController extends Controller
                     }
                 
 
-                    
-                    $saldo = DB::table("saldo","s")
-                    ->selectRaw("sum(s.valor) as suma")
-                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
-                    ->where("s.anioAnterior","=",($anioFechaDocumento))
-                    ->whereIn("s.fkConcepto",$arrBusqueda)
-                    ->first();
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
+
+                    if(isset($periodoActivoReintegro)){
+                        $saldo = DB::table("saldo","s")
+                        ->selectRaw("sum(s.valor) as suma")
+                        ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                        ->where("s.anioAnterior","=",($anioFechaDocumento))
+                        ->whereIn("s.fkConcepto",$arrBusqueda)
+                        ->whereRaw("CAST(CONCAT(s.anioAnterior,'-',s.mesAnterior,'-01') as Date)>='".$periodoActivoReintegro->fechaInicio."'")
+                        ->first();
 
 
-                    if(isset($saldo)){
-                        $arrInt[5]= $saldo->suma;
+                        if(isset($saldo)){
+                            $arrInt[5]= $saldo->suma;
+                        }
                     }
-
 
                 }else{
                 
@@ -5991,47 +6020,57 @@ class ReportesNominaController extends Controller
                     $arrBusquedaPrima = [73];
                     $arrBusquedaCes = [67,71];            
                     $arrBusquedaIntCes = [68,72];
-                                    
+                                   
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","1")
+                    ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
 
-                    $saldoPrima = DB::table("saldo","s")
-                    ->selectRaw("sum(s.valor) as suma")
-                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
-                    ->where("s.anioAnterior","=",($anioFechaDocumento))
-                    ->whereIn("s.fkConcepto",$arrBusquedaPrima)
-                    ->first();
-                    if(isset($saldoPrima)){
-                        $arrInt[5]= $saldoPrima->suma;
+                    if(isset($periodoActivoReintegro)){
+                        $saldoPrima = DB::table("saldo","s")
+                        ->selectRaw("sum(s.valor) as suma")
+                        ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                        ->where("s.anioAnterior","=",($anioFechaDocumento))
+                        ->whereRaw("CAST(CONCAT(s.anioAnterior,'-',s.mesAnterior,'-01') as Date)>='".$periodoActivoReintegro->fechaInicio."'")
+                        ->whereIn("s.fkConcepto",$arrBusquedaPrima)
+                        ->first();
+                        if(isset($saldoPrima)){
+                            $arrInt[5]= $saldoPrima->suma;
+                        }
+    
+                        $saldoCes = DB::table("saldo","s")
+                        ->selectRaw("sum(s.valor) as suma")
+                        ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                        ->where("s.anioAnterior","=",($anioFechaDocumento))
+                        ->whereIn("s.fkConcepto",$arrBusquedaCes)
+                        ->whereRaw("CAST(CONCAT(s.anioAnterior,'-',s.mesAnterior,'-01') as Date)>='".$periodoActivoReintegro->fechaInicio."'")
+                        ->first();
+                        if(isset($saldoCes)){
+                            $arrInt[6]= $saldoCes->suma;
+                        }
+    
+                        $saldoIntCes = DB::table("saldo","s")
+                        ->selectRaw("sum(s.valor) as suma")
+                        ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                        ->where("s.anioAnterior","=",($anioFechaDocumento))
+                        ->whereIn("s.fkConcepto",$arrBusquedaIntCes)
+                        ->whereRaw("CAST(CONCAT(s.anioAnterior,'-',s.mesAnterior,'-01') as Date)>='".$periodoActivoReintegro->fechaInicio."'")
+                        ->first();
+                        if(isset($saldoIntCes)){
+                            $arrInt[7]= $saldoIntCes->suma;
+                        }
+    
+                        $saldoVac = DB::table("saldo","s")
+                        ->selectRaw("sum(s.valor) as suma")
+                        ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
+                        ->where("s.anioAnterior","=",($anioFechaDocumento))
+                        ->whereIn("s.fkConcepto",$arrBusquedaVac)
+                        ->whereRaw("CAST(CONCAT(s.anioAnterior,'-',s.mesAnterior,'-01') as Date)>='".$periodoActivoReintegro->fechaInicio."'")
+                        ->first();
+                        if(isset($saldoVac)){
+                            $arrInt[8]= $saldoVac->suma;
+                        }
                     }
-
-                    $saldoCes = DB::table("saldo","s")
-                    ->selectRaw("sum(s.valor) as suma")
-                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
-                    ->where("s.anioAnterior","=",($anioFechaDocumento))
-                    ->whereIn("s.fkConcepto",$arrBusquedaCes)
-                    ->first();
-                    if(isset($saldoCes)){
-                        $arrInt[6]= $saldoCes->suma;
-                    }
-
-                    $saldoIntCes = DB::table("saldo","s")
-                    ->selectRaw("sum(s.valor) as suma")
-                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
-                    ->where("s.anioAnterior","=",($anioFechaDocumento))
-                    ->whereIn("s.fkConcepto",$arrBusquedaIntCes)
-                    ->first();
-                    if(isset($saldoIntCes)){
-                        $arrInt[7]= $saldoIntCes->suma;
-                    }
-
-                    $saldoVac = DB::table("saldo","s")
-                    ->selectRaw("sum(s.valor) as suma")
-                    ->where("s.fkEmpleado","=",$datoProv->fkEmpleado)
-                    ->where("s.anioAnterior","=",($anioFechaDocumento))
-                    ->whereIn("s.fkConcepto",$arrBusquedaVac)
-                    ->first();
-                    if(isset($saldoVac)){
-                        $arrInt[8]= $saldoVac->suma;
-                    }
+                    
                 }
             
             }
@@ -6262,14 +6301,15 @@ class ReportesNominaController extends Controller
             
             $pago = 0;
             if($datoProv->fkConcepto=="73"){
+
                 $itemsBoucherPrima = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("Sum(ibp.pago) as suma")
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
                 ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
-                ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."'")
-                ->where("ibp.fkConcepto","=","58") //19 - PENSION
+                ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
+                ->where("ibp.fkConcepto","=","58") //58 - PRIMA DE SERVICIOS	
                 ->first();
                 if(isset($itemsBoucherPrima)){
                     $pago = $itemsBoucherPrima->suma;
@@ -6283,12 +6323,29 @@ class ReportesNominaController extends Controller
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
                 ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
-                ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."'")
+                ->whereRaw("MONTH(ln.fechaLiquida) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
                 ->whereIn("ibp.fkConcepto",["66","67"]) //66 - CES . 67 - CES AÑO ANTERIOR
                 ->first();
                 if(isset($itemsBoucherCes)){
                     $pago = $itemsBoucherCes->suma;
                 }
+
+                $itemsBoucherFueraNomCes = DB::table("item_boucher_pago_fuera_nomina", "ibp")
+                ->selectRaw("Sum(ibp.valor) as suma")
+                ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->whereRaw("MONTH(ln.fechaLiquida) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
+                ->whereIn("ibp.fkConcepto",["84"]) // 84 - CESANTIAS TRASLADO
+                ->first();
+                
+                
+                if(isset($itemsBoucherFueraNomCes)){
+                    $pago = $pago + $itemsBoucherFueraNomCes->suma;
+                }
+                
+                    
             }
             if($datoProv->fkConcepto=="72"){
                 $itemsBoucherIntCes = DB::table("item_boucher_pago", "ibp")
@@ -6297,7 +6354,7 @@ class ReportesNominaController extends Controller
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
                 ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
-                ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."'")
+                ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
                 ->whereIn("ibp.fkConcepto",["69","68"]) //69 - INT . 68 - INT AÑO ANTERIOR
                 ->first();
                 if(isset($itemsBoucherIntCes)){
@@ -6742,7 +6799,7 @@ class ReportesNominaController extends Controller
         return $array;
     }
     public function indexReporteVacaciones(){
-        $empresas = DB::table("empresa", "e")->get();
+        $empresas = DB::table("empresa", "e")->orderBy("razonSocial")->get();
         return view('/reportes.reporteVacaciones',[
             "empresas" => $empresas
         ]);
@@ -7602,7 +7659,7 @@ class ReportesNominaController extends Controller
             $dompdf->render();
 
             // Output the generated PDF to Browser
-            $dompdf->stream("Formulario 220.pdf", array('compress' => 1, 'Attachment' => 0));
+            $dompdf->stream("Formulario 220.pdf", array('compress' => 1, 'Attachment' => 1));
 
         }
         else{
@@ -8312,9 +8369,9 @@ class ReportesNominaController extends Controller
                     ->whereIn('cf.fkConcepto', ["1","2","53","54"]);
             })
             ->leftJoin('novedad AS nRet', function ($join) {
-                $join->on('nRet.fkEmpleado', '=', 'e.idempleado')
+                $join->on('nRet.fkPeriodoActivo', '=', 'ultimo_p.max_id')
+                    ->on('nRet.fkEmpleado', '=', 'e.idempleado')
                     ->whereNotNull('nRet.fkRetiro')
-                    ->where("nRet.fkPeriodoActivo","=","ultimo_p.max_id")
                     ->where('nRet.fkEstado',"=","8");
             })
             ->leftJoin('contrato', function ($join) {
@@ -8339,6 +8396,8 @@ class ReportesNominaController extends Controller
                     }
 
                     $item_tipo_reportes = DB::table("item_tipo_reporte")->where("IdItemTipoReporte","=",$req->campoId[$row])->first();
+
+                    
                     if($req->concector[$row]=="AND"){
                         $consulta = $consulta->whereRaw($item_tipo_reportes->campo." ".$req->operador[$row]." '".$filtro."'");
                     }
@@ -8352,8 +8411,6 @@ class ReportesNominaController extends Controller
                 $consulta = $consulta->where("e.fkEstado","=","1");
             }
             $consulta = $consulta->get();
-            
-
             
             $arrDef = array();
             $arrTitulos = array();
@@ -9708,7 +9765,7 @@ class ReportesNominaController extends Controller
         $dompdf->render();
 
         // Output the generated PDF to Browser
-        $dompdf->stream("Comprobante de Pago ".$idLiquidacionNomina.".pdf", array('compress' => 1, 'Attachment' => 0));
+        $dompdf->stream("Comprobante de Pago ".$idLiquidacionNomina.".pdf", array('compress' => 1, 'Attachment' => 1));
     }
 
     public function verificarSiPendientes($idEmpresa, $fecha){
@@ -10090,12 +10147,12 @@ class ReportesNominaController extends Controller
         $dompdf->render();
 
         // Output the generated PDF to Browser
-        $dompdf->stream("Reporte Nomina ".$idLiquidacionNomina.".pdf", array('compress' => 1, 'Attachment' => 0));
+        $dompdf->stream("Reporte Nomina ".$idLiquidacionNomina.".pdf", array('compress' => 1, 'Attachment' => 1));
 
     }
 
     public function reportePorEmpleado(){
-        $empresas = DB::table("empresa","e")->get();
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
 
         return view('/reportes.porEmpleado',["empresas" => $empresas]);
     }   
@@ -10115,7 +10172,7 @@ class ReportesNominaController extends Controller
     }
 
     public function indexReportePrestamos(){
-        $empresas = DB::table("empresa","e")->get();
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
         $conceptos = DB::table("concepto","c")
         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
         ->whereIn("gcc.fkGrupoConcepto",["41","42"])
@@ -10291,5 +10348,169 @@ class ReportesNominaController extends Controller
         $csv->output('ReportePrestamos.csv');
 
     }
+    
+    public function envioCorreosReporte(){
+        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+
+        $mensajes = DB::table("mensaje")
+        ->whereIn("tipo",[1,4,7,8])
+        ->whereNull("fkEmpresa")->get();
+
+        return view('/reportes.envioCorreos',[
+            "empresas" => $empresas,
+            "mensajes" => $mensajes
+        ]);
+    }
+
+    public function generarColaCorreo(Request $req){
+
+        $id_envio_correo_reporte = DB::table("envio_correo_reporte")->insertGetId([
+            "fkMensaje" => $req->mensaje,
+            "fechaInicio" => $req->fechaInicio,
+            "fechaFin" => $req->fechaFin,
+            "fkEmpresa" => $req->empresa,
+            "fkNomina" => $req->infoNomina
+        ]);
+        $numRegistros = 0;
+
+        if($req->mensaje == "4"){
+            $liquidacion = DB::table("boucherpago","bp")
+            ->select("bp.*")
+            ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=", "bp.fkLiquidacion")
+            ->join("nomina as n","n.idNomina", "=","ln.fkNomina");
+            if(isset($req->centroCosto)){
+                $liquidacion = $liquidacion->join("empleado_centrocosto as ecc","ecc.fkEmpleado", "=","bp.fkEmpleado");
+            }
+
+
+            $liquidacion = $liquidacion->where("n.fkEmpresa","=",$req->empresa)
+            ->where("ln.fkTipoLiquidacion","<>","11");
+            
+            if(isset($req->infoNomina)){
+                $liquidacion = $liquidacion->where("n.idNomina","=",$req->infoNomina);
+            }
+            
+            if(isset($req->idEmpleado)){
+                $liquidacion = $liquidacion->where("bp.fkEmpleado","=",$req->idEmpleado);
+            }
+
+            if(isset($req->centroCosto)){
+                $liquidacion = $liquidacion->where("ecc.fkCentroCosto","=",$req->centroCosto);
+            }
+
+            $sqlWhere = "( 
+                ('".$req->fechaInicio."' BETWEEN ln.fechaInicio AND ln.fechaFin) OR
+                ('".$req->fechaFin."' BETWEEN ln.fechaInicio AND ln.fechaFin) OR
+                (ln.fechaInicio BETWEEN '".$req->fechaInicio."' AND '".$req->fechaFin."') OR
+                (ln.fechaFin BETWEEN '".$req->fechaInicio."' AND '".$req->fechaFin."')
+            )";
+            $liquidacion = $liquidacion->whereRaw($sqlWhere);
+            $liquidacion = $liquidacion->get();
+            
+            foreach($liquidacion as $liquida){
+                DB::table("item_envio_correo_reporte")->insert([
+                    "fkEnvioCoreoReporte" => $id_envio_correo_reporte,
+                    "fkEstado" => "3",
+                    "fkEmpleado" => $liquida->fkEmpleado,
+                    "fkBoucherPago" => $liquida->idBoucherPago
+                ]);
+                $numRegistros++;
+            }            
+        }
+        else if($req->mensaje == "7"){
+
+            $anioInicio = date("Y",strtotime($req->fechaInicio));
+            $anioFin = date("Y",strtotime($req->fechaFin));
+
+            $empleados = DB::table("empleado","e")
+            ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales");
+            if(isset($req->centroCosto)){
+                $empleados = $empleados->join("empleado_centrocosto as ecc","ecc.fkEmpleado", "=","e.idempleado");
+            }
+
+            $empleados = $empleados->where("e.fkEmpresa","=", $req->empresa)            
+            ->whereRaw("CAST(CONCAT('".$anioInicio."-',MONTH(dp.fechaNacimiento),'-',DAY(dp.fechaNacimiento)) as DATE) >= '".$req->fechaInicio."'")
+            ->whereRaw("CAST(CONCAT('".$anioFin."-',MONTH(dp.fechaNacimiento),'-',DAY(dp.fechaNacimiento)) as DATE) <= '".$req->fechaFin."'");            
+            
+            if(isset($req->infoNomina)){
+                $empleados = $empleados->where("e.fkNomina","=", $req->infoNomina);
+            }
+            
+            if(isset($req->centroCosto)){
+                $empleados = $empleados->where("ecc.fkCentroCosto","=",$req->centroCosto);
+            }
+
+
+            if(isset($req->idEmpleado)){
+                $empleados = $empleados->where("e.idempleado","=",$req->idEmpleado);
+            }
+            $empleados = $empleados->get();
+            foreach($empleados as $empleado){
+                DB::table("item_envio_correo_reporte")->insert([
+                    "fkEnvioCoreoReporte" => $id_envio_correo_reporte,
+                    "fkEstado" => "3",
+                    "fkEmpleado" => $empleado->idempleado
+                ]);
+                $numRegistros++;
+            } 
+        }
+        else{
+            $empleados = DB::table("empleado","e");
+            if(isset($req->centroCosto)){
+                $empleados = $empleados->join("empleado_centrocosto as ecc","ecc.fkEmpleado", "=","e.idempleado");
+            }
+            $empleados = $empleados->where("e.fkEmpresa","=", $req->empresa)
+            ->whereBetween("e.fechaIngreso",[ $req->fechaInicio,  $req->fechaFin]);
+
+            if(isset($req->idEmpleado)){
+                $empleados = $empleados->where("e.idempleado","=",$req->idEmpleado);
+            }
+            if(isset($req->infoNomina)){
+                $empleados = $empleados->where("e.fkNomina","=", $req->infoNomina);
+            }
+            if(isset($req->centroCosto)){
+                $empleados = $empleados->where("ecc.fkCentroCosto","=",$req->centroCosto);
+            }
+                        
+            $empleados = $empleados->get();
+            foreach($empleados as $empleado){
+                DB::table("item_envio_correo_reporte")->insert([
+                    "fkEnvioCoreoReporte" => $id_envio_correo_reporte,
+                    "fkEstado" => "3",
+                    "fkEmpleado" => $empleado->idempleado
+                ]);
+                $numRegistros++;
+            } 
+        }
+        DB::table("envio_correo_reporte")
+        ->where("id_envio_correo_reporte", "=", $id_envio_correo_reporte)
+        ->update([
+            "numActual" => "0",
+            "numRegistros" => $numRegistros
+        ]);
+
+
+        return redirect(action('ReportesNominaController@verColaCorreo',[$id_envio_correo_reporte]));
+
+    }
+    public function verColaCorreo($idEnvioCorreo){
+        $empleados = DB::table('item_envio_correo_reporte',"iec")
+        ->select("dp.*","ti.nombre as tipoidentificacion", "est.nombre as estado", "iec.mensaje")
+        ->join("empleado as e","e.idempleado", "=","iec.fkEmpleado")
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","dp.fkTipoIdentificacion")
+        ->join("estado as est", "est.idEstado", "=","iec.fkEstado")
+        ->where("iec.fkEnvioCoreoReporte", "=",$idEnvioCorreo)
+        ->get();
+        
+        $usu = UsuarioController::dataAdminLogueado();
+
+        $envioxReporte = DB::table("envio_correo_reporte")->where("id_envio_correo_reporte","=",$idEnvioCorreo)->first();
+        return view('reportes/verCorreos', [
+            "empleados" => $empleados,
+            "envioxReporte" => $envioxReporte,
+            "dataUsu" => $usu
+        ]);
+    }    
 
 }

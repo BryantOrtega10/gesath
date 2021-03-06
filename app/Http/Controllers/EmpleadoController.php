@@ -452,7 +452,7 @@ class EmpleadoController extends Controller
 
 
 
-        $empresas = DB::table("empresa")->get();
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
         $centrosCosto = array();
         if(isset($empleado->fkEmpresa)){
             $centrosCosto = DB::table("centrocosto")->where("fkEmpresa","=",$empleado->fkEmpresa)->get();
@@ -783,7 +783,7 @@ class EmpleadoController extends Controller
 
 
 
-        $empresas = DB::table("empresa")->get();
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
         $centrosCosto = array();
         if(isset($empleado->fkEmpresa)){
             $centrosCosto = DB::table("centrocosto")->where("fkEmpresa","=",$empleado->fkEmpresa)->get();
@@ -1051,7 +1051,7 @@ class EmpleadoController extends Controller
 			$opcionesNomina.= '<option value="'.$nomina->idNomina.'">'.$nomina->nombre.'</option>';
         }
 
-        $centrosCosto = DB::table("centrocosto")->where("fkEmpresa", "=" ,$idEmpresa)->get();
+        $centrosCosto = DB::table("centrocosto")->where("fkEmpresa", "=" ,$idEmpresa)->orderBy("nombre")->get();
 		$opcionesCentroCosto = "<option value=''></option>";
 		foreach($centrosCosto as $centroCosto){
 			$opcionesCentroCosto.= '<option value="'.$centroCosto->idcentroCosto.'">'.$centroCosto->nombre.'</option>';
@@ -4580,7 +4580,7 @@ class EmpleadoController extends Controller
     
     
     
-                $empresas = DB::table("empresa")->get()->toArray();
+                $empresas = DB::table("empresa")->orderBy("razonSocial")->get()->toArray();
                 $centrosCosto = array();
                 if(isset($emp->fkEmpresa)){
                     $centrosCosto = DB::table("centrocosto")->where("fkEmpresa","=",$emp->fkEmpresa)->get()->toArray();
@@ -5063,7 +5063,7 @@ class EmpleadoController extends Controller
 
 
 
-        $empresas = DB::table("empresa")->get();
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
         $centrosCosto = array();
         if(isset($empleado->fkEmpresa)){
             $centrosCosto = DB::table("centrocosto")->where("fkEmpresa","=",$empleado->fkEmpresa)->get();

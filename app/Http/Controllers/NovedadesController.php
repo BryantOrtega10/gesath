@@ -888,34 +888,67 @@ class NovedadesController extends Controller
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion");
 
+        $arrConsulta = array();
         if(isset($req->fechaInicio)){
+            $arrConsulta["fechaInicio"]=$req->fechaInicio;
             $novedades = $novedades->where("n.fechaRegistro",">=",$req->fechaInicio);
         }
         
         if(isset($req->fechaFin)){
+            $arrConsulta["fechaFin"]=$req->fechaFin;
             $novedades = $novedades->where("n.fechaRegistro","<=",$req->fechaFin);
         }
 
         if(isset($req->nomina)){
+            $arrConsulta["nomina"]=$req->nomina;
             $novedades = $novedades->where("n.fkNomina","=",$req->nomina);
         }
         if(isset($req->tipoNovedad)){
+            $arrConsulta["tipoNovedad"]=$req->tipoNovedad;
             $novedades = $novedades->where("n.fkTipoNovedad","=",$req->tipoNovedad);
         }
+        if(isset($req->estado)){
+            $arrConsulta["estado"]=$req->estado;
+            $novedades = $novedades->where("n.fkEstado","=",$req->estado);
+        }
+        else{
+            $novedades = $novedades->where("n.fkEstado","=","7");
+        }
 
-        $novedades = $novedades->where("n.fkEstado","=","7")
-        ->whereRaw("n.fkPeriodoActivo in(
+        if(isset($req->numDoc)){
+            $arrConsulta["numDoc"]=$req->numDoc;
+            $novedades = $novedades->where("dp.numeroIdentificacion","LIKE","%".$req->numDoc."%");
+        }
+        if(isset($req->nombre)){
+            $arrConsulta["nombre"]=$req->nombre;
+            $novedades = $novedades->where(function($query) use($req){
+                $query->where("dp.primerNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.primerApellido","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoApellido","LIKE","%".$req->nombre."%")
+                ->orWhereRaw("CONCAT(dp.primerApellido,' ',dp.segundoApellido,' ',dp.primerNombre,' ',dp.segundoNombre) LIKE '%".$req->nombre."%'");
+            });
+        }
+        
+
+
+        $novedades = $novedades->whereRaw("n.fkPeriodoActivo in(
             SELECT p.idPeriodo from periodo as p where p.fkEstado = '1'
         )")
-        ->get();
+        ->paginate();
         $nominas = DB::table("nomina")->orderBy("nombre")->get();
         $tiposnovedades = DB::table("tiponovedad")->orderBy("nombre")->get();
+        $estados = DB::table("estado")
+        ->whereIn("idestado",[7,8,9])
+        ->orderBy("nombre")->get();
 
         return view('/novedades.listaNovedades',[
             'novedades' => $novedades,
             "tiposnovedades" => $tiposnovedades,
             "nominas" => $nominas,
-            "req" => $req
+            "req" => $req,
+            "estados" => $estados,
+            "arrConsulta" => $arrConsulta
         ]);        
 
     }
@@ -1846,14 +1879,17 @@ class NovedadesController extends Controller
                         "fkEstado" => "3",
                         "fkCargaNovedad" => $idCargaNovedad
                     );
-                    DB::table('novedad')->insert($arrInsertNovedad);
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
 
                 }
                 else if($row[0]=="2"){
 
                     $req->dias = $row[8];
                     $req->fechaFinal = $row[10];
-                    if(!empty($row[9]) && !empty($row[10])){
+
+                    if(!empty($row[9]) && !empty($row[10] && empty($row[8]))){
                         $datetime1 = new DateTime($row[9]);
                         $datetime2 = new DateTime($row[10]);
 
@@ -1977,7 +2013,9 @@ class NovedadesController extends Controller
                         "fkEstado" => "3",
                         "fkCargaNovedad" => $idCargaNovedad
                     );
-                    DB::table('novedad')->insert($arrInsertNovedad);
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
                 }
                 else if($row[0]=="3"){
 
@@ -2009,7 +2047,9 @@ class NovedadesController extends Controller
                         "fkEstado" => "3",
                         "fkCargaNovedad" => $idCargaNovedad
                     );
-                    DB::table('novedad')->insert($arrInsertNovedad);
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
                 }
                 else if($row[0]=="4" && $row[1]=="1"){
 
@@ -2034,7 +2074,7 @@ class NovedadesController extends Controller
                     $periodoActivoReintegro = DB::table("periodo")
                     ->where("fkEstado","=","1")
                     ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-        
+                    
                     $arrInsertNovedad = array(
                         "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
                         "fkTipoNovedad" => $req->fkTipoNovedad, 
@@ -2049,8 +2089,9 @@ class NovedadesController extends Controller
                     );
                     
                     
-            
-                    DB::table('novedad')->insert($arrInsertNovedad);
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
                 }
                 else if($row[0]=="4" && $row[1]=="2"){
 
@@ -2068,20 +2109,22 @@ class NovedadesController extends Controller
                     $periodoActivoReintegro = DB::table("periodo")
                     ->where("fkEstado","=","1")
                     ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-        
-                    $arrInsertNovedad = array(
-                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-                        "fkTipoNovedad" => $req->fkTipoNovedad, 
-                        "fkNomina" => $req->fkNomina,
-                        "fechaRegistro" => $req->fechaRegistro,
-                        "fkTipoReporte" => $req->fkTipoReporte,
-                        "fkHorasExtra" => $idHoraExtra,
-                        "fkConcepto" => $req->concepto,
-                        "fkEmpleado" => $req->idEmpleado,
-                        "fkEstado" => "3",
-                        "fkCargaNovedad" => $idCargaNovedad
-                    );
-                    DB::table('novedad')->insert($arrInsertNovedad);
+
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        $arrInsertNovedad = array(
+                            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                            "fkTipoNovedad" => $req->fkTipoNovedad, 
+                            "fkNomina" => $req->fkNomina,
+                            "fechaRegistro" => $req->fechaRegistro,
+                            "fkTipoReporte" => $req->fkTipoReporte,
+                            "fkHorasExtra" => $idHoraExtra,
+                            "fkConcepto" => $req->concepto,
+                            "fkEmpleado" => $req->idEmpleado,
+                            "fkEstado" => "3",
+                            "fkCargaNovedad" => $idCargaNovedad
+                        );
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
                 }
                 else if($row[0]=="5"){
 
@@ -2114,18 +2157,19 @@ class NovedadesController extends Controller
                     $periodoActivoReintegro = DB::table("periodo")
                     ->where("fkEstado","=","1")
                     ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-        
-                    $arrInsertNovedad = array(
-                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-                        "fkTipoNovedad" => $req->fkTipoNovedad, 
-                        "fkNomina" => $req->fkNomina,
-                        "fechaRegistro" => $req->fechaRegistro,
-                        "fkRetiro" => $idRetiro,
-                        "fkEmpleado" => $req->idEmpleado,
-                        "fkEstado" => "3",
-                        "fkCargaNovedad" => $idCargaNovedad
-                    );
-                    DB::table('novedad')->insert($arrInsertNovedad);
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        $arrInsertNovedad = array(
+                            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                            "fkTipoNovedad" => $req->fkTipoNovedad, 
+                            "fkNomina" => $req->fkNomina,
+                            "fechaRegistro" => $req->fechaRegistro,
+                            "fkRetiro" => $idRetiro,
+                            "fkEmpleado" => $req->idEmpleado,
+                            "fkEstado" => "3",
+                            "fkCargaNovedad" => $idCargaNovedad
+                        );
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
                 }
                 else if($row[0]=="6"){
                     $req->fechaInicial = $row[29];
@@ -2165,18 +2209,20 @@ class NovedadesController extends Controller
                     ->where("fkEstado","=","1")
                     ->where("fkEmpleado", "=", $req->idEmpleado)->first();
         
-                    $arrInsertNovedad = array(
-                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-                        "fkTipoNovedad" => $req->fkTipoNovedad, 
-                        "fkNomina" => $req->fkNomina,
-                        "fechaRegistro" => $req->fechaRegistro,
-                        "fkVacaciones" => $idVacaciones,
-                        "fkEmpleado" => $req->idEmpleado,
-                        "fkConcepto" => $req->concepto,
-                        "fkEstado" => "3",
-                        "fkCargaNovedad" => $idCargaNovedad
-                    );
-                    DB::table('novedad')->insert($arrInsertNovedad);
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        $arrInsertNovedad = array(
+                            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                            "fkTipoNovedad" => $req->fkTipoNovedad, 
+                            "fkNomina" => $req->fkNomina,
+                            "fechaRegistro" => $req->fechaRegistro,
+                            "fkVacaciones" => $idVacaciones,
+                            "fkEmpleado" => $req->idEmpleado,
+                            "fkConcepto" => $req->concepto,
+                            "fkEstado" => "3",
+                            "fkCargaNovedad" => $idCargaNovedad
+                        );
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
                 }
                 else if($row[0]=="7"){
 
@@ -2202,19 +2248,24 @@ class NovedadesController extends Controller
                     $periodoActivoReintegro = DB::table("periodo")
                     ->where("fkEstado","=","1")
                     ->where("fkEmpleado", "=", $req->idEmpleado)->first();
-        
-                    $arrInsertNovedad = array(
-                        "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
-                        "fkTipoNovedad" => $req->fkTipoNovedad, 
-                        "fkNomina" => $req->fkNomina,
-                        "fechaRegistro" => $req->fechaRegistro,
-                        "fkOtros" => $idOtraNovedad,
-                        "fkEmpleado" => $req->idEmpleado,
-                        "fkConcepto" => $req->concepto,
-                        "fkEstado" => "3",
-                        "fkCargaNovedad" => $idCargaNovedad
-                    );
-                    DB::table('novedad')->insert($arrInsertNovedad);
+                    
+                    if(isset($periodoActivoReintegro->idPeriodo)){
+                        $arrInsertNovedad = array(
+                            "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                            "fkTipoNovedad" => $req->fkTipoNovedad, 
+                            "fkNomina" => $req->fkNomina,
+                            "fechaRegistro" => $req->fechaRegistro,
+                            "fkOtros" => $idOtraNovedad,
+                            "fkEmpleado" => $req->idEmpleado,
+                            "fkConcepto" => $req->concepto,
+                            "fkEstado" => "3",
+                            "fkCargaNovedad" => $idCargaNovedad
+                        );
+                        DB::table('novedad')->insert($arrInsertNovedad);
+                    }
+
+                    
+                   
                 }
                 
 
@@ -2273,5 +2324,171 @@ class NovedadesController extends Controller
         return redirect('novedades/listaNovedades/');
     }
     
+    public function novedadesxLiquidacion($idLiquidacionNomina, Request $req){
+        $novedades = DB::table("novedad","n")
+        ->select(["c.nombre as nombreConcepto","est.nombre as nombreEstado","dp.*","ti.nombre as tipoDocumento",
+                  "em.razonSocial as nombreEmpresa", "nom.nombre as nombreNomina","n.*"])
+        ->join("item_boucher_pago_novedad as ibpn","ibpn.fkNovedad","=","n.idNovedad")
+        ->join("item_boucher_pago as ibp","ibp.idItemBoucherPago","=","ibpn.fkItemBoucher")
+        ->join("boucherpago as bp","bp.idBoucherPago", "=","ibp.fkBoucherPago")
+        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
+        ->join("estado as est", "est.idEstado", "=","n.fkEstado")
+        ->join("empleado as e","e.idempleado", "=", "n.fkEmpleado")
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
+        ->join("empresa as em","em.idempresa", "=","e.fkEmpresa")
+        ->join("nomina as nom","nom.idNomina", "=", "n.fkNomina")
+        ->join("concepto as c","c.idconcepto", "=","n.fkConcepto")
+        ->where("ln.idLiquidacionNomina","=",$idLiquidacionNomina);
+        if(isset($req->numDoc)){
+            $novedades = $novedades->where("dp.numeroIdentificacion","LIKE","%".$req->numDoc."%");
+        }
+        if(isset($req->nombre)){
+            $novedades = $novedades->where(function($query) use($req){
+                $query->where("dp.primerNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.primerApellido","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoApellido","LIKE","%".$req->nombre."%")
+                ->orWhereRaw("CONCAT(dp.primerApellido,' ',dp.segundoApellido,' ',dp.primerNombre,' ',dp.segundoNombre) LIKE '%".$req->nombre."%'");
+            });
+        }
+        $novedades = $novedades->get();
+        
+        return view("/novedades/listaNovedadesxLiq", [
+            "novedades" => $novedades,
+            "req" => $req
+        ]);
+        
+
+    }
+
+    public function verNovedad($idNovedad){
+
+        $novedad = DB::table('novedad',"n")->select([
+            "n.*", 
+            "dp.primerNombre",
+            "dp.primerNombre",
+            "dp.segundoNombre",
+            "dp.primerApellido", 
+            "dp.segundoApellido",
+            "nom.nombre as nombreNomina",
+            "nom.periodo as periodoNomina",
+            "nom.tipoPeriodo as tipoPeriodoNomina",
+            "tn.nombre as tipoNovedadNombre",
+            "c.nombre as nombreConcepto"
+            ]
+        )
+        ->join("nomina as nom", "nom.idNomina", "=", "n.fkNomina")
+        ->join("tiponovedad as tn", "tn.idtipoNovedad", "=", "n.fkTipoNovedad")
+        ->join("empleado as e", "e.idempleado", "=", "n.fkEmpleado")
+        ->join("datospersonales as dp", "dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->join("concepto as c","c.idconcepto", "=", "n.fkConcepto")
+        ->where("idNovedad","=", $idNovedad)->first();
+
+
+
+        $conceptos = DB::table("concepto", "c")
+        ->select(["c.*"])
+        ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
+        ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)->get();
+
+        if(isset($novedad->fkAusencia)){
+            $ausencia = DB::table('ausencia')->where("idAusencia","=", $novedad->fkAusencia)->first();
+            return view('/novedades.ver.ausencia',[
+                'novedad' => $novedad,
+                'ausencia' => $ausencia,
+                'conceptos' => $conceptos
+            ]);      
+        }
+        else if(isset($novedad->fkIncapacidad)){
+            $incapacidad = DB::table('incapacidad',"i")->select(["i.*","cd.nombre as nmCodDiagnostico","ter.razonSocial as nmTercero","ta.nombre as nmTipoAfilicacion"])
+            ->join("cod_diagnostico as cd", "cd.idCodDiagnostico","=","i.fkCodDiagnostico")
+            ->join("tipoafilicacion as ta", "ta.idTipoAfiliacion","=","i.fkTipoAfilicacion", "left")
+            ->join("tercero as ter", "ter.idTercero","=","i.fkTercero")
+            ->where("idIncapacidad","=", $novedad->fkIncapacidad)->first();
+            $tiposAfiliacion = DB::table("tipoafilicacion")->whereIn("idTipoAfiliacion", [3,4])->get();
+
+            return view('/novedades.ver.incapacidad',[
+                'novedad' => $novedad,
+                'incapacidad' => $incapacidad,
+                'conceptos' => $conceptos,
+                'tiposAfiliacion' => $tiposAfiliacion
+
+            ]);      
+        }
+        else if(isset($novedad->fkLicencia)){
+            $licencia = DB::table('licencia')->where("idLicencia","=", $novedad->fkLicencia)->first();
+            
+            return view('/novedades.ver.licencia',[
+                'novedad' => $novedad,
+                'licencia' => $licencia,
+                'conceptos' => $conceptos
+            ]);      
+        }
+        else if(isset($novedad->fkHorasExtra)){
+            $horas_extra = DB::table('horas_extra')->where("idHoraExtra","=", $novedad->fkHorasExtra)->first();
+
+            if(isset($horas_extra->fechaHoraInicial)){
+                return view('/novedades.ver.horas_extra1',[
+                    'novedad' => $novedad,
+                    'horas_extra' => $horas_extra,
+                    'conceptos' => $conceptos
+                ]);  
+            }
+            else{
+                return view('/novedades.ver.horas_extra2',[
+                    'novedad' => $novedad,
+                    'horas_extra' => $horas_extra,
+                    'conceptos' => $conceptos
+                ]);  
+            }
+                
+        }
+        else if(isset($novedad->fkRetiro)){
+            $retiro = DB::table('retiro')->where("idRetiro","=", $novedad->fkRetiro)->first();
+            $motivosRetiro = DB::table("motivo_retiro", "m")->orderBy("nombre")->get();
+            return view('/novedades.ver.retiro',[
+                'novedad' => $novedad,
+                'retiro' => $retiro,
+                'motivosRetiro' => $motivosRetiro
+            ]);      
+        }
+        else if(isset($novedad->fkVacaciones)){
+            $vacaciones = DB::table('vacaciones')->where("idVacaciones","=", $novedad->fkVacaciones)->first();
+            $conceptos = DB::table("concepto", "c")
+            ->select(["c.*"])
+            ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
+            ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)
+            ->where("tnc.fkConcepto", "=", $novedad->fkConcepto)
+            ->get();
+            
+            if( $novedad->fkConcepto == "29"){
+                return view('/novedades.ver.vacaciones',[
+                    'novedad' => $novedad,
+                    'vacaciones' => $vacaciones,
+                    'conceptos' => $conceptos
+                ]);
+            }
+            else{
+                return view('/novedades.ver.vacaciones2',[
+                    'novedad' => $novedad,
+                    'vacaciones' => $vacaciones,
+                    'conceptos' => $conceptos
+                ]);
+            }
+        }
+        else if(isset($novedad->fkOtros)){
+            
+            $otra_novedad = DB::table('otra_novedad')->where("idOtraNovedad","=", $novedad->fkOtros)->first();
+            $conceptos = DB::table("concepto", "c")->orderBy("nombre")->get();
+
+            return view('/novedades.ver.otra_novedad',[
+                'novedad' => $novedad,
+                'otra_novedad' => $otra_novedad,
+                'conceptos' => $conceptos
+            ]);
+        }
+        
+    }
 
 }

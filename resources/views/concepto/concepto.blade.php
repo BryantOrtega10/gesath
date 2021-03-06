@@ -7,9 +7,18 @@
 @endsection
 
 @section('contenido')
-<h1 class="granAzul">Concepto</h1>
-<a class="btn btn-primary" href="#" id="addConcepto">Agregar concepto</a>
-<a class="btn btn-primary" href="/concepto/exportar">Exportar lista conceptos</a>
+<div class="row">
+    <div class="col-8">
+        <h1 class="granAzul">Concepto</h1>
+    </div>
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center"href="/concepto/exportar"> <i class="fas fa-download"></i> Exportar lista conceptos</a>
+    </div>
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addConcepto">Agregar concepto</a>
+    </div>
+</div>
+
 <div class="cajaGeneral">
     <form autocomplete="off" action="/concepto/" method="GET" id="filtrarEmpleado">
         @csrf    
@@ -23,7 +32,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-4"><input type="submit" value="Consultar"/><input type="reset" class="recargar" value="" /> </div>
+            <div class="col-4"><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" /> </div>
         </div>        
     </form>
     <br>

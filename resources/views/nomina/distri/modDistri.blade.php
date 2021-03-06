@@ -5,11 +5,26 @@
 @endsection
 
 @section('contenido')
-<div class="row">
-    <div class="col-12">
-        <h1 class="granAzul">Modificar distibucion centro de costos</h1>
+<form method="POST" id="" autocomplete="off" class="formGeneral" action="/nomina/distri/subirPlano" enctype="multipart/form-data">
+    @csrf
+    <input type="hidden" class="form-control" name="id_distri_centro_costo" value="{{$distri->id_distri_centro_costo}}" />
+    <div class="row">
+        <div class="col-8">
+            <h1 class="granAzul">Modificar distibucion centro de costos</h1>
+        </div>        
+        <div class="col-2">
+            <div class="seleccionarArchivo gris">
+                <label for="archivoCSV">Seleccione un archivo CSV</label>
+                <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="text-center"><input type="submit" value="Cargar csv" class="btnSubmitGen btnAzulGen" /></div>
+        </div>
+        
+        
     </div>
-</div>
+</form>
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
@@ -41,12 +56,7 @@
                 </div>
             </form>
             <hr>
-            <form method="POST" id="" autocomplete="off" class="formGeneral" action="/nomina/distri/subirPlano" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" class="form-control" name="id_distri_centro_costo" value="{{$distri->id_distri_centro_costo}}" />
-                <label for="archivoCSV">Seleccione el archivo</label> <input type="file" name="archivoCSV" id="archivoCSV" required  accept=".csv"/>
-                <div class="text-center"><input type="submit" value="Cargar csv" class="btnSubmitGen" /></div>
-            </form>
+            
             <hr>
             @if (isset($errors) && sizeof($errors) > 0)
                 <div class="alert alert-danger text-left">

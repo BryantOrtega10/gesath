@@ -7,9 +7,18 @@
 @endsection
 
 @section('contenido')
-<h1 class="granAzul">Terceros</h1>
-<a class="btn btn-primary" href="#" id="addTercero">Agregar tercero</a>
-<a class="btn btn-primary" href="/terceros/exportar">Exportar lista terceros</a>
+<div class="row">
+    <div class="col-8">
+        <h1 class="granAzul">Terceros</h1>
+    </div>
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="/terceros/exportar"> <i class="fas fa-download"></i> Exportar lista terceros</a>
+    </div>
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addTercero">Agregar tercero</a>
+    </div>
+</div>
+<div class="cajaGeneral">
 <div class="table-responsive">
     <table class="table table-hover table-striped" id = "terceros">
         <thead>
@@ -50,6 +59,7 @@
             @endforeach
         </tbody>
     </table>
+</div>
 </div>
 <div class="modal fade" id="tercerosModal" tabindex="-1" role="dialog" aria-labelledby="variableModal" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

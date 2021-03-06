@@ -7,11 +7,15 @@
 @endsection
 
 @section('contenido')
-
+<div class="row">
+    <div class="col-9">
+        <h1 class="granAzul">Variables</h1>
+    </div>
+    <div class="col-3 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center"href="#" id="addVariable">Agregar variable</a>
+    </div>
+</div>
 <div class="cajaGeneral">
-    <h1 class="granAzul">Variables</h1>
-    <a class="btn btn-primary" href="#" id="addVariable">Agregar variable</a>
-
     <div class="table-responsive">
         <table class="table table-hover table-striped" id = "variables">
             <thead>

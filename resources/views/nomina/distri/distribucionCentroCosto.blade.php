@@ -6,14 +6,17 @@
 
 @section('contenido')
 <div class="row">
-    <div class="col-12">
+    <div class="col-9">
         <h1 class="granAzul">Distibucion centro de costos</h1>
+    </div>
+    <div class="col-3 text-right">
+        <a class="btnGeneral btnAzulGen btnGra text-center" href="#" id="addDistri">Agregar nueva distribucion</a>
     </div>
 </div>
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
-            <a class="btn btn-primary" href="#" id="addDistri">Agregar nueva distribucion</a>
+            
             <table class="table table-hover table-striped">
                 <tr>
                     <th>&num;</th>
@@ -37,8 +40,14 @@
                             {{$distri_centro_costo->nombre }}
                         </td>
                         <td>
-                            <a href="/nomina/distri/modificarDistri/{{$distri_centro_costo->id_distri_centro_costo}}">Modificar</a>
-                            <a href="/nomina/distri/copiarDistri/{{$distri_centro_costo->id_distri_centro_costo}}" class="copiarDistri">Copiar</a>
+                            <div class="btn-group">
+                                <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a href="/nomina/distri/modificarDistri/{{$distri_centro_costo->id_distri_centro_costo}}" class="dropdown-item"><i class="fas fa-edit"></i> Modificar</a>
+                                    <a href="/nomina/distri/copiarDistri/{{$distri_centro_costo->id_distri_centro_costo}}" class=" dropdown-item copiarDistri"><i class="fas fa-copy"></i> Copiar</a>
+                                </div>
+                            </div>
+                            
                         </td>
                     </tr>
                 @endforeach

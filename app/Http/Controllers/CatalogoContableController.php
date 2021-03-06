@@ -143,7 +143,7 @@ class CatalogoContableController extends Controller
 
 
         $data = $this->paginate($filtro, 15);
-        $data->withPath("catalogo-contable");
+        $data->withPath("/catalogo-contable");
 
         $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
         $centros_costos = array();
@@ -164,7 +164,7 @@ class CatalogoContableController extends Controller
     public function getFormAdd(){
         $terceros = DB::table("tercero")->get();
         $tipoTerceroCuenta = DB::table("tipotercerocuenta")->get();
-        $empresas = DB::table("empresa")->get();
+        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
         $gruposConcepto  = DB::table("grupoconcepto")->get();
 
         $cuentas = DB::table("catalgocontable")->orderBy("cuenta")->get();
@@ -183,10 +183,11 @@ class CatalogoContableController extends Controller
     }
     public function eliminarTransaccion($idCompuesto){
         $arrCompuesto = explode('_', $idCompuesto);
+
         $datoscuenta = DB::table("datoscuenta","dc")
-
+        ->select("dc.*","cat.*", "dc.fkCentroCosto as fkCentroCosto2")
+        ->join("catalgocontable as cat", "cat.idCatalgoContable", "=","dc.fkCuenta")
         ->where("dc.tablaConsulta","=",$arrCompuesto[0]);
-
         if(isset($arrCompuesto[1]) && !empty($arrCompuesto[1])){
             $datoscuenta = $datoscuenta->where("dc.fkGrupoConcepto","=",$arrCompuesto[1]);
         }
@@ -200,7 +201,7 @@ class CatalogoContableController extends Controller
             $datoscuenta = $datoscuenta->where("cat.fkEmpresa","=",$arrCompuesto[4]);
         }
         if(isset($arrCompuesto[5]) && !empty($arrCompuesto[5])){
-            $datoscuenta = $datoscuenta->where("cat.fkCentroCosto","=",$arrCompuesto[5]);
+            $datoscuenta = $datoscuenta->where("dc.fkCentroCosto","=",$arrCompuesto[5]);
         }
         $datoscuenta = $datoscuenta->delete();
         return response()->json([
@@ -696,7 +697,7 @@ class CatalogoContableController extends Controller
     
     public function reporteNominaIndex(){
 
-        $empresas = DB::table("empresa", "e")->get();
+        $empresas = DB::table("empresa", "e")->orderBy("razonSocial")->get();
         
         return view('/catalogoContable.reporteNominaIndex',
             ["empresas" => $empresas]
@@ -749,13 +750,18 @@ class CatalogoContableController extends Controller
             $arrCentrosCosto = array();
 
             if(sizeof($centrosCostoEmpleado) > 0){
+                
                 foreach($centrosCostoEmpleado as $centroCostoEmpleado ){
-                    array_push($arrCentrosCosto, [
-                        "id_unico" => $centroCostoEmpleado->id_uni_centro,
-                        "nombre" => $centroCostoEmpleado->nombre,
-                        "centroCosto" => $centroCostoEmpleado->fkCentroCosto,
-                        "porcentaje" => $centroCostoEmpleado->porcentaje
-                    ]);
+                    
+                    if(intval($centroCostoEmpleado->porcentaje) > 0){
+                        array_push($arrCentrosCosto, [
+                            "id_unico" => $centroCostoEmpleado->id_uni_centro,
+                            "nombre" => $centroCostoEmpleado->nombre,
+                            "centroCosto" => $centroCostoEmpleado->fkCentroCosto,
+                            "porcentaje" => $centroCostoEmpleado->porcentaje
+                        ]);
+                    }
+                   
                 }
             }
             else{
@@ -787,6 +793,7 @@ class CatalogoContableController extends Controller
                 ->first();
                 if(isset($datosCuentaConsulta)){
                     $existenCuentasConEseCentroCosto = true;
+                    
                 }
 
                 //Consular por tipo la cuenta
@@ -1157,6 +1164,7 @@ class CatalogoContableController extends Controller
                             $val = true; 
                                                        
                             if($val){
+                              
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
@@ -1545,6 +1553,26 @@ class CatalogoContableController extends Controller
                     ->where("ibp.fkConcepto","=",$datoCuentaTipo4->fkConcepto) 
                     ->get();
             
+                    $itemsBoucherFueraNomina = DB::table("item_boucher_pago_fuera_nomina", "ibp")
+                    ->selectRaw("ibp.pago, ibp.descuento, con.idconcepto, ibp.valor, con.nombre as con_nombre, con.fkNaturaleza as con_naturaleza")
+                    ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                    ->join("concepto as con","con.idConcepto","=","ibp.fkConcepto") 
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
+                    ->where("ibp.fkConcepto","=",$datoCuentaTipo4->fkConcepto) 
+                    ->where("ln.fkTipoLiquidacion","=","11")
+                    ->get();
+                    if(sizeof($itemsBoucherFueraNomina)>0){
+                        foreach($itemsBoucherFueraNomina as $itemBoucherFueraNomina){
+                            $itemsBoucher->push($itemBoucherFueraNomina);
+                        }
+                        
+                    }
+                    
+                    
+
+
                     foreach($itemsBoucher as $itemBoucher){
                         
                         $valor = 0;
@@ -1553,7 +1581,9 @@ class CatalogoContableController extends Controller
                         
                         //$itemBoucher->valor = $this->roundSup($itemBoucher->valor, -2); 
                         
-
+                        if(!isset($itemBoucher->valor)){
+                            dd($itemBoucher, $datoCuentaTipo4);
+                        }
 
                         if($itemBoucher->valor < 0 && $itemBoucher->con_naturaleza=="1"){
                             if($tipoReg == "CREDITO"){

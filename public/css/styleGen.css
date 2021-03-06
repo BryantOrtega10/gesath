@@ -235,7 +235,7 @@ ul.itemsMenu li:hover {
     background: #0073FF;
 }
 
-.itemsMenu li:hover span.textoMenu {
+.itemsMenu li:hover:not(.cerrar_sesion) span.textoMenu {
     width: 400px;
     padding: 0 42px;
 }
@@ -1365,24 +1365,28 @@ input[type="submit"].secundarioVerdadero {
     background: #047AFF;
 }
 
-a.btnAzulGen {
+a.btnAzulGen,
+input.btnAzulGen {
     color: #FFF;
     background: #047AFF;
     transition: all 0.5s;
     border: 1px solid #047AFF;
 }
 
-a.btnAzulGen .fas {
+a.btnAzulGen .fas,
+input.btnAzulGen .fas {
     margin-right: 15px;
 }
 
-a.btnAzulGen:hover {
+a.btnAzulGen:hover,
+input.btnAzulGen:hover {
     color: #047AFF;
     background: #FFF;
     border: 1px solid #047AFF;
 }
 
-a.btnSubmitGen.btnAzulGen {
+a.btnSubmitGen.btnAzulGen,
+input.btnSubmitGen.btnAzulGen {
     padding: 8px 0;
     width: 100%;
     border-radius: 2px;
@@ -1423,4 +1427,40 @@ table.table tr td {
 
 .nuevoTipoCotizante.activo {
     display: block;
+}
+
+.seleccionarArchivo.gris label {
+    background: #FFF;
+}
+
+.seleccionarArchivo.gris:hover label {
+    color: #000;
+    border: 1px solid #000;
+}
+
+.dataTables_paginate .previous a {
+    font-size: 21px !important;
+}
+
+.dataTables_paginate .next a {
+    font-size: 21px !important;
+}
+
+div.dataTables_wrapper div.dataTables_length select {
+    padding: 0;
+    padding-left: 10px;
+    min-width: 100px;
+}
+
+#formularios img.formulario {
+    max-width: 200px;
+}
+
+li.cerrar_sesion i {
+    font-size: 35px;
+    color: #FFF;
+}
+
+.menuLateral.active li.cerrar_sesion i {
+    display: none;
 }

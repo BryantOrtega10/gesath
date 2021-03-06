@@ -7,6 +7,9 @@ function cargando() {
 }
 $(document).ready(function() {
     $("#empresas").DataTable({
+        "order": [
+            [1, "asc"]
+        ],
         language: {
             url: '//cdn.datatables.net/plug-ins/1.10.22/i18n/Spanish.json'
         }

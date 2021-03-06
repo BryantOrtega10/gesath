@@ -18,7 +18,7 @@ use App\NominaEmpresaModel;
 class EmpresaController extends Controller
 {
     public function index() {
-        $empresas = EmpresaModel::all();
+        $empresas = EmpresaModel::orderBy("razonSocial")->get();
         $usu = UsuarioController::dataAdminLogueado();
     	return view('/empresas.empresas', [
             'empresas' => $empresas,

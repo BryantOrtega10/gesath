@@ -7,8 +7,14 @@
 @endsection
 
 @section('contenido')
-<h1 class="granAzul">Usurarios</h1>
-<a class="btn btn-primary" href="#" id="addUsuario">Agregar usuario</a>
+<div class="row">
+    <div class="col-9">
+        <h1 class="granAzul">Usuarios</h1>
+    </div>
+    <div class="col-3 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center"  href="#" id="addUsuario">Agregar usuario</a>
+    </div>
+</div>
 <div class="cajaGeneral">
     <div class="table-responsive">
         <table id = "usuarios" class="table table-hover table-striped">
