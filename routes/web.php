@@ -175,6 +175,8 @@ Route::group([
 	Route::post('insertarSolicitud','NominaController@insertarSolicitud');
 	Route::get('verSolicitudLiquidacion/{id}','NominaController@verSolicitudLiquidacion');
 	Route::get('recalcularComprobante/{id}','NominaController@recalcularBoucher');
+	Route::get('recalcularyCambioComprobante/{id}/{numDias}/{numHoras}','NominaController@recalcularBoucher');
+
 	Route::get('cargarInfoxComprobante/{id}','NominaController@cargarInfoxBoucher');
 	Route::post('aprobarSolicitud','NominaController@aprobarSolicitud');
 	Route::post('cancelarSolicitud','NominaController@cancelarSolicitud');
@@ -473,6 +475,17 @@ Route::group([
 	Route::get('/ubiTercero/detUbi', 'TercerosController@selectUbicacionesTerceros');
 });
 
+
+Route::group([
+	'prefix' => 'notificaciones',
+	'middleware' => ['auth', 'guest:2,3'],
+], function() {
+	Route::get('/', 'NotificacionesController@index');
+	Route::get('/modificarVisto', 'NotificacionesController@modificarVisto');
+	Route::get('/numeroNotificaciones', 'NotificacionesController@numeroNotificaciones');
+	Route::get('/verificarContratos', 'NotificacionesController@verificarContratos');
+});
+
 Route::group([
 	'prefix' => 'empresa',
 	'middleware' => ['auth', 'guest:2,3'],
@@ -485,6 +498,16 @@ Route::group([
 	Route::post('/editarEmpresa/{id}', 'EmpresaController@update');
 	Route::post('/eliminarEmpresa/{id}', 'EmpresaController@delete');
 	
+	
+	Route::group([
+		'prefix' => 'permisosPortal',
+		'middleware' => ['auth', 'guest:2,3'],
+	], function() {
+		Route::get('/{id}', 'EmpresaController@indexPermisos');
+		Route::post('/modificar', 'EmpresaController@updatePermisos');
+	});
+
+
 	Route::group([
 		'prefix' => 'smtp',
 		'middleware' => ['auth', 'guest:2,3'],
@@ -678,7 +701,7 @@ Route::group([
 	Route::get('/vistaComprobantes/{id}', 'PortalEmpleadoController@getVistaBoucherPago');
 	Route::get('/comprobantesPago/{id}', 'PortalEmpleadoController@getBouchersPagoEmpleado');
 	Route::post('/buscarComprobantes/{id}', 'PortalEmpleadoController@buscarBoucherPorFecha');
-	/* Route::get('/generarCertificadoLaboral/{id}', 'PortalEmpleadoController@generarCertificadoLaboral'); */
+	Route::get('/generarCertificadoLaboral/{id}', 'PortalEmpleadoController@generarCertificadoLaboral');
 	Route::post('/cambiarContrasenia/{id}', 'PortalEmpleadoController@actPass');
 	Route::post('/cambiarContrasenia/{id}', 'PortalEmpleadoController@actOnlyPass');
 });

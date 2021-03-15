@@ -25,6 +25,92 @@ class EmpresaController extends Controller
             'dataUsu' => $usu
         ]);
     }
+    public function indexPermisos($idEmpresa) {
+
+        $empresas = DB::table("empresa")->where("idEmpresa","=",$idEmpresa)->first();
+        
+        $usu = UsuarioController::dataAdminLogueado();
+        $permisos = explode(",",$empresas->permisosGenerales);
+    	return view('/empresas.permisos', [
+            'empresas' => $empresas,
+            'dataUsu' => $usu,
+            "permisos" => $permisos,
+            "idEmpresa" => $idEmpresa
+        ]);
+    } 
+    public function updatePermisos(Request $req){
+
+            
+        
+       
+        $permisosGenerales = "";
+        if(isset($req->permiso1)){
+            $permisosGenerales.="1,";
+        }
+        else{
+            $permisosGenerales.="0,";
+        }
+
+        if(isset($req->permiso2)){
+            $permisosGenerales.="1,";
+        }
+        else{
+            $permisosGenerales.="0,";
+        }
+
+        if(isset($req->permiso3)){
+            $permisosGenerales.="1,";
+        }
+        else{
+            $permisosGenerales.="0,";
+        }
+
+        if(isset($req->permiso4)){
+            $permisosGenerales.="1,";
+        }
+        else{
+            $permisosGenerales.="0,";
+        }
+
+        if(isset($req->permiso5)){
+            $permisosGenerales.="1,";
+        }
+        else{
+            $permisosGenerales.="0,";
+        }
+
+        if(isset($req->permiso6)){
+            $permisosGenerales.="1,";
+        }
+        else{
+            $permisosGenerales.="0,";
+        }
+
+        if(isset($req->permiso7)){
+            $permisosGenerales.="1";
+        }
+        else{
+            $permisosGenerales.="0";
+        }
+
+        $actualizar = DB::table("empresa")->where("idEmpresa","=",$req->idEmpresa)->update([
+            "permisosGenerales" => $permisosGenerales
+        ]);
+        
+        
+        
+
+        if ($actualizar) {
+            $success = true;
+            $mensaje = "Empresa actualizada correctamente";
+        } else {
+            $success = false;
+            $mensaje = "Error al actualizar empresa";
+        }
+        return response()->json(['success' => $success, 'mensaje' => $mensaje]);
+    }
+    
+
 
     function getFormAdd() {
         $actEconomicas = ActividadEconomicaModel::all();
@@ -34,6 +120,8 @@ class EmpresaController extends Controller
         $ubicaciones = Ubicacion::all();
         $terceroArl = TercerosModel::where('fk_actividad_economica', '=', 1)->get();
         $paises = Ubicacion::where('fkTipoUbicacion', '=', 1)->get();
+        $periocidad = DB::table("periocidad")->whereIn("per_id",[4,3])->get();
+
     	return view('/empresas.addEmpresa', [
             'actEconomicas' => $actEconomicas,
             'paises' => $paises,
@@ -87,12 +175,14 @@ class EmpresaController extends Controller
         $insert = $empresas->save();
         if ($insert) {
             // Creamos centro de costo
-
-            $cenCost = new CentroCostoEmpresaModel();
-            $cenCost->nombre = $request->nom_cen_cost;
-            $cenCost->fkEmpresa = $empresas->idempresa;
-            $cenCost->id_uni_centro = $empresas->id_uni_centro;
-            $cenCost->save();
+            if(isset($request->nom_cen_cost)){
+                $cenCost = new CentroCostoEmpresaModel();
+                $cenCost->nombre = $request->nom_cen_cost;
+                $cenCost->fkEmpresa = $empresas->idempresa;
+                $cenCost->id_uni_centro = $empresas->id_uni_centro;
+                $cenCost->save();
+            }
+            
 
             //Creamos nomina
             $nomEmpresa = new NominaEmpresaModel();

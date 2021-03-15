@@ -126,7 +126,9 @@ class CatalogoContableController extends Controller
                 else if($dato["fkTipoAporteEmpleador"] == "6"){
                     $adicionalAporte = "SENA";
                 }
-                
+                else if($dato["fkTipoAporteEmpleador"] == "7"){
+                    $adicionalAporte = "APORTE FONDO DE SOLIDARIDAD";
+                }
 
 
                 if( strpos($dato["cuentaCredito"], $req->descripcion)!==false || 
@@ -711,9 +713,9 @@ class CatalogoContableController extends Controller
         $fechaFinMes = date("Y-m-t", strtotime($fechaInicioMes));
 
         $arrConceptosAjustePeso = [
-            ["concepto" => "18", "subTipoAporteEmpleador" => "2"],
-            ["concepto" => "19", "subTipoAporteEmpleador" => "1"],
-            ["concepto" => "33", "subTipoAporteEmpleador" => "1"]
+            //["concepto" => "18", "subTipoAporteEmpleador" => "2"],
+            //["concepto" => "19", "subTipoAporteEmpleador" => "1"],
+            //["concepto" => "33", "subTipoAporteEmpleador" => "1"]
         ];
         
 
@@ -1130,7 +1132,7 @@ class CatalogoContableController extends Controller
                                 }
                                 $valor = $valor*-1;
                             }
-                            $valor = $this->roundSup($valor, -2);
+                            //$valor = $this->roundSup($valor, -2);
                             /*$diferencia =  $valor - $this->roundSup($valor, -2);
                             $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
 
@@ -1201,7 +1203,7 @@ class CatalogoContableController extends Controller
                                 }
                                 $valor = $valor*-1;
                             }
-                            $valor = $this->roundSup($valor, -2);
+                            //$valor = $this->roundSup($valor, -2);
                             /*$diferencia =  $valor - $this->roundSup($valor, -2);
                             $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
 
@@ -1269,7 +1271,7 @@ class CatalogoContableController extends Controller
 
                             $diferencia =  $valor - $this->roundSup($valor, -2);
                             $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
-                            $valor = $this->roundSup($valor, -2);
+                            //$valor = $this->roundSup($valor, -2);
                             /*if($diferencia != 0){
                                 if($diferencia < 0){
                                     $diferencia = $diferencia*-1;
@@ -1333,7 +1335,7 @@ class CatalogoContableController extends Controller
                             }
                             $diferencia =  $valor - $this->roundSup($valor, -2);
                             $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
-                            $valor = $this->roundSup($valor, -2);
+                            //$valor = $this->roundSup($valor, -2);
                             /*
                             if($diferencia != 0){
                                 if($diferencia < 0){
@@ -1396,7 +1398,7 @@ class CatalogoContableController extends Controller
                                 }
                                 $valor = $valor*-1;
                             }
-                            $valor = $this->roundSup($valor, -2);
+                            //$valor = $this->roundSup($valor, -2);
                             /*$diferencia =  $valor - $this->roundSup($valor, -2);
                             $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
 
@@ -1462,7 +1464,73 @@ class CatalogoContableController extends Controller
                                 }
                                 $valor = $valor*-1;
                             }
-                            $valor = $this->roundSup($valor, -2);
+                            //$valor = $this->roundSup($valor, -2);
+                            /*
+                            $diferencia =  $valor - $this->roundSup($valor, -2);
+                            $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+
+                            if($diferencia != 0){
+                                if($diferencia < 0){
+                                    $diferencia = $diferencia*-1;
+                                } 
+                                $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($diferencia),
+                                        "tipoReg" => $tipoRegDif,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }*/
+                            $val = true;                            
+                            if($val){
+                                $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
+                                array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
+                                    array(
+                                        "arrCentrosCosto" => $arrCentroCosto,
+                                        "empleado" => $empleado,
+                                        "tablaConsulta" => "3",
+                                        "cuenta" => $datoCuentaTipo3->cuenta,
+                                        "descripcion" => $datoCuentaTipo3->descripcion,
+                                        "transaccion" => $datoCuentaTipo3->transaccion,
+                                        "porcentaje" => $arrCentroCosto["porcentaje"],
+                                        "valor" => round($valor),
+                                        "tipoReg" => $tipoReg,
+                                        "idConcepto" => "",
+                                        "nombreConcepto" => "",
+                                        "subTipoReg" => $datoCuentaTipo3->subTipoConsulta,
+                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo3->fkTipoTercero, $empleado, $datoCuentaTipo3->fkTercero)
+                                    )
+                                );
+                            }
+                        }                        
+                    }
+                    else if($datoCuentaTipo3->subTipoConsulta == "7"){
+                        foreach($parafiscales as $parafiscal){
+                            
+                            $valor = $parafiscal->fondoSolidaridad;
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
+                            //$valor = $this->roundSup($valor, -2); 
+                            if($valor < 0){
+                                if($tipoReg == "CREDITO"){
+                                    $tipoReg = "DEBITO";
+                                }
+                                else{
+                                    $tipoReg = "CREDITO";
+                                }
+                                $valor = $valor*-1;
+                            }
+                            //$valor = $this->roundSup($valor, -2);
                             /*
                             $diferencia =  $valor - $this->roundSup($valor, -2);
                             $tipoRegDif = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
@@ -1514,7 +1582,6 @@ class CatalogoContableController extends Controller
                         }                        
                     }
 
-
                 }
 
                 if($existenCuentasConEseCentroCosto){
@@ -1533,7 +1600,7 @@ class CatalogoContableController extends Controller
                     ->where("cc.fkEmpresa","=",$empleado->fkEmpresa)
                     ->whereNull("dc.fkCentroCosto")
                     ->orderBy("dc.fkCentroCosto")
-                    ->get();                    
+                    ->get();
                 }
 
 
@@ -2227,7 +2294,7 @@ class CatalogoContableController extends Controller
 
                     }
                     else if($row[1]=="3"){
-                        if(intval($row[4])<=0 || intval($row[4])>6 ){
+                        if(intval($row[4])<=0 || intval($row[4])>7 ){
                             //No existe Aporte Empleador
                             $estado = "25";
                         }

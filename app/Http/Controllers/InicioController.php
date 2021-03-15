@@ -15,6 +15,7 @@ use Config;
 class InicioController extends Controller
 {
     public function index(Request $request){
+        
         if ($request->session()->has('usuario')) {
             header('location: /empleado/');
         }

@@ -41,6 +41,10 @@
 		});
 		
 		calendar.render();
+		setTimeout(() => {
+			$('.fc-dayGridMonth-button').trigger('click');
+		}, 200);
+
 		$("body").on("change", "#selectAnio", (e) => {
 			const valorAnio = $('#selectAnio').val();
 			const fechaActual = moment(new Date(), 'YYYY-MM-DD');

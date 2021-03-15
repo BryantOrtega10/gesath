@@ -84,7 +84,7 @@
             <option value="">-- Seleccione una opción --</option>
             @foreach ($tipoIdent as $tipo)
                 <option value="{{ $tipo->idtipoIdentificacion}}"
-                    @if ($tipo->idtipoIdentificacion == old('docRepresentante', $empresa->fkTipoIdentificacion))
+                    @if ($tipo->idtipoIdentificacion == old('docRepresentante', $empresa->docRepresentante))
                     selected="selected"
                 @endif
                 >{{ $tipo->nombre }}</option>

@@ -95,6 +95,49 @@ $(document).ready(function() {
         });
     });
 
+
+    $("body").on("click", ".recalcularCambio", function(e) {
+        e.preventDefault();
+        cargando();
+        const dataid = $(this).attr("data-id");
+        if ($(".numDias[data-id='" + dataid + "']").val() != "" && $(".numHoras[data-id='" + dataid + "']").val() != "") {
+
+            var url = "/" + $(".numDias[data-id='" + dataid + "']").val() + "/" + $(".numHoras[data-id='" + dataid + "']").val();
+
+            $.ajax({
+                type: 'GET',
+                url: $(this).attr("href") + url,
+                cache: false,
+                success: function(data) {
+                    $("#cargando").css("display", "none");
+                    if (data.success) {
+                        $(".netoPagar[data-id='" + dataid + "']").html(data.netoPagar);
+                        $("#totalNomina").html(data.totalNomina);
+
+                        if (typeof $(".verDetalle[data-id='" + dataid + "']")[0] !== 'undefined') {
+                            $(".verDetalle[data-id='" + dataid + "']").trigger("click");
+                        } else {
+                            $(".ocultarDetalle[data-id='" + dataid + "']").trigger("click");
+                            $(".verDetalle[data-id='" + dataid + "']").trigger("click");
+                        }
+                    } else {
+                        alert(data.error);
+                    }
+
+
+                },
+                error: function(data) {
+                    console.log("error");
+                    console.log(data);
+                }
+            });
+        } else {
+            alert("Verifique los valores");
+        }
+
+
+    });
+
     $("body").on("click", ".recalcularNomina", function(e) {
         e.preventDefault();
         cargando();

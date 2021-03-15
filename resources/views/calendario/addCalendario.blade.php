@@ -38,6 +38,11 @@
 			dateClick : (info) => clicAFecha(info)
 		});
 		calendar.render();
+
+		setTimeout(() => {
+			$('.fc-dayGridMonth-button').trigger('click');
+			
+		}, 20);
 		
 		$("body").on("submit", ".formGen", (e) => {
 			e.preventDefault();

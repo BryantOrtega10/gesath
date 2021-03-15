@@ -45,6 +45,7 @@
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item smtp" href = "/empresa/smtp/{{$empresa->idempresa}}"><i class="far fa-envelope"></i> Configuración SMTP</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item centroTrabajo" href = "/empresa/centroTrabajo/{{$empresa->idempresa}}"><i class="fas fa-briefcase"></i> Centros de trabajo</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item" href = "/mensajes/mensajesxEmpresa/{{$empresa->idempresa}}"><i class="fas fa-envelope-open-text"></i> Mensajes</a>
+                            <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item" href = "/empresa/permisosPortal/{{$empresa->idempresa}}"><i class="fas fa-lock"></i> Permisos portal empleado</a>                            
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Empresa</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Empresa</a>
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Empresa</a>

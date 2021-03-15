@@ -221,7 +221,7 @@ $(document).ready(function() {
         e.target.attributes.dataId.value = idDom;
         $.ajax({
             type: 'GET',
-            url: `/grupoConcepto/grupoCon/newGrupoCon/${idDom}`,
+            url: `/grupoConcepto/getForm/masConceptos/${idDom}`,
             cache: false,
             processData: false,
             contentType: false,

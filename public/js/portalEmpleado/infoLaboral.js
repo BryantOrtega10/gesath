@@ -1,4 +1,11 @@
 $(document).ready(() => {
+
+
+
+    $("body").on("click", ".certificado_laboral", (e) => {
+        $("#certificadoLaboral").submit();
+    });
+
     $("body").on("click", ".info_laboral", (e) => {
         const idUsu = $("#idUsu").val();
         solicitudAjax(`/portal/infoLaboral/${idUsu}`, 'GET', null,

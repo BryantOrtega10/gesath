@@ -10,6 +10,31 @@
         </span>
     </div>
 </div>
+@if ($empleado->fkTipoCotizante == 51 && isset($boucher->horasPeriodo))
+    
+    <form method="GET" class="formGeneral" autocomplete="off"> 
+        <input type="hidden" name="idBoucherPago" value="" />
+        <div class="row">
+            <div class="col-4">
+                <div class="form-group hasText">
+                    <label for="numHoras{{$empleado->idempleado}}" class="control-label">Horas al día:</label>
+                    <input type="text" value="{{($boucher->horasPeriodo / $boucher->periodoPago)}}" data-id="{{$boucher->idBoucherPago}}" required 
+                        class="form-control numHoras" id="numHoras{{$empleado->idempleado}}" name="numHoras{{$empleado->idempleado}}"/>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-group hasText">
+                    <label for="numDias{{$empleado->idempleado}}" class="control-label">Días:</label>
+                    <input type="number" value="{{$boucher->periodoPago}}" min="1" data-id="{{$boucher->idBoucherPago}}" required 
+                    class="form-control numDias" data-id="{{$boucher->idBoucherPago}}" id="numDias{{$empleado->idempleado}}" name="numDias{{$empleado->idempleado}}"/>
+                </div>
+            </div>
+            <div class="col-4 ">
+                <a href="/nomina/recalcularyCambioComprobante/{{$boucher->idBoucherPago}}" class="recalcularCambio btnSubmitGen text-center" data-id="{{$boucher->idBoucherPago}}">Recalcular con cambio</a>
+            </div>
+        </div>
+    </form>
+@endif
 <br>
 @isset($novedadesRetiro)
     <div class="row">

@@ -64,7 +64,7 @@
                 <div class="col-3">
                     <div class="form-group hasText">
                         <label for="sumaResta" class="control-label">Operacion:</label>
-                        <input type="text" readonly class="form-control" id="sumaResta" name="sumaResta" value="@if($otra_novedad->sumaResta == "1") Suma @endif @if($otra_novedad->sumaResta == "1") Resta @endif" />
+                        <input type="text" readonly class="form-control" id="sumaResta" name="sumaResta" value="@if($otra_novedad->sumaResta == "1") Suma @endif @if($otra_novedad->sumaResta == "0") Resta @endif" />
                     </div>
                 </div>  
             </div>

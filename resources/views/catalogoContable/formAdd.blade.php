@@ -133,6 +133,7 @@
 			<option value="4">CCF</option>
 			<option value="5">ICBF</option>
 			<option value="6">SENA</option>
+			<option value="7">APORTE FONDO DE SOLIDARIDAD</option>
 		</select>
 	</div>
 	<div class="form-group conceptoCuenta" data-id="0">

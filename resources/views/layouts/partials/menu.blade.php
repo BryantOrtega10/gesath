@@ -18,6 +18,14 @@
         @endif
     </div>
     <ul class="itemsMenu">
+
+        <li class="cerrar_sesion">
+            <a href="/notificaciones" >
+                <i class="fas fa-bell"></i>
+                <span class="numNotificaciones"></span>
+                <span class="textoMenu">Notificaciones</span>
+            </a>
+        </li>
         <li class="{{ Request::is('empleado') ? 'active' : '' }}">
             <a href="/empleado" >
                 <img src="{{ URL::asset('img/menu/hojaVida.png') }}" />

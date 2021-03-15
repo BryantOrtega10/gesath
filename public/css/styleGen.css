@@ -1464,3 +1464,15 @@ li.cerrar_sesion i {
 .menuLateral.active li.cerrar_sesion i {
     display: none;
 }
+
+span.numNotificaciones {
+    position: absolute;
+    border-radius: 20px;
+    padding: 0 11px;
+    height: 20px;
+    left: 50%;
+    top: 0;
+    background: #ff6a41;
+    font-size: 13px;
+    color: #FFF;
+}

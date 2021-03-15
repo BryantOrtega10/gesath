@@ -30,20 +30,22 @@ class PortalEmpleadoController extends Controller
         )
         ->where('idempleado', $dataUsu->fkEmpleado)->first();
         $fotoEmple = 'http://gesath.web-html.com/storage/imgEmpleados/'.$dataEmple->foto;
-
+        $dataEmpr = DB::table('empresa')->select(
+            'empresa.idempresa',
+            'empresa.logoEmpresa',
+            'empresa.razonSocial',
+            'empresa.permisosGenerales',
+            'empleado.fkNomina',
+            'empleado.idempleado'
+        )->join('empleado', 'empresa.idempresa', 'empleado.fkEmpresa')
+        ->where('empresa.idempresa', $dataEmple->fkEmpresa)->first();
+            
         if (is_null($dataEmple->foto) || $dataEmple->foto === '') {
-            $dataEmpr = DB::table('empresa')->select(
-                'empresa.idempresa',
-                'empresa.logoEmpresa',
-                'empresa.razonSocial',
-                'empleado.fkNomina',
-                'empleado.idempleado'
-            )->join('empleado', 'empresa.idempresa', 'empleado.fkEmpresa')
-            ->where('empresa.idempresa', $dataEmple->fkEmpresa)->first();
+           
             if (is_null($dataEmpr->logoEmpresa)) {
-                $fotoEmple = 'http://gesath.web-html.com/img/noimage.png';
+                $fotoEmple = '/img/noimage.png';
             } else {
-                $fotoEmple = 'http://gesath.web-html.com/storage/logosEmpresas/'.$dataEmpr->logoEmpresa;
+                $fotoEmple = '/storage/logosEmpresas/'.$dataEmpr->logoEmpresa;
             }
         }
 
@@ -289,36 +291,74 @@ class PortalEmpleadoController extends Controller
         ->join('centrocosto', 'empresa.idempresa', 'centrocosto.fkEmpresa')
         ->join('periodo', 'periodo.fkEmpleado', 'empleado.idempleado')
         ->select(
-            'conceptofijo.valor',
+            'conceptofijo.valor as sueldoConceptoFijo',
             'conceptofijo.unidad',
             'cargo.nombreCargo',
             'centrocosto.nombre',
             'empresa.razonSocial',
             'periodo.fechaInicio',
             'periodo.fechaFin',
-            'periodo.salario',
+            'periodo.salario as sueldoPeriodo',
             'periodo.fkEstado'
         )
         ->where('empleado.idempleado', $idEmple)
+        ->whereIn('conceptofijo.fkConcepto', ['1', '2', '53', '54'])
+        ->groupBy('empresa.idempresa')
+        ->orderBy('periodo.fechaInicio', 'DESC')
+        ->get();
+
+        $posibleReintegro = DB::table('periodo')
+        ->join('estado', 'periodo.fkEstado', 'estado.idestado')
+        ->join('empleado', 'periodo.fkEmpleado', 'empleado.idempleado')
+        ->join('nomina', 'periodo.fkNomina', 'nomina.idNomina')
+        ->join('empresa', 'empleado.fkEmpresa', 'empresa.idempresa')
+        ->join('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
+        ->join('conceptofijo', 'empleado.idempleado', 'conceptofijo.fkEmpleado')
+        ->join('cargo', 'empleado.fkCargo', 'cargo.idCargo')
+        ->join('centrocosto', 'empresa.idempresa', 'centrocosto.fkEmpresa')
+        ->select(
+            'conceptofijo.valor as sueldoConceptoFijo',
+            'conceptofijo.unidad',
+            'cargo.nombreCargo',
+            'centrocosto.nombre',
+            'empresa.razonSocial',
+            'periodo.fechaInicio',
+            'periodo.fechaFin',
+            'periodo.salario as sueldoPeriodo',
+            'periodo.fkEstado',
+            'estado.nombre'
+        )
+        ->where('empleado.idempleado', $idEmple)
+        ->where('periodo.fkEstado', ['1', '2', '53', '54'])
         ->where('conceptofijo.fkConcepto', '1')
         ->groupBy('empresa.idempresa')
         ->get();
 
+        $trabajos = null;
+
+        if ($posibleReintegro) {
+            $empresasEmple = $empresasEmpleado->merge($posibleReintegro);
+            $trabajos = $empresasEmple->all();
+        } else {
+            $trabajos = $empresasEmpleado->all();
+            $trabajos = collect($trabajos)->sortByDesc('fechaInicio')->reverse()->toArray();
+        }        
+
         /* return response()->json([
             'dataEmpleado' => $datosEmpleado,
-            'empresasEmpleado' => $empresasEmpleado,
+            'empresasEmpleado' => $trabajos,
             'fechaCarta' => $fechaCarta
         ]); */
 
         /* return view('/pdfs.certificadoLaboral', [
             'dataEmpleado' => $datosEmpleado,
-            'empresasEmpleado' => $empresasEmpleado,
+            'empresasEmpleado' => $trabajos,
             'fechaCarta' => $fechaCarta
         ]); */
         
         $vista = view('/pdfs.certificadoLaboral', [
             'dataEmpleado' => $datosEmpleado,
-            'empresasEmpleado' => $empresasEmpleado,
+            'empresasEmpleado' => $trabajos,
             'fechaCarta' => $fechaCarta
         ]);
 
@@ -328,6 +368,7 @@ class PortalEmpleadoController extends Controller
         $dompdf->get_canvas()->get_cpdf()->setEncryption($datosEmpleado->numeroIdentificacion, $datosEmpleado->numeroIdentificacion);
         $dompdf->stream("Certificación Laboral", array('compress' => 1, 'Attachment' => 1));
     }
+
 
     public function vistaActPass($id) {
         try {

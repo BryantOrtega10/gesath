@@ -102,6 +102,7 @@ $(document).ready(function() {
             contentType: false,
             data: formdata,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
                     retornarAlerta(
                         '¡Hecho!',
@@ -116,6 +117,7 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 const error = data.responseJSON;
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
@@ -172,6 +174,7 @@ $(document).ready(function() {
             contentType: false,
             data: formdata,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
                     retornarAlerta(
                         '¡Hecho!',
@@ -186,6 +189,7 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 const error = data.responseJSON;
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
@@ -228,6 +232,7 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
                     window.location.reload();
                 } else {
@@ -236,6 +241,7 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 console.log(data);
             }
         });

@@ -39,7 +39,7 @@ class EmpresaRequest extends FormRequest
             /* 'telefonoFijo' => 'required',
             'celular' => 'required',
             'email1' => 'required', */
-            'nom_cen_cost' => 'required',
+            //'nom_cen_cost' => 'required',
             'documento' => 'required',
             'digitoVerificacion' => 'required',
             'fkTercero_ARL' => 'required',

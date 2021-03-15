@@ -53,11 +53,30 @@
             <div class="row empleadoFila" data-id="{{$empleado->idempleado}}">
                 <div class="col-7">
                     {{$empleado->primerNombre." ".$empleado->segundoNombre." ".$empleado->primerApellido." ".$empleado->segundoApellido}}
-        
                 </div>
                 <div class="col-2 font-weight-bold">{{$empleado->nombre}}</div>
                 <div class="col-2 font-weight-bold">{{$empleado->numeroIdentificacion}}</div>
                 <div class="col-1 font-weight-bold"><a href="#" class="quitarEmpleadoNomina" data-id="{{$empleado->idempleado}}"><i class="fas fa-trash"></i></a></div>
+
+                @if ($empleado->fkTipoCotizante=="51" && $tipoNomina!=3 && $tipoNomina!=7 && $tipoNomina!=10 && $tipoNomina!=11)
+                    <div class="col-7"></div>    
+                    <div class="col-2">
+                        <div class="form-group">
+                            <label for="numHoras{{$empleado->idempleado}}" class="control-label">Horas al día:</label>
+                            <input type="text" required class="form-control" id="numHoras{{$empleado->idempleado}}" name="numHoras{{$empleado->idempleado}}"/>
+                        </div>
+                    </div>    
+                    <div class="col-2">
+                        <div class="form-group">
+                            <label for="numDias{{$empleado->idempleado}}" class="control-label">Días:</label>
+                            <input type="number" min="1" required class="form-control" id="numDias{{$empleado->idempleado}}" name="numDias{{$empleado->idempleado}}"/>
+                        </div>
+                    </div>    
+                    <div class="col-1"></div>    
+                @endif
+                
+                
+
             </div>
         @endforeach
 

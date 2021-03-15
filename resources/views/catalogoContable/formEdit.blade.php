@@ -147,6 +147,7 @@
 			<option value="4" @if($datosCuentaCred->subTipoConsulta == "4" && $datosCuentaCred->tablaConsulta == "3") selected @endif>CCF</option>
 			<option value="5" @if($datosCuentaCred->subTipoConsulta == "5" && $datosCuentaCred->tablaConsulta == "3") selected @endif>ICBF</option>
 			<option value="6" @if($datosCuentaCred->subTipoConsulta == "6" && $datosCuentaCred->tablaConsulta == "3") selected @endif>SENA</option>
+			<option value="7" @if($datosCuentaCred->subTipoConsulta == "7" && $datosCuentaCred->tablaConsulta == "3") selected @endif>APORTE FONDO DE SOLIDARIDAD</option>
 		</select>
 	</div>
 	<div class="form-group conceptoCuenta @if($datosCuentaCred->tablaConsulta == "4") activo @endif" data-id="0">

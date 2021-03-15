@@ -2072,9 +2072,7 @@ class EmpleadoController extends Controller
             }
         }
 
-        DB::table('conceptofijo')->where("fkEmpleado","=", $req->idEmpleado)->delete();
-
-        
+        DB::table('conceptofijo')->where("fkEmpleado","=", $req->idEmpleado)->delete();        
         
         foreach($req->conFiConcepto as $key => $concepto) {            
             $insertConceptoFijo = array(
@@ -2117,32 +2115,122 @@ class EmpleadoController extends Controller
                 ->insertGetId($arrCambioSalario,"idCambioSalario");
             }
 
-
-            if(strtotime($req->conFiFechaInicioCambio) <= strtotime("now")){
-
-                
-
-                $conceptoSalario = DB::table("conceptofijo", "cf")
-                ->whereIn("cf.fkConcepto",["1","2"])
-                ->where("cf.fkEmpleado", "=", $req->idEmpleado)
+            //OBTENER LA ULTIMA LQ DE TIPO NORMAL QUE ESTE APROBADA 
+            $periodoActivoReintegro = DB::table("periodo")
+            ->where("fkEstado","=","1")
+            ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+            
+            if(isset($periodoActivoReintegro)){
+                $liquidacion = DB::table("liquidacionnomina","ln")
+                ->join("boucherpago as bp","bp.fkLiquidacion", "=", "ln.idLiquidacionNomina")
+                ->where("bp.fkEmpleado", "=",$req->idEmpleado)
+                ->where("ln.fkEstado","=","5")
+                ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
+                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->orderBy("ln.fechaLiquida","desc")
                 ->first();
+
                 
-                $updateConceptoFijo = array(
-                    "valor"=> $req->conValorCambio,
-                    "fechaInicio"=> $req->conFiFechaInicioCambio,
-                    "fkEstado" => 1,                
-                );
+                if(isset($liquidacion)){
+                    if(strtotime($req->conFiFechaInicioCambio) <= strtotime($liquidacion->fechaLiquida)){
+                        //Es anterior a la ultima liquidacion toca hacer retroactivo y activar el concepto
+
+                        $retroActivo = 0;
+                        $liquidacionesMesesAnterioresPrima = DB::table("liquidacionnomina", "ln")
+                        ->selectRaw("sum(bp.periodoPago) as periodPago")
+                        ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")                
+                        ->where("bp.fkEmpleado","=",$req->idEmpleado)
+                        ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                        ->where("ln.fechaInicio","<=",$liquidacion->fechaInicio)
+                        ->where("ln.fechaInicio",">=",$req->conFiFechaInicioCambio)
+                        ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
+                        ->first();
+                        if(isset($liquidacionesMesesAnterioresPrima)){
+                            $valorDiaSalAnt = ($req->conFiValor[0] / 30);
+                            $valorDiaSalAct = (intval($req->conValorCambio) / 30);
+
+                            $valorAcumAnt = ($valorDiaSalAnt * floatval($liquidacionesMesesAnterioresPrima->periodPago));
+                            $valorAcumAct = ($valorDiaSalAct * floatval($liquidacionesMesesAnterioresPrima->periodPago));
+
+                            $retroActivo = $valorAcumAct - $valorAcumAnt;
+
+                            $idOtraNovedad = DB::table('otra_novedad')->insertGetId([
+                                "valor" => $retroActivo,
+                                "sumaResta" => "1"
+                            ], "idOtraNovedad");
+                
+                
+                            $periodoActivoReintegro = DB::table("periodo")
+                            ->where("fkEstado","=","1")
+                            ->where("fkEmpleado", "=", $req->idEmpleado)->first();
+                            
+                            $empleado = DB::table("empleado", "e")->where("e.idempleado","=",$req->idEmpleado)->first();
+
+                            $arrInsertNovedad = array(
+                                "fkTipoNovedad" => "7", 
+                                "fkPeriodoActivo" => $periodoActivoReintegro->idPeriodo,
+                                "fkNomina" => $empleado->fkNomina,
+                                "fechaRegistro" => $liquidacion->fechaProximaInicio,
+                                "fkOtros" => $idOtraNovedad,
+                                "fkEmpleado" => $req->idEmpleado,
+                                "fkConcepto" => "49"
+                            );
+                            DB::table('novedad')->insert($arrInsertNovedad);
+                        }
 
 
+                        $conceptoSalario = DB::table("conceptofijo", "cf")
+                        ->whereIn("cf.fkConcepto",["1","2"])
+                        ->where("cf.fkEmpleado", "=", $req->idEmpleado)
+                        ->first();
+                        $updateConceptoFijo = array(
+                            "valor"=> $req->conValorCambio,
+                            "fechaInicio"=> $req->conFiFechaInicioCambio,
+                            "fkEstado" => 1,                
+                        );
+    
+                        DB::table('cambiosalario')
+                        ->where("idCambioSalario","=",$idCambioSalario)
+                        ->update(array("fkEstado" => "5"));
+    
+                        DB::table('conceptofijo')
+                        ->where("idConceptoFijo","=",$conceptoSalario->idConceptoFijo)
+                        ->update($updateConceptoFijo);
 
-                DB::table('cambiosalario')
-                ->where("idCambioSalario","=",$idCambioSalario)
-                ->update(array("fkEstado" => "5"));
 
-                DB::table('conceptofijo')
-                ->where("idConceptoFijo","=",$conceptoSalario->idConceptoFijo)
-                ->update($updateConceptoFijo);
+                    }
+                }
+                else{
+                    if(strtotime($req->conFiFechaInicioCambio) <= strtotime("now")){
+                        $conceptoSalario = DB::table("conceptofijo", "cf")
+                        ->whereIn("cf.fkConcepto",["1","2"])
+                        ->where("cf.fkEmpleado", "=", $req->idEmpleado)
+                        ->first();
+                        $updateConceptoFijo = array(
+                            "valor"=> $req->conValorCambio,
+                            "fechaInicio"=> $req->conFiFechaInicioCambio,
+                            "fkEstado" => 1,                
+                        );
+    
+    
+    
+                        DB::table('cambiosalario')
+                        ->where("idCambioSalario","=",$idCambioSalario)
+                        ->update(array("fkEstado" => "5"));
+    
+                        DB::table('conceptofijo')
+                        ->where("idConceptoFijo","=",$conceptoSalario->idConceptoFijo)
+                        ->update($updateConceptoFijo);
+                    }
+                }
+                
             }
+
+
+           
+                
+
+               
             
 
         }
@@ -2547,8 +2635,6 @@ class EmpleadoController extends Controller
             DB::table('conceptofijo')->insert($insertConceptoFijo);
         }
         
-
-       
         if(isset($req->conFiFechaInicioCambio) and !empty($req->conFiFechaInicioCambio) and isset($req->conValorCambio) and !empty($req->conValorCambio)){
             $arrCambioSalario = array(
                 "fechaCambio" => $req->conFiFechaInicioCambio,

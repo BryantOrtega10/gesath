@@ -59,8 +59,7 @@
                 Nombre de cargo: {{ $emp->nombreCargo }}<br>
                 Fecha Inicio Contrato: {{ $emp->fechaInicio }}<br>
                 Fecha Fin Contrato: {{ $emp->fechaFin ?? 'Actual' }}<br>
-                {{-- Salario: @moneda({{ $emp->valor ?? $emp->salario }})<br> --}}
-                Salario: {{ number_format($emp->valor ?? $emp->salario, '2', ".", ".") }}<br>
+                Salario: {{ number_format($emp->sueldoConceptoFijo ?? $emp->sueldoPeriodo, '2', ".", ".") }}<br>
             </p>
         @endforeach
         <p style = "text-align: justify;">
