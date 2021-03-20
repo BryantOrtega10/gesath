@@ -6,19 +6,33 @@
                 <span class="nombreUsuario">
                     Hola {{ $dataUsu->primerNombre }} {{ $dataUsu->primerApellido }}
                 </span>
-                <img src="/storage/imgEmpleados/{{ $dataUsu->foto }}" />
+                @if (isset($dataUsu->foto))
+                    <img src="/storage/imgEmpleados/{{ $dataUsu->foto }}" />    
+                @else
+                    <img src="{{ URL::asset('img/menu/personaDefecto.png') }}" />
+                @endif
+                
             </div>
         @else
             <div class="perfilPersona">
                 <span class="nombreUsuario">
-                    Hola Andres12
+                    Hola Administrador
                 </span>
                 <img src="{{ URL::asset('img/menu/personaDefecto.png') }}" />
             </div>
         @endif
     </div>
     <ul class="itemsMenu">
-
+        <li class="busqueda">
+            <a>
+                <i class="fas fa-search"></i>
+                <span class="textoMenu">Busqueda</span>
+            </a>
+            <div class="contTxtBusqueda">
+                <input type="text" placeholder="Buscar" id="buscarMenu" />
+                <div class="respMenu"></div>
+            </div>            
+        </li>
         <li class="cerrar_sesion">
             <a href="/notificaciones" >
                 <i class="fas fa-bell"></i>
@@ -269,21 +283,39 @@
                         <span class="textoMenu">Códigos diagnóstico</span>
                     </a>
                 </li>
-            </ul>
-        </li>
-        <li class="{{ Request::is('usuarios') ? 'active' : '' }}">
-            <a href="/usuarios" >
-                <img src="{{ URL::asset('img/menu/usuarios.png') }}" />
-                <span class="textoMenu">Usuarios</span>
-            </a>
-            <ul class="subMenu">
-                <li>
-                    <a href="/usuarios" >
-                        <span class="textoMenu">Lista usuarios</span>
+                <li  class="{{ Request::is('ActualizarDatos') ? 'active' : '' }}">
+                    <a href="/ActualizarDatos/redondeos">
+                        <span class="textoMenu">Actualizar redondeos</span>
                     </a>
                 </li>
+                <li  class="{{ Request::is('ActualizarDatos') ? 'active' : '' }}">
+                    <a href="/ActualizarDatos/upcAdicional">
+                        <span class="textoMenu">Actualizar upc adicional</span>
+                    </a>
+                </li>
+                <li  class="{{ Request::is('ActualizarDatos') ? 'active' : '' }}">
+                    <a href="/ActualizarDatos/valoresRetencion">
+                        <span class="textoMenu">Actualizar tabla retención</span>
+                    </a>
+                </li>
+                
             </ul>
         </li>
+        @if(isset($dataUsu) && $dataUsu->fkRol == 3)
+            <li class="{{ Request::is('usuarios') ? 'active' : '' }}">
+                <a href="/usuarios" >
+                    <img src="{{ URL::asset('img/menu/usuarios.png') }}" />
+                    <span class="textoMenu">Usuarios</span>
+                </a>
+                <ul class="subMenu">
+                    <li>
+                        <a href="/usuarios" >
+                            <span class="textoMenu">Lista usuarios</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
         <li class="cerrar_sesion">
             <a href="/logout" >
                 <i class="fas fa-sign-out-alt"></i>

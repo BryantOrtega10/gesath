@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Cierre de periodo')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')

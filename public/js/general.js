@@ -67,6 +67,18 @@ $(document).ready(function() {
         }
     });
 
-
+    $("body").on("keyup", "#buscarMenu", function(e) {
+        $.ajax({
+            type: 'GET',
+            url: "/menu/buscar/" + $(this).val(),
+            success: function(data) {
+                $(".respMenu").html(data);
+            },
+            error: function(data) {
+                console.log("error");
+                console.log(data);
+            }
+        });
+    })
 
 });

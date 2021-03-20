@@ -21,8 +21,8 @@ class CargosController extends Controller
     }
 
     public function subirPlanoIndex(){
-        
-        return view('/cargos/subirPlanocargos');
+        $usu = UsuarioController::dataAdminLogueado();
+        return view('/cargos/subirPlanocargos', ['dataUsu' => $usu]);
     }
 
     public function subirArchivo(Request $req){

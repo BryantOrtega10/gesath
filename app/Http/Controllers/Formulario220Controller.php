@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\DB;
 class Formulario220Controller extends Controller
 {
     public function index(){
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $formularios = DB::table("formulario220")->get();
-        return view('/formulario220.index', ["formularios" => $formularios]);
+        return view('/formulario220.index', ["formularios" => $formularios, "dataUsu" => $dataUsu]);
     }
     public function getFormAdd(){
 		return view('/formulario220.add');

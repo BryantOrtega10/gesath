@@ -11,7 +11,7 @@ $(document).ready(function() {
             url: '//cdn.datatables.net/plug-ins/1.10.22/i18n/Spanish.json'
         }
     });
-    
+
     $(document).on('show.bs.modal', '.modal', function(event) {
         var zIndex = 1040 + (10 * $('.modal:visible').length);
         $(this).css('z-index', zIndex);
@@ -55,6 +55,7 @@ $(document).ready(function() {
             contentType: false,
             data: formdata,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
                     retornarAlerta(
                         '¡Hecho!',
@@ -64,11 +65,16 @@ $(document).ready(function() {
                     );
                     window.location.reload();
                 } else {
-                    $("#infoErrorForm").css("display", "block");
-                    $("#infoErrorForm").html(data.mensaje);
+                    retornarAlerta(
+                        '¡Error!',
+                        data.mensaje,
+                        'error',
+                        'Aceptar'
+                    );
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 const error = data.responseJSON;
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
@@ -103,6 +109,9 @@ $(document).ready(function() {
         cargando();
         $(".close").trigger('click');
         var formdata = new FormData(this);
+        if ($("#password").val() == "") {
+            formdata.delete("password");
+        }
         $.ajax({
             type: 'POST',
             url: `${$(this).attr("action")}`,
@@ -111,6 +120,7 @@ $(document).ready(function() {
             contentType: false,
             data: formdata,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 if (data.success) {
                     retornarAlerta(
                         '¡Hecho!',
@@ -120,11 +130,16 @@ $(document).ready(function() {
                     );
                     window.location.reload();
                 } else {
-                    $("#infoErrorForm").css("display", "block");
-                    $("#infoErrorForm").html(data.mensaje);
+                    retornarAlerta(
+                        '¡Error!',
+                        data.mensaje,
+                        'error',
+                        'Aceptar'
+                    );
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 const error = data.responseJSON;
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
@@ -260,4 +275,41 @@ $(document).ready(function() {
             }
         });
     });
+
+
+    $("body").on("change", "#fkRol", (e) => {
+        if ($("#fkRol option:selected").val() == "2") {
+            $(".cont_empresas").addClass("activo");
+        } else {
+            $(".cont_empresas").removeClass("activo");
+        }
+    });
+
+    $("body").on("click", ".addEmpresa", function(e) {
+        e.preventDefault();
+        var empresas = $("#numEmpresa").val();
+        var url = $(this).attr("href") + "/" + empresas;
+        empresas++;
+
+        cargando();
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(data) {
+                $("#cargando").css("display", "none");
+                $("#numEmpresa").val(empresas);
+                $(".cont_empresas_add").append(data);
+            },
+            error: function(data) {
+                console.log("error");
+                console.log(data);
+            }
+        });
+    });
+    $("body").on("click", ".quitarEmpresa", function(e) {
+        e.preventDefault();
+        $(".filaEmpresa[data-id='" + $(this).attr("data-id") + "']").remove();
+    });
+
+
 });

@@ -41,9 +41,11 @@ class NotificacionesController extends Controller
         }
         
         $notificaciones = $notificaciones->orderBy("n.fecha","desc")->paginate();
+        $dataUsu = UsuarioController::dataAdminLogueado();
         return view('notificacion.index', [
             "notificaciones" => $notificaciones,
-            "req" => $req
+            "req" => $req,
+            "dataUsu" => $dataUsu
         ]);
     }
     public function numeroNotificaciones(){

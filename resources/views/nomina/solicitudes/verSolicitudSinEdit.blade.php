@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Ver solicitud de liquidación')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')
@@ -159,5 +161,5 @@
 </div>
 
 
-<script type="text/javascript" src="{{ URL::asset('js/nomina/verSolicitud.js') }}"></script>
+<script type="text/javascript" src="{{ URL::asset('js/nomina/verSolicitudTerminada.js') }}"></script>
 @endsection

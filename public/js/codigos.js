@@ -59,6 +59,7 @@ $(document).ready(function() {
             type: 'GET',
             url: "/codigos/getFormAdd",
             success: function(data) {
+                $("#cargando").css("display", "none");
                 $(".respForm[data-para='codigos']").html(data);
                 $('#codigosModal').modal('show');
             },

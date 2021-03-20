@@ -83,6 +83,8 @@ $(document).ready(function() {
         var formdata = new FormData(this);
         const exentoParaf = $("#exento")[0].checked;
         const vacacionesNeg = $("#vacacionesNegativas")[0].checked;
+        const pagoParafiscales = $("#pagoParafiscales")[0].checked;
+
         if (exentoParaf) {
             formdata.append('exento', 1);
         } else {
@@ -93,6 +95,12 @@ $(document).ready(function() {
             formdata.append('vacacionesNegativas', 1);
         } else {
             formdata.append('vacacionesNegativas', 0);
+        }
+
+        if (pagoParafiscales) {
+            formdata.append('pagoParafiscales', 1);
+        } else {
+            formdata.append('pagoParafiscales', 0);
         }
         $.ajax({
             type: 'POST',
@@ -165,6 +173,11 @@ $(document).ready(function() {
             formdata.append('vacacionesNegativas', 1);
         } else {
             formdata.append('vacacionesNegativas', 0);
+        }
+        if (pagoParafiscales) {
+            formdata.append('pagoParafiscales', 1);
+        } else {
+            formdata.append('pagoParafiscales', 0);
         }
         $.ajax({
             type: 'POST',
@@ -245,6 +258,16 @@ $(document).ready(function() {
                 console.log(data);
             }
         });
+    });
+
+
+    $("body").on("change", "#periodo", (e) => {
+        const periodo = $("#periodo option:selected").val();
+        if (periodo == "15") {
+            $(".para15Dias").css("display", "block");
+        } else {
+            $(".para15Dias").css("display", "none");
+        }
     });
 
     $("body").on("change", "#pais", (e) => {

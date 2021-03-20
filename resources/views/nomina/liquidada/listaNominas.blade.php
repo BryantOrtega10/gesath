@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Liquidaciones terminadas')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')
@@ -72,6 +74,9 @@
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                       
                         <div class="dropdown-menu dropdown-menu-right">
+                            @if ($liquidacion->fkTipoLiquidacion == 8)
+                                <a href="/nomina/cancelarSolicitud" class="dropdown-item cancelarSolicitud" data-id="{{$liquidacion->idLiquidacionNomina}}">Cancelar liquidación</a>
+                            @endif
                             <a href="/nomina/documentoRetencion/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Documento retencion en la fuente</a>
                             <a href="/nomina/reversar/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Reversar nomina</a>
                             <a href="/nomina/verSolicitudLiquidacionSinEdit/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Ver</a>
@@ -86,9 +91,52 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function(e){
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        function cargando() {
+            if (typeof $("#cargando")[0] !== 'undefined') {
+                $("#cargando").css("display", "flex");
+            } else {
+                $("body").append('<div id="cargando" style="display: flex;">Cargando...</div>');
+            }
+        }
         $(".recargar").click(function(){
             window.open("/nomina/nominasLiquidadas","_self");
         });
+
+        $("body").on("click", ".cancelarSolicitud", function(e) {
+            e.preventDefault();
+            const dataId = $(this).attr("data-id");
+            cargando();
+            var formdata = new FormData();
+            formdata.append('idLiquidacion', dataId);
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr("href"),
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: formdata,
+                success: function(data) {
+                    $("#cargando").css("display", "none");
+                    if (data.success) {
+                        alert("Liquidación eliminada correctamente");
+                        window.location.reload();
+                    } else {
+                        alert(data.mensaje);
+                    }
+                },
+                error: function(data) {
+                    $("#cargando").css("display", "none");
+                    console.log("error");
+                    console.log(data);
+                }
+            });
+        });
+
     });
 </script>
 @endsection

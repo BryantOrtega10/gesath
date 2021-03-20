@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Descargar catalogo contable')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')

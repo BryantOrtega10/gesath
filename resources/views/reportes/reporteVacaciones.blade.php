@@ -1,13 +1,15 @@
 @extends('layouts.admin')
-@section('title', 'Reporte nomina horizontal')
+@section('title', 'Reporte de vacaciones')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1 class="granAzul">Reporte nomina horizontal</h1>
+        <h1 class="granAzul">Reporte de vacaciones</h1>
     </div>
 </div>
 <div class="row">

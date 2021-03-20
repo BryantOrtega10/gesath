@@ -23,14 +23,24 @@ class ReportesNominaController extends Controller
     
 
     public function reporteNominaHorizontalIndex(){
-        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
 
-        return view('/reportes.nominaHorizontal',["empresas" => $empresas]);
+        return view('/reportes.nominaHorizontal',["empresas" => $empresas, "dataUsu" => $dataUsu]);
     }
     public function reporteNominaAcumuladoIndex(){
-        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
         $conceptos = DB::table("concepto","c")->orderBy("c.nombre")->get();
-        return view('/reportes.nominaAcumulado',["empresas" => $empresas, "conceptos" => $conceptos]);
+        return view('/reportes.nominaAcumulado',["empresas" => $empresas, "conceptos" => $conceptos, "dataUsu" => $dataUsu]);
     }
     
     public function documentoNominaHorizontal($idLiquidacionNomina){
@@ -3184,12 +3194,16 @@ class ReportesNominaController extends Controller
 
     }
     public function seleccionarDocumentoSeguridad(){
-        $empresas = DB::table("empresa", "e")
-        ->orderBy("razonSocial")
-        ->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
 
         return view('/reportes.seleccionarDocumentoSeguridad',[
-            'empresas' => $empresas            
+            'empresas' => $empresas,
+            "dataUsu" => $dataUsu            
         ]);
     }
     public function documentoSSTxt(Request $req){
@@ -5901,12 +5915,16 @@ class ReportesNominaController extends Controller
 
 
     public function seleccionarDocumentoProvisiones(){
-        $empresas = DB::table("empresa", "e")
-        ->orderBy("razonSocial")
-        ->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
 
         return view('/reportes.seleccionarDocumentoProvisiones',[
-            'empresas' => $empresas            
+            'empresas' => $empresas,
+            "dataUsu" => $dataUsu            
         ]);
     }
 
@@ -6875,9 +6893,16 @@ class ReportesNominaController extends Controller
         return $array;
     }
     public function indexReporteVacaciones(){
-        $empresas = DB::table("empresa", "e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+
         return view('/reportes.reporteVacaciones',[
-            "empresas" => $empresas
+            "empresas" => $empresas,
+            "dataUsu" => $dataUsu
         ]);
     }
     public function reporteVacaciones(Request $req){
@@ -7042,7 +7067,9 @@ class ReportesNominaController extends Controller
 
                                 $fechaInicio = $empleado->fechaIngreso;
                                 $fechaFinGen = date("Y-m-t",strtotime($req->fechaFin));
-                                
+                                if(substr($fechaFinGen, 8, 2) == "31" || (substr($fechaFinGen, 8, 2) == "28" && substr($fechaFinGen, 5, 2) == "02") || (substr($fechaFinGen, 8, 2) == "29" && substr($fechaFinGen, 5, 2) == "02")  ){
+                                    $fechaFinGen = substr($fechaFinGen,0,8)."30";
+                                }
                                 $entrar=true;
                                 $periodo = 1;
                     
@@ -7246,12 +7273,18 @@ class ReportesNominaController extends Controller
         
     }
     public function indexFormulario220(){
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
         $formularios = DB::table("formulario220")->orderBy("anio","desc")->get();
 
         return view('/reportes.formulario220',[
             "empresas" => $empresas,
-            "formularios" => $formularios
+            "formularios" => $formularios,
+            "dataUsu" => $dataUsu
         ]);
     }
 
@@ -8049,11 +8082,17 @@ class ReportesNominaController extends Controller
 
 
     public function indexNovedades(){
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
         
 
         return view('/reportes.novedades',[
             "empresas" => $empresas,
+            "dataUsu" => $dataUsu
         ]);
     }
     public function generarNovedades(Request $req){
@@ -8200,7 +8239,9 @@ class ReportesNominaController extends Controller
         $reportes = DB::table("reporte", "r")
         ->orderBy("r.nombre")->get();
 
-        return view("/reportes.reporteador", ["reportes" => $reportes]);
+        $dataUsu = UsuarioController::dataAdminLogueado();
+
+        return view("/reportes.reporteador", ["reportes" => $reportes, "dataUsu" => $dataUsu]);
 
 
         
@@ -8257,9 +8298,12 @@ class ReportesNominaController extends Controller
         ->join("item_tipo_reporte as itr","itr.IdItemTipoReporte", "=", "ir.fkItemTipoReporte")
         ->where("ir.fkReporte","=",$idReporte)->orderBy("ir.posicion")->get();
         
+        $dataUsu = UsuarioController::dataAdminLogueado();
+      
         return view('/reportes.generarReporte', [
             "reporte" => $reporte,
-            "itemsReporte" => $itemsReporte
+            "itemsReporte" => $itemsReporte,
+            "dataUsu" => $dataUsu
         ]);
 
     }
@@ -8458,6 +8502,11 @@ class ReportesNominaController extends Controller
             ->join('tercero AS terceroArl','terceroArl.idTercero', '=', 'emp.fkTercero_ARL',"left")
             ->join('retiro AS r','r.idRetiro', '=', 'nRet.fkRetiro',"left")
             ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro","left");
+            $dataUsu = UsuarioController::dataAdminLogueado();
+
+            if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+                $consulta = $consulta->whereIn("e.fkEmpresa", $dataUsu->empresaUsuario);
+            }
 
             $existeFiltroEstado = false;
             if(isset($req->filtro)){
@@ -10241,9 +10290,14 @@ class ReportesNominaController extends Controller
     }
 
     public function reportePorEmpleado(){
-        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
 
-        return view('/reportes.porEmpleado',["empresas" => $empresas]);
+        return view('/reportes.porEmpleado',["empresas" => $empresas, "dataUsu" => $dataUsu ]);
     }   
     public function liquidacionesxEmpleado($idEmpleado){
         $liquidaciones = DB::table("liquidacionnomina","ln")
@@ -10261,13 +10315,20 @@ class ReportesNominaController extends Controller
     }
 
     public function indexReportePrestamos(){
-        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+
         $conceptos = DB::table("concepto","c")
         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
         ->whereIn("gcc.fkGrupoConcepto",["41","42"])
         ->orderBy("nombre")->get();
+        
 
-        return view('/reportes.prestamos',["empresas" => $empresas, "conceptos" => $conceptos]);
+        return view('/reportes.prestamos',["empresas" => $empresas, "conceptos" => $conceptos, "dataUsu" => $dataUsu]);
     }
     public function conceptosPorTipo($tipoReporte){
 
@@ -10439,15 +10500,21 @@ class ReportesNominaController extends Controller
     }
     
     public function envioCorreosReporte(){
-        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
 
         $mensajes = DB::table("mensaje")
         ->whereIn("tipo",[1,4,7,8])
         ->whereNull("fkEmpresa")->get();
-
+        
         return view('/reportes.envioCorreos',[
             "empresas" => $empresas,
-            "mensajes" => $mensajes
+            "mensajes" => $mensajes,
+            "dataUsu" => $dataUsu
         ]);
     }
 

@@ -40,7 +40,13 @@
                             <select class="form-control" id="infoEmpresa" name="empresa">
                                 <option value=""></option>        
                                 @foreach ($empresas as $empresa)
-                                    <option value="{{$empresa->idempresa}}" @isset($req->empresa) @if ($req->empresa == $empresa->idempresa) selected @endif @endisset>{{$empresa->razonSocial}}</option>
+                                @if (isset($dataUsu) && $dataUsu->fkRol == 2 && in_array($empresa->idempresa,$dataUsu->empresaUsuario))
+                                    <option value="{{ $empresa->idempresa }}" @isset($req->empresa) @if ($req->empresa == $empresa->idempresa) selected
+                                    @endif @endisset>{{ $empresa->razonSocial }}</option>
+                                @elseif($dataUsu->fkRol == 3)
+                                    <option value="{{ $empresa->idempresa }}" @isset($req->empresa) @if ($req->empresa == $empresa->idempresa) selected
+                                    @endif @endisset>{{ $empresa->razonSocial }}</option>
+                                @endif
                                 @endforeach
                             </select>
                         </div>

@@ -195,7 +195,16 @@
             </select>
         </div>
     </div>
-
+    <div class="row para15Dias" style="display: none;">
+        <div class="col form-group">
+            <label for="fkPeriocidadRetencion">Periocidad retefuente </label>
+            <select name="fkPeriocidadRetencion" id="fkPeriocidadRetencion" class="form-control">
+                @foreach ($periocidad as $p)
+                    <option value="{{ $p->per_id}}">{{ $p->per_nombre }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
     <div class="form-check">
         <input type="checkbox" class="form-check-input" id="exento">
         <label class="form-check-label" for="exento">¿Exento de parafiscales?</label>
@@ -205,6 +214,11 @@
     <div class="form-check">
         <input type="checkbox" class="form-check-input" id="vacacionesNegativas">
         <label class="form-check-label" for="vacacionesNegativas">¿Vacaciones negativas?</label>
+    </div><br>
+
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="pagoParafiscales">
+        <label class="form-check-label" for="pagoParafiscales">Pago paraficales (sobre el 100% del salario integral)?</label>
     </div><br>
     
     <div class="form-group">

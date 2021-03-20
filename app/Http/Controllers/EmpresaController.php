@@ -18,8 +18,14 @@ use App\NominaEmpresaModel;
 class EmpresaController extends Controller
 {
     public function index() {
-        $empresas = EmpresaModel::orderBy("razonSocial")->get();
         $usu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($usu) && $usu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $usu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+
+        
     	return view('/empresas.empresas', [
             'empresas' => $empresas,
             'dataUsu' => $usu
@@ -120,7 +126,7 @@ class EmpresaController extends Controller
         $ubicaciones = Ubicacion::all();
         $terceroArl = TercerosModel::where('fk_actividad_economica', '=', 1)->get();
         $paises = Ubicacion::where('fkTipoUbicacion', '=', 1)->get();
-        $periocidad = DB::table("periocidad")->whereIn("per_id",[4,3])->get();
+        $periocidad = DB::table("periocidad")->whereIn("per_id",[4,3])->orderBy("per_nombre")->get();
 
     	return view('/empresas.addEmpresa', [
             'actEconomicas' => $actEconomicas,
@@ -129,13 +135,14 @@ class EmpresaController extends Controller
             'tipoIdent' => $tipoIdent,
             'tipoApor' => $tipoApor,
             'tipoComp' => $tipoComp,
-            'ubicaciones' => $ubicaciones
+            'ubicaciones' => $ubicaciones,
+            "periocidad" => $periocidad
         ]);
     }
 
     public function create(EmpresaRequest $request) {
         $empresas = new EmpresaModel();
-
+        
         // Validar subida de logo de empresa
 
         if ($request->hasFile("logoEmpresa")) {
@@ -172,6 +179,10 @@ class EmpresaController extends Controller
         $empresas->fkTercero_ARL = $request->fkTercero_ARL;
         $empresas->exento = $request->exento;
         $empresas->vacacionesNegativas = $request->vacacionesNegativas;
+        $empresas->pagoParafiscales = $request->pagoParafiscales;
+        $empresas->fkPeriocidadRetencion = $request->fkPeriocidadRetencion;
+        
+
         $insert = $empresas->save();
         if ($insert) {
             // Creamos centro de costo
@@ -193,6 +204,22 @@ class EmpresaController extends Controller
             $nomEmpresa->fkEmpresa = $empresas->idempresa;
             $nomEmpresa->id_uni_nomina = $empresas->id_uni_nomina;
             $nomEmpresa->save();
+            
+            $usu = UsuarioController::dataAdminLogueado();
+            if(isset($usu) && $usu->fkRol == 2){            
+                $user_emp = DB::table("user_empresa")
+                ->where("fkUser","=",$usu->id)
+                ->where("fkEmpresa","=",$empresas->idempresa)
+                ->first();
+                if(!isset($user_emp)){
+                    DB::table("user_empresa")->insert([
+                        "fkUser" => $usu->id,
+                        "fkEmpresa" => $empresas->idempresa
+                    ]);
+                }   
+
+            }
+
 
             $success = true;
             $mensaje = "Empresa creado exitosamente";
@@ -222,6 +249,11 @@ class EmpresaController extends Controller
             $paises = Ubicacion::where('fkTipoUbicacion', '=', 1)->get();
             $deptos = Ubicacion::where('fkTipoUbicacion', '=', 2)->get();
             $ciudades = Ubicacion::where('fkTipoUbicacion', '=', 3)->get();
+            $periocidad = DB::table("periocidad")->whereIn("per_id",[4,3])->orderBy("per_nombre")->get();
+            $nominasQuincenlaes = DB::table("nomina")
+            ->where("fkEmpresa","=",$id)
+            ->where("periodo","=","15")->first();
+
             return view('/empresas.editEmpresa', [
                 'empresa' => $empresa,
                 'actEconomicas' => $actEconomicas,
@@ -231,7 +263,9 @@ class EmpresaController extends Controller
                 'terceroArl' => $terceroArl,
                 'tipoIdent' => $tipoIdent,
                 'tipoApor' => $tipoApor,
-                'tipoComp' => $tipoComp
+                'tipoComp' => $tipoComp,
+                "nominasQuincenlaes" => $nominasQuincenlaes,
+                'periocidad' => $periocidad
             ]);
 		}
 		catch (ModelNotFoundException $e)
@@ -258,6 +292,11 @@ class EmpresaController extends Controller
             $deptos = Ubicacion::where('fkTipoUbicacion', '=', 2)->get();
             $ciudades = Ubicacion::where('fkTipoUbicacion', '=', 3)->get();
             $terceroArl = TercerosModel::where('fk_actividad_economica', '=', 1)->get();
+            $periocidad = DB::table("periocidad")->whereIn("per_id",[4,3])->orderBy("per_nombre")->get();
+            $nominasQuincenlaes = DB::table("nomina")
+            ->where("fkEmpresa","=",$id)
+            ->where("periodo","=","15")->first();
+
             return view('/empresas.detalleEmpresa', [
                 'empresa' => $empresa,
                 'actEconomicas' => $actEconomicas,
@@ -268,6 +307,8 @@ class EmpresaController extends Controller
                 'paises' => $paises,
                 'deptos' => $deptos,
                 'ciudades' => $ciudades,
+                'periocidad' => $periocidad,
+                'nominasQuincenlaes' => $nominasQuincenlaes
             ]);
 		}
 		catch (ModelNotFoundException $e)
@@ -313,6 +354,8 @@ class EmpresaController extends Controller
             $empresas->fkTercero_ARL = $request->fkTercero_ARL;
             $empresas->exento = $request->exento;
             $empresas->vacacionesNegativas = $request->vacacionesNegativas;
+            $empresas->pagoParafiscales = $request->pagoParafiscales;
+            $empresas->fkPeriocidadRetencion = $request->fkPeriocidadRetencion;
             $actualizar = $empresas->save();
             
 

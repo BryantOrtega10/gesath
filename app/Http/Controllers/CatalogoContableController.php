@@ -18,7 +18,7 @@ class CatalogoContableController extends Controller
 {
     public function index(Request $req){
 
-
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $arrIntermedio = array();
         $datoscuenta = DB::table("datoscuenta","dc")
         ->select("dc.*","cc.fkEmpresa","dc.fkCentroCosto","cc.cuenta","c.nombre as nombreConcepto", "gc.nombre as nombreGrupo", "e.razonSocial as nombreEmpresa", "e.razonSocial as nombreEmpresa", "cen.nombre as nombreCC")
@@ -31,6 +31,10 @@ class CatalogoContableController extends Controller
         if(isset($req->idempresa)){
             $datoscuenta = $datoscuenta->where("e.idempresa","=",$req->idempresa);
         }
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $datoscuenta = $datoscuenta->whereIn("e.idempresa", $dataUsu->empresaUsuario);
+        }
+
         if(isset($req->idcentroCosto)){
             $datoscuenta = $datoscuenta->where("cen.idcentroCosto","=",$req->idcentroCosto);
         }else{
@@ -147,7 +151,13 @@ class CatalogoContableController extends Controller
         $data = $this->paginate($filtro, 15);
         $data->withPath("/catalogo-contable");
 
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+        
+
         $centros_costos = array();
         if(isset($req->idempresa)){
             $centros_costos = DB::table("centrocosto")->where("fkEmpresa","=",$req->idempresa)->orderBy("nombre")->get();
@@ -159,18 +169,27 @@ class CatalogoContableController extends Controller
                 "req" => $req,
                 "empresas" => $empresas,
                 "centros_costos" => $centros_costos,
-                "arrConsulta" => $arrConsulta
+                "arrConsulta" => $arrConsulta,
+                "dataUsu" => $dataUsu
             ]
         );
     }
     public function getFormAdd(){
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $terceros = DB::table("tercero")->get();
         $tipoTerceroCuenta = DB::table("tipotercerocuenta")->get();
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+        
         $gruposConcepto  = DB::table("grupoconcepto")->get();
 
         $cuentas = DB::table("catalgocontable")->orderBy("cuenta")->get();
         $conceptos = DB::table("concepto")->orderBy("nombre")->get();
+        
+
 
         return view('/catalogoContable.formAdd',
             [
@@ -179,7 +198,8 @@ class CatalogoContableController extends Controller
                 "terceros" => $terceros, 
                 "empresas" => $empresas,
                 "tipoTerceroCuenta" => $tipoTerceroCuenta,
-                "gruposConcepto" => $gruposConcepto
+                "gruposConcepto" => $gruposConcepto,
+                "dataUsu" => $dataUsu
             ]
         );
     }
@@ -213,7 +233,7 @@ class CatalogoContableController extends Controller
 
     }
     public function getFormEdit($idCompuesto){
-
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $arrCompuesto = explode('_', $idCompuesto);
 
 
@@ -280,12 +300,17 @@ class CatalogoContableController extends Controller
 
         $terceros = DB::table("tercero")->orderBy("razonSocial")->get();
         $tipoTerceroCuenta = DB::table("tipotercerocuenta")->orderBy("nombre")->get();
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
         $gruposConcepto  = DB::table("grupoconcepto")->orderBy("nombre")->get();
         $centrosCosto = DB::table("centrocosto")
         ->where("fkEmpresa","=",$arrCompuesto[4])
         ->get();
         
+
         return view('/catalogoContable.formEdit',
             [
                 "cuentas" => $cuentas,
@@ -298,7 +323,8 @@ class CatalogoContableController extends Controller
                 "datosCuentaDeb" => $datosCuentaDeb,
                 "conceptos" => $conceptos,
                 "empresaSelect" => $arrCompuesto[4],
-                "centroCostoSelect" => $arrCompuesto[5]
+                "centroCostoSelect" => $arrCompuesto[5],
+                "dataUsu" => $dataUsu
             ]
         );
     }
@@ -698,11 +724,19 @@ class CatalogoContableController extends Controller
     }
     
     public function reporteNominaIndex(){
-
-        $empresas = DB::table("empresa", "e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+        
         
         return view('/catalogoContable.reporteNominaIndex',
-            ["empresas" => $empresas]
+            [
+                "empresas" => $empresas, 
+                "dataUsu" => $dataUsu
+            ]
         );
     }
 
@@ -2107,12 +2141,13 @@ class CatalogoContableController extends Controller
         return $naturalezaCuenta;
     }
     public function indexPlano(Request $req){
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $cargas = DB::table("carga_catalogo_contable","cdp")
         ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
         ->orderBy("cdp.idCarga", "desc")
         ->get();
 
-        return view('/catalogoContable.subirPlano', ["cargas" => $cargas]);
+        return view('/catalogoContable.subirPlano', ["cargas" => $cargas, "dataUsu" => $dataUsu]);
     }
 
     public function subirArchivoPlano(Request $req){
@@ -2145,7 +2180,7 @@ class CatalogoContableController extends Controller
         ->first();
         
 
-         
+        $dataUsu = UsuarioController::dataAdminLogueado();
 
         $datosCuentas = DB::table("catalogo_contable_plano","ccp")
         ->select("ccp.*", "ttc.nombre as nombreTipoTercero", "est.nombre as estado","t.razonSocial as nombreTercero", 
@@ -2165,7 +2200,8 @@ class CatalogoContableController extends Controller
 
         return view('/catalogoContable.verCarga', [
             "cargas" => $cargas,
-            "datosCuentas" => $datosCuentas
+            "datosCuentas" => $datosCuentas,
+            "dataUsu" => $dataUsu
         ]);
 
     }
@@ -2772,10 +2808,14 @@ class CatalogoContableController extends Controller
     }
 
     public function descargarPlano(){
-        
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
 
-        return view('/catalogoContable.descargarPlano', ["empresas" => $empresas]);
+        return view('/catalogoContable.descargarPlano', ["empresas" => $empresas, "dataUsu" => $dataUsu]);
     }
     
     public function descargarArchivoxEmpresa(Request $req){

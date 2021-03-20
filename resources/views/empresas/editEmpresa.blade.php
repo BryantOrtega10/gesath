@@ -208,6 +208,19 @@
         </div>
     </div>
 
+    <div class="row para15Dias" @if(!isset($nominasQuincenlaes)) style="display: none;"  @endif>
+        <div class="col form-group">
+            <label for="fkPeriocidadRetencion">Periocidad retefuente </label>
+            <select name="fkPeriocidadRetencion" id="fkPeriocidadRetencion" class="form-control">
+                @foreach ($periocidad as $p)
+                    <option value="{{ $p->per_id}}" @if ($empresa->fkPeriocidadRetencion == $p->per_id )
+                        selected
+                    @endif>{{ $p->per_nombre }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>      
+    
     <div class="form-check">
         <input  type="checkbox" class="form-check-input" id="exento"
             @if($empresa->exento == 1)
@@ -216,13 +229,20 @@
         >
         <label class="form-check-label" for="exento">¿Exento de parafiscales?</label>
     </div><br>
-        
+    
     <div class="form-check">
         <input  type="checkbox" class="form-check-input" id="vacacionesNegativas"
             @if($empresa->vacacionesNegativas == 1)
                 checked
             @endif>
         <label class="form-check-label" for="vacacionesNegativas">¿Vacaciones negativas?</label>
+    </div><br>
+    <div class="form-check">
+        <input  type="checkbox" class="form-check-input" id="pagoParafiscales"
+            @if($empresa->pagoParafiscales == 1)
+                checked
+            @endif>
+        <label class="form-check-label" for="pagoParafiscales">Pago paraficales (sobre el 100% del salario integral)?</label>
     </div><br>
     <div class="form-group">
         <button type="submit" class="btn btn-primary">Modificar Empresa</button>

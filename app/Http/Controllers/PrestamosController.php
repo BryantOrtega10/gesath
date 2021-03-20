@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class PrestamosController extends Controller
 {
     public function index(Request $req){
-
+        $usu = UsuarioController::dataAdminLogueado();
         $prestamos = DB::table("prestamo","p")
         ->select("p.*","c.nombre as nombreConcepto", "est.nombre as nombreEstado","dp.numeroIdentificacion", "dp.primerApellido","dp.primerNombre", "dp.segundoNombre", "dp.segundoApellido")
         ->join("empleado as e","e.idempleado", "=","p.fkEmpleado")
@@ -23,10 +23,14 @@ class PrestamosController extends Controller
         else{
             $prestamos = $prestamos->where("p.fkEstado","=","1");
         }
+
+        if(isset($usu) && $usu->fkRol == 2){            
+            $prestamos = $prestamos->whereIn("e.fkEmpresa", $usu->empresaUsuario);
+        }
         $prestamos = $prestamos->orderBy("dp.primerApellido")->paginate(15);
 
         $arrConsulta = array();
-        $usu = UsuarioController::dataAdminLogueado();
+        
 
         return view('/prestamos.index', [
             "prestamos" => $prestamos,
@@ -37,28 +41,40 @@ class PrestamosController extends Controller
     }
 
     public function getFormAdd(){
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+
         $gruposConcepto  = DB::table("grupoconcepto")->orderBy("nombre")->get();
         $conceptos = DB::table("concepto","c")
         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")
         ->where("gcc.fkGrupoConcepto","=","41")
         ->orderBy("nombre")->get();
-        $usu = UsuarioController::dataAdminLogueado();
+        
 
         return view('/prestamos.add', [
             "empresas" => $empresas,
             "gruposConcepto" => $gruposConcepto,
             "conceptos" => $conceptos,
-            "dataUsu" => $usu
+            "dataUsu" => $dataUsu
         ]);
         
     }
 
     public function getFormEdit($idPrestamo){
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $usu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($usu) && $usu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $usu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+        
         
         $gruposConcepto  = DB::table("grupoconcepto")->orderBy("nombre")->get();
-        $usu = UsuarioController::dataAdminLogueado();
+        
         
         $prestamo = DB::table("prestamo","p")
         ->select("p.*","e.fkEmpresa", "e.fkNomina", "dp.primerApellido", "dp.segundoApellido", "dp.primerNombre", "dp.segundoNombre")
@@ -66,6 +82,7 @@ class PrestamosController extends Controller
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
         ->where("p.idPrestamo","=", $idPrestamo)
         ->first();
+        
         $nomina = DB::table("nomina")->where("idNomina","=",$prestamo->fkNomina)->first();
         
         $periocidad = DB::table("periocidad")->where("per_periodo","=",$nomina->periodo)->get();
@@ -135,7 +152,13 @@ class PrestamosController extends Controller
 
 
     public function getFormAddEmbargo(){
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
+        $usu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($usu) && $usu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $usu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+
         $gruposConcepto  = DB::table("grupoconcepto")->orderBy("nombre")->get();
         $conceptos = DB::table("concepto","c")
         ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","c.idconcepto")

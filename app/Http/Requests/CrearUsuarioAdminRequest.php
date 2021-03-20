@@ -27,15 +27,13 @@ class CrearUsuarioAdminRequest extends FormRequest
     {
         return [
             'username' => 'required|min:8',
-            'email' => 'required|email',
             'password' => [
+                'sometimes',
                 'required', 
                 'min:6', 
                 'regex:/^.*(?=.{3,})(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[\d\x])(?=.*[!$#%]).*$/', 
             ],
             'fkRol' => 'required',
-            'fkEmpresa' => 'required',
-            'foto' => 'required',
             'primerNombre' => 'required|min:3',
             'primerApellido' => 'required|min:3'
         ];

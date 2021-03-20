@@ -61,12 +61,13 @@ class DatosPasadosController extends Controller
         ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
         ->where("dp.fkCargaDatosPasados","=",$idCarga)
         ->get();
-        
+        $dataUsu = UsuarioController::dataAdminLogueado();
         
 
         return view('/datosPasados.verCarga', [
             "cargaDatoPasado" => $cargasDatosPasados,
-            "datosPasados" => $datosPasados
+            "datosPasados" => $datosPasados,
+            "dataUsu" => $dataUsu
         ]);
 
     }
@@ -439,8 +440,7 @@ class DatosPasadosController extends Controller
                 }
                 
                 $periodoActivoReintegro = DB::table("periodo")
-                ->where("fkEstado","=","1")
-                ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+                ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->orderBy("idPeriodo","desc")->first();
                 
                 $boucherId = DB::table("boucherpago")->insertGetId([
                     "fkEmpleado" => $datoPasado->fkEmpleado,
@@ -490,12 +490,19 @@ class DatosPasadosController extends Controller
         ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
         ->orderBy("cdp.idCargaDatosPasados", "desc")
         ->get();
-        $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
 
 
         return view('/datosPasadosVac.index', [
             "cargasDatosPasados" => $cargasDatosPasados,
-            "empresas" => $empresas
+            "empresas" => $empresas,
+            "dataUsu" => $dataUsu
         ]);
     }
     
@@ -580,6 +587,11 @@ class DatosPasadosController extends Controller
             $periodoActivoReintegro = DB::table("periodo")
             ->where("fkEstado","=","1")
             ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+            if(!isset($periodoActivoReintegro)){
+                $periodoActivoReintegro = DB::table("periodo")
+                ->where("fkEstado","=","2")
+                ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+            }
 
             $arrInsertNovedad =[
                 "fkTipoNovedad" => 1,
@@ -637,12 +649,14 @@ class DatosPasadosController extends Controller
         ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
         ->where("dp.fkCargaDatosPasados","=",$idCarga)
         ->get();
-        
+
+        $dataUsu = UsuarioController::dataAdminLogueado();
         
 
         return view('/datosPasadosVac.verCarga', [
             "cargaDatoPasado" => $cargasDatosPasados,
-            "datosPasados" => $datosPasados
+            "datosPasados" => $datosPasados,
+            "dataUsu" => $dataUsu 
         ]);
 
     }
@@ -945,6 +959,11 @@ class DatosPasadosController extends Controller
                 $periodoActivoReintegro = DB::table("periodo")
                 ->where("fkEstado","=","1")
                 ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+                if(!isset($periodoActivoReintegro)){
+                    $periodoActivoReintegro = DB::table("periodo")
+                    ->where("fkEstado","=","2")
+                    ->where("fkEmpleado", "=", $datoPasado->fkEmpleado)->first();
+                }
 
                 $arrInsertNovedad =[
                     "fkTipoNovedad" => 1,
@@ -1027,8 +1046,9 @@ class DatosPasadosController extends Controller
         ->join("estado as e", "e.idEstado", "=", "cdp.fkEstado")
         ->orderBy("cdp.idCargaDatosPasados", "desc")
         ->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
 
-        return view('/datosPasadosSal.index', ["cargasDatosPasados" => $cargasDatosPasados]);
+        return view('/datosPasadosSal.index', ["cargasDatosPasados" => $cargasDatosPasados, "dataUsu" => $dataUsu]);
     }
     public function subirArchivoSal(Request $req){
     
@@ -1068,11 +1088,12 @@ class DatosPasadosController extends Controller
         ->where("dp.fkCargaDatosPasados","=",$idCarga)
         ->get();
         
-        
+        $dataUsu = UsuarioController::dataAdminLogueado();
 
         return view('/datosPasadosSal.verCarga', [
             "cargaDatoPasado" => $cargasDatosPasados,
-            "datosPasados" => $datosPasados
+            "datosPasados" => $datosPasados,
+            "dataUsu" => $dataUsu
         ]);
 
     }

@@ -22,16 +22,20 @@ class RedirectIfAuthenticated
         $rutaNavegar = $request->path();
         if (Auth::check()) {
             $user = Auth::user();
+            
             if (sizeof($roles) == 0) {
                 $rol = $user->fkRol;
             } else {
+                $valid = false;
                 foreach($roles as $role) {
                     if ($role == $user->fkRol) {
                         $rol = $role;
+                        $valid = true;
                         break;
-                    } else {
-                        abort(403, 'No tienes autorización para ingresar.');
-                    }
+                    } 
+                }
+                if(!$valid){
+                    abort(403, 'No tienes autorización para ingresar.');
                 }
             }
             
@@ -44,6 +48,11 @@ class RedirectIfAuthenticated
                     }
                 break;
                 case 2:
+                    if ($this->validarRol($rutaNavegar, $rol)) {
+                        return redirect()->guest(route('empleado/'));
+                    } else {
+                        return $next($request);
+                    }
                 case 3:
                     if ($this->validarRol($rutaNavegar, $rol)) {
                         return redirect()->guest(route('empleado/'));

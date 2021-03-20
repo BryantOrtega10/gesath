@@ -20,7 +20,7 @@ class NominaController extends Controller
     
 
     public function solicitudLiquidacion(Request $req){
-
+        $usu = UsuarioController::dataAdminLogueado();
         $liquidaciones = DB::table("liquidacionnomina", "ln")
         ->select(["ln.idLiquidacionNomina", "ln.fechaLiquida", "e.razonSocial", "tl.nombre as tipoLiquidacion", "est.nombre as estado","n.nombre as nomNomina"])
         ->join("nomina AS n","ln.fkNomina", "=", "n.idnomina")
@@ -33,8 +33,16 @@ class NominaController extends Controller
             $liquidaciones = $liquidaciones->where("ln.fechaLiquida",">=",$req->fechaInicio);
         }
         
+        if(isset($usu) && $usu->fkRol == 2){
+            $liquidaciones = $liquidaciones->whereIn("n.fkEmpresa", $usu->empresaUsuario);
+        }
+
         if(isset($req->fechaFin)){
-            $liquidaciones = $liquidaciones->where("ln.fechaLiquida","<=",$req->fechaFin);
+            $fechaBusquedaFin = $req->fechaFin;
+            if(substr($fechaBusquedaFin,8,2) == "30" && substr(date("Y-m-t",strtotime($fechaBusquedaFin)),8,2)=="31"){
+                $fechaBusquedaFin = date("Y-m-t",strtotime($fechaBusquedaFin));
+            }
+            $liquidaciones = $liquidaciones->where("ln.fechaLiquida","<=",$fechaBusquedaFin);
         }
 
         if(isset($req->nomina)){
@@ -45,32 +53,53 @@ class NominaController extends Controller
         }
 
         $liquidaciones = $liquidaciones->get();
-        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $nominas = DB::table("nomina");
+        if(isset($usu) && $usu->fkRol == 2){            
+            $nominas = $nominas->whereIn("fkEmpresa", $usu->empresaUsuario);
+        }
+        $nominas = $nominas->orderBy("nombre")->get();
+
+
         $tipoLiquidaciones = DB::table("tipoliquidacion")->orderBy("nombre")->get();
 
         return view('/nomina.solicitudes.listaSolicitudes',[
             'liquidaciones' => $liquidaciones,
             "nominas" => $nominas,
             "tipoLiquidaciones" => $tipoLiquidaciones,
-            "req" => $req
-
+            "req" => $req,
+            "dataUsu" => $usu
         ]);
     }
     
     public function centroCostoPeriodo(){
+
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $distri_centro_costo = DB::table("distri_centro_costo", "d")
         ->join("nomina as n", "n.idNomina", "=","d.fkNomina")
-        ->where("fkEstado", "=","1")
-        ->paginate(15);
+        ->where("fkEstado", "=","1");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){
+            $distri_centro_costo->whereIn("n.fkEmpresa", $dataUsu->empresaUsuario);
+        }
+        $distri_centro_costo = $distri_centro_costo->paginate(15);
         
         return view('/nomina.distri.distribucionCentroCosto',[
             'distris_centro_costo' => $distri_centro_costo,
+            "dataUsu" => $dataUsu
         ]);
     }
     public function centroCostoPeriodoFormAdd(){
-        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $nominas = DB::table("nomina");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $nominas = $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
+        }
+        $nominas = $nominas->orderBy("nombre")->get();
+
+
+
         return view('/nomina.distri.addDistri',[
-            'nominas' => $nominas
+            'nominas' => $nominas,
+            "dataUsu" => $dataUsu
         ]);
     }
     public function insertDistri(Request $req){
@@ -102,7 +131,7 @@ class NominaController extends Controller
     }
     
     public function modificarDistriIndex($idDistri){
-        
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $distri = DB::table("distri_centro_costo", "d")
         ->join("nomina as n", "n.idNomina", "=","d.fkNomina")
         ->where("d.id_distri_centro_costo", "=",$idDistri)
@@ -161,7 +190,8 @@ class NominaController extends Controller
             'distri' => $distri,
             'arrEmpleadoCC' => $arrEmpleadoCC,
             'centrosCostoGen' => $centrosCostoGen,
-            "empleados" => $empleados            
+            "empleados" => $empleados,
+            "dataUsu" => $dataUsu     
         ]);
     }
     public function editarDistriEm($idEmpleado, $idDistri){
@@ -201,12 +231,13 @@ class NominaController extends Controller
 
         $arrEmpleadoCC = $arrCentrosCosto;
         
-        
+        $dataUsu = UsuarioController::dataAdminLogueado();
         return view('/nomina.distri.editarDistriEm',[
             'centrosCostoGen' => $centrosCostoGen,   
             'arrEmpleadoCC' => $arrEmpleadoCC,
             "idDistri" => $idDistri,
-            "idEmpleado" => $idEmpleado
+            "idEmpleado" => $idEmpleado,
+            "dataUsu" => $dataUsu
         ]);
     }
     
@@ -508,12 +539,19 @@ class NominaController extends Controller
 
 
     public function agregarSolicitudLiquidacion(){
-        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $nominas = DB::table("nomina");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $nominas = $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
+        }
+        $nominas = $nominas->orderBy("nombre")->get();
+        
         $tiposliquidaciones = DB::table("tipoliquidacion")->get();
 
         return view('/nomina.solicitudes.agregarSolicitud',[
             'nominas' => $nominas,
-            'tiposliquidaciones' => $tiposliquidaciones            
+            'tiposliquidaciones' => $tiposliquidaciones,
+            "dataUsu" => $dataUsu
         ]);
     }
     public function cargarFechaPagoxNomina($idNomina, $idTipoLiquidacion){
@@ -1730,6 +1768,7 @@ class NominaController extends Controller
     }
 
     public function verSolicitudLiquidacion($idLiquidacion, Request $req){
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $liquidaciones = DB::table("liquidacionnomina", "ln")
         ->select(["ln.idLiquidacionNomina", "ln.fechaLiquida", "e.razonSocial", "tl.nombre as tipoLiquidacion", "est.nombre as estado"])
         ->join("nomina AS n","ln.fkNomina", "=", "n.idnomina")
@@ -1762,10 +1801,16 @@ class NominaController extends Controller
         ->get();
 
 
-        return view('nomina.solicitudes.verSolicitud', ['bouchers' => $bouchers, "liquidaciones" => $liquidaciones, "req" => $req]);
+        return view('nomina.solicitudes.verSolicitud', [
+            'bouchers' => $bouchers, 
+            "liquidaciones" => $liquidaciones, 
+            "dataUsu" => $dataUsu,
+            "req" => $req
+        ]);
 
     }
     public function verSolicitudLiquidacionSinEdit($idLiquidacion, Request $req){
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $liquidaciones = DB::table("liquidacionnomina", "ln")
         ->select(["ln.idLiquidacionNomina", "ln.fechaLiquida", "e.razonSocial", "tl.nombre as tipoLiquidacion", "est.nombre as estado", "ln.fkTipoLiquidacion"])
         ->join("nomina AS n","ln.fkNomina", "=", "n.idnomina")
@@ -1797,7 +1842,8 @@ class NominaController extends Controller
         ->get();
 
 
-        return view('nomina.solicitudes.verSolicitudSinEdit', ['bouchers' => $bouchers, "liquidaciones" => $liquidaciones, "req" => $req]);
+        return view('nomina.solicitudes.verSolicitudSinEdit', ["dataUsu" => $dataUsu,
+            'bouchers' => $bouchers, "liquidaciones" => $liquidaciones, "req" => $req]);
 
     }
 
@@ -2776,9 +2822,16 @@ class NominaController extends Controller
         
     }
     public function indexCierre(){
-        $empresas = DB::table("empresa", "e")->orderBy("razonSocial")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
+        
         return view('/nomina.cierre',[
-            "empresas" => $empresas
+            "empresas" => $empresas,
+            "dataUsu" => $dataUsu
         ]);
     }
 
@@ -4592,6 +4645,7 @@ class NominaController extends Controller
                 }
             }
         }
+        
         //FIN CONCEPTOS FIJOS EMPLEADO
 
         
@@ -4779,7 +4833,7 @@ class NominaController extends Controller
         }
         $periodoGen = $periodoPago - $diasNoTrabajados - $diasNoTrabajadosInjustificados;
         //FIN CALCULAR PERIODO
-
+        
         $valorNeto = 0;
         
         //INICIO VACACIONES PAGO TOTAL
@@ -5801,13 +5855,31 @@ class NominaController extends Controller
 
        
         //INICIO CALCULAR VALOR DIA CONCEPTO
+        $novedadesRetiro = DB::table("novedad","n")
+        ->select("r.fecha","r.fechaReal")
+        ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+        ->where("n.fkEmpleado", "=", $empleado->idempleado)
+        ->whereRaw("n.fkPeriodoActivo in(
+            SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+        )")
+        ->where("n.fkEstado","=","7")
+        ->whereNotNull("n.fkRetiro")
+        ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFin])->first();
+
         $arrConceptosSalariales = [1,2,53,54];
         foreach($arrValorxConcepto as $idConcepto => $arrConcepto){                
             if($arrConcepto["tipoGen"] != "novedad"){//Si no es una novedad
                 if($arrConcepto["unidad"]=="MES"){                    
                     $fechaFinCalcConc = $fechaFin;
-                    if(substr($fechaFin, 8, 2) == "31" || (substr($fechaFin, 8, 2) == "28" && substr($fechaFin, 5, 2) == "02") || (substr($fechaFin, 8, 2) == "29" && substr($fechaFin, 5, 2) == "02")  ){
-                        $fechaFinCalcConc = substr($fechaFin,0,8)."30";
+                    
+                    if(isset($novedadesRetiro)){
+                        $fechaFinCalcConc = $novedadesRetiro->fechaReal;
+                        
+                    }
+                    
+
+                    if(substr($fechaFinCalcConc, 8, 2) == "31" || (substr($fechaFinCalcConc, 8, 2) == "28" && substr($fechaFinCalcConc, 5, 2) == "02") || (substr($fechaFinCalcConc, 8, 2) == "29" && substr($fechaFinCalcConc, 5, 2) == "02")  ){
+                        $fechaFinCalcConc = substr($fechaFinCalcConc,0,8)."30";
                     }
                     if(isset($arrConcepto["fechaInicioConcepto"])){
                         $arrComoCalcula[$idConcepto] = ($arrComoCalcula[$idConcepto] ?? array());
@@ -5987,7 +6059,7 @@ class NominaController extends Controller
             }
         }
         //FIN CALCULO DE SUBSIDIO DE TRANSPORTE
-       
+        
 
 
 
@@ -6857,7 +6929,32 @@ class NominaController extends Controller
             }
         }
 
-        if($tipoliquidacion == "1" || $tipoliquidacion == "2" || $tipoliquidacion == "3" || $tipoliquidacion == "4" || $tipoliquidacion == "5" || $tipoliquidacion == "6" || $tipoliquidacion == "9"){
+        $validoPeriocidad=false;
+        if(!$empresa->fkPeriocidadRetencion){
+            $validoPeriocidad =true;
+        }
+        else{
+            if($periodo == 15){
+                if(substr($liquidacionNomina->fechaInicio,8,2)=="01" && $empresa->fkPeriocidadRetencion==3){//SOLO EN SEG QUIN
+                    $validoPeriocidad =false;
+                }
+                else{
+                    $validoPeriocidad =true;
+                }
+            }
+            else{
+                $validoPeriocidad =true;
+            }
+        }
+
+
+        if(($tipoliquidacion == "1" 
+        || $tipoliquidacion == "2" 
+        || $tipoliquidacion == "3" 
+        || $tipoliquidacion == "4" 
+        || $tipoliquidacion == "5" 
+        || $tipoliquidacion == "6" 
+        || $tipoliquidacion == "9") && $validoPeriocidad){
             
             $valorSalario = 0;
             $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
@@ -7104,7 +7201,25 @@ class NominaController extends Controller
             $baseGravableSinAportesUVTS = round($baseGravableSinAportes / $uvtActual, 2);
             
             $impuestoUVT = 0;
-            if($baseGravableUVTS > $varRetencion[26] && $baseGravableUVTS <= $varRetencion[27]){
+            $tablaRete = DB::table("tabla_retencion")->orderBy("minimo")->orderBy("maximo")->get();
+            foreach($tablaRete as $tablaRet){
+                if(!isset($tablaRet->minimo)){
+                    $tablaRet->minimo = 0;
+                }
+                
+                if(!isset($tablaRet->maximo)){
+                    $tablaRet->minimo = 99999999;
+                }
+
+                if($baseGravableUVTS > $tablaRet->minimo && $baseGravableUVTS <= $tablaRet->maximo){
+                    $impuestoUVT = ($baseGravableUVTS - $tablaRet->minimo)*$tablaRet->porcentaje;
+                    $impuestoUVT = $impuestoUVT + $tablaRet->adicion;
+                    break;
+                }
+            }
+
+
+            /*if($baseGravableUVTS > $varRetencion[26] && $baseGravableUVTS <= $varRetencion[27]){
                 $impuestoUVT = ($baseGravableUVTS - $varRetencion[26])*$varRetencion[29];
                 $impuestoUVT = $impuestoUVT + $varRetencion[28];
             }
@@ -7127,9 +7242,26 @@ class NominaController extends Controller
             else if($baseGravableUVTS > $varRetencion[46]){
                 $impuestoUVT = ($baseGravableUVTS - $varRetencion[46])*$varRetencion[48];
                 $impuestoUVT = $impuestoUVT + $varRetencion[47];
-            }
+            }*/
             
             $impuestoSinAportesUVT = 0;
+            foreach($tablaRete as $tablaRet){
+                if(!isset($tablaRet->minimo)){
+                    $tablaRet->minimo = 0;
+                }
+                
+                if(!isset($tablaRet->maximo)){
+                    $tablaRet->minimo = 99999999;
+                }
+
+                if($baseGravableSinAportesUVTS > $tablaRet->minimo && $baseGravableSinAportesUVTS <= $tablaRet->maximo){
+                    $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $tablaRet->minimo)*$tablaRet->porcentaje;
+                    $impuestoSinAportesUVT = $impuestoSinAportesUVT + $tablaRet->adicion;
+                    break;
+                }
+            }
+
+            /*
             if($baseGravableSinAportesUVTS > $varRetencion[26] && $baseGravableSinAportesUVTS <= $varRetencion[27]){
                 $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[26])*$varRetencion[29];
                 $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[28];
@@ -7153,7 +7285,7 @@ class NominaController extends Controller
             else if($baseGravableSinAportesUVTS > $varRetencion[46]){
                 $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[46])*$varRetencion[48];
                 $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[47];
-            }
+            }*/
 
             $impuestoValor = round($impuestoUVT * $uvtActual, -3);
             $impuestoValorSinAportes = round($impuestoSinAportesUVT * $uvtActual, -3);
@@ -10245,7 +10377,24 @@ class NominaController extends Controller
         
         
                     $impuestoUVT = 0;
-                    if($baseGravableUVTS > $varRetencion[26] && $baseGravableUVTS <= $varRetencion[27]){
+                    $tablaRete = DB::table("tabla_retencion")->orderBy("minimo")->orderBy("maximo")->get();
+                    foreach($tablaRete as $tablaRet){
+                        if(!isset($tablaRet->minimo)){
+                            $tablaRet->minimo = 0;
+                        }
+                        
+                        if(!isset($tablaRet->maximo)){
+                            $tablaRet->minimo = 99999999;
+                        }
+
+                        if($baseGravableUVTS > $tablaRet->minimo && $baseGravableUVTS <= $tablaRet->maximo){
+                            $impuestoUVT = ($baseGravableUVTS - $tablaRet->minimo)*$tablaRet->porcentaje;
+                            $impuestoUVT = $impuestoUVT + $tablaRet->adicion;
+                            break;
+                        }
+                    }
+
+                    /*if($baseGravableUVTS > $varRetencion[26] && $baseGravableUVTS <= $varRetencion[27]){
                         $impuestoUVT = ($baseGravableUVTS - $varRetencion[26])*$varRetencion[29];
                         $impuestoUVT = $impuestoUVT + $varRetencion[28];
                     }
@@ -10268,9 +10417,25 @@ class NominaController extends Controller
                     else if($baseGravableUVTS > $varRetencion[46]){
                         $impuestoUVT = ($baseGravableUVTS - $varRetencion[46])*$varRetencion[48];
                         $impuestoUVT = $impuestoUVT + $varRetencion[47];
-                    }
+                    }*/
                     
                     $impuestoSinAportesUVT = 0;
+                    foreach($tablaRete as $tablaRet){
+                        if(!isset($tablaRet->minimo)){
+                            $tablaRet->minimo = 0;
+                        }
+                        
+                        if(!isset($tablaRet->maximo)){
+                            $tablaRet->minimo = 99999999;
+                        }
+
+                        if($baseGravableSinAportesUVTS > $tablaRet->minimo && $baseGravableSinAportesUVTS <= $tablaRet->maximo){
+                            $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $tablaRet->minimo)*$tablaRet->porcentaje;
+                            $impuestoSinAportesUVT = $impuestoSinAportesUVT + $tablaRet->adicion;
+                            break;
+                        }
+                    }
+                    /*
                     if($baseGravableSinAportesUVTS > $varRetencion[26] && $baseGravableSinAportesUVTS <= $varRetencion[27]){
                         $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[26])*$varRetencion[29];
                         $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[28];
@@ -10294,7 +10459,7 @@ class NominaController extends Controller
                     else if($baseGravableSinAportesUVTS > $varRetencion[46]){
                         $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[46])*$varRetencion[48];
                         $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[47];
-                    }
+                    }*/
         
                     $impuestoValor = round($impuestoUVT * $uvtActual, -3);
                     $impuestoValorSinAportes = round($impuestoSinAportesUVT * $uvtActual, -3);
@@ -10668,7 +10833,24 @@ class NominaController extends Controller
 
 
             $impuestoUVT = 0;
-            if($baseGravableUVTS > $varRetencion[26] && $baseGravableUVTS <= $varRetencion[27]){
+            $tablaRete = DB::table("tabla_retencion")->orderBy("minimo")->orderBy("maximo")->get();
+            foreach($tablaRete as $tablaRet){
+                if(!isset($tablaRet->minimo)){
+                    $tablaRet->minimo = 0;
+                }
+                
+                if(!isset($tablaRet->maximo)){
+                    $tablaRet->minimo = 99999999;
+                }
+
+                if($baseGravableUVTS > $tablaRet->minimo && $baseGravableUVTS <= $tablaRet->maximo){
+                    $impuestoUVT = ($baseGravableUVTS - $tablaRet->minimo)*$tablaRet->porcentaje;
+                    $impuestoUVT = $impuestoUVT + $tablaRet->adicion;
+                    break;
+                }
+            }
+            
+            /*if($baseGravableUVTS > $varRetencion[26] && $baseGravableUVTS <= $varRetencion[27]){
                 $impuestoUVT = ($baseGravableUVTS - $varRetencion[26])*$varRetencion[29];
                 $impuestoUVT = $impuestoUVT + $varRetencion[28];
             }
@@ -10691,9 +10873,25 @@ class NominaController extends Controller
             else if($baseGravableUVTS > $varRetencion[46]){
                 $impuestoUVT = ($baseGravableUVTS - $varRetencion[46])*$varRetencion[48];
                 $impuestoUVT = $impuestoUVT + $varRetencion[47];
-            }
+            }*/
             
             $impuestoSinAportesUVT = 0;
+            foreach($tablaRete as $tablaRet){
+                if(!isset($tablaRet->minimo)){
+                    $tablaRet->minimo = 0;
+                }
+                
+                if(!isset($tablaRet->maximo)){
+                    $tablaRet->minimo = 99999999;
+                }
+
+                if($baseGravableSinAportesUVTS > $tablaRet->minimo && $baseGravableSinAportesUVTS <= $tablaRet->maximo){
+                    $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $tablaRet->minimo)*$tablaRet->porcentaje;
+                    $impuestoSinAportesUVT = $impuestoSinAportesUVT + $tablaRet->adicion;
+                    break;
+                }
+            }
+            /*
             if($baseGravableSinAportesUVTS > $varRetencion[26] && $baseGravableSinAportesUVTS <= $varRetencion[27]){
                 $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[26])*$varRetencion[29];
                 $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[28];
@@ -10717,7 +10915,7 @@ class NominaController extends Controller
             else if($baseGravableSinAportesUVTS > $varRetencion[46]){
                 $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[46])*$varRetencion[48];
                 $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[47];
-            }
+            }*/
 
             $impuestoValor = round($impuestoUVT * $uvtActual, -3);
             $impuestoValorSinAportes = round($impuestoSinAportesUVT * $uvtActual, -3);
@@ -11288,9 +11486,9 @@ class NominaController extends Controller
         return true;
     }
     public function nominasLiquidadas(Request $req){
-
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $liquidaciones = DB::table("liquidacionnomina", "ln")
-        ->select(["ln.idLiquidacionNomina", "ln.fechaLiquida", "e.razonSocial", "tl.nombre as tipoLiquidacion", "est.nombre as estado", "n.nombre as nomNombre"])
+        ->select(["ln.fkTipoLiquidacion","ln.idLiquidacionNomina", "ln.fechaLiquida", "e.razonSocial", "tl.nombre as tipoLiquidacion", "est.nombre as estado", "n.nombre as nomNombre"])
         ->join("nomina AS n","ln.fkNomina", "=", "n.idnomina")
         ->join("empresa AS e","n.fkEmpresa","=", "e.idempresa")
         ->join("tipoliquidacion AS tl","ln.fkTipoLiquidacion","=", "tl.idTipoLiquidacion")        
@@ -11304,7 +11502,15 @@ class NominaController extends Controller
         }
         
         if(isset($req->fechaFin)){
-            $liquidaciones = $liquidaciones->where("ln.fechaLiquida","<=",$req->fechaFin);
+            $fechaBusquedaFin = $req->fechaFin;
+            if(substr($fechaBusquedaFin,8,2) == "30" && substr(date("Y-m-t",strtotime($fechaBusquedaFin)),8,2)=="31"){
+                $fechaBusquedaFin = date("Y-m-t",strtotime($fechaBusquedaFin));
+            }
+            $liquidaciones = $liquidaciones->where("ln.fechaLiquida","<=",$fechaBusquedaFin);
+        }
+
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){
+            $liquidaciones = $liquidaciones->whereIn("n.fkEmpresa", $dataUsu->empresaUsuario);
         }
 
         if(isset($req->nomina)){
@@ -11316,7 +11522,13 @@ class NominaController extends Controller
 
         $liquidaciones = $liquidaciones->paginate(15);
 
-        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        
+        $nominas = DB::table("nomina");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $nominas = $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
+        }
+        $nominas = $nominas->orderBy("nombre")->get();
+
         $tipoLiquidaciones = DB::table("tipoliquidacion")->orderBy("nombre")->get();
 
         
@@ -11326,7 +11538,8 @@ class NominaController extends Controller
             "arrConsulta" => $arrConsulta,
             "req" => $req,
             "nominas" => $nominas,
-            "tipoLiquidaciones" => $tipoLiquidaciones
+            "tipoLiquidaciones" => $tipoLiquidaciones,
+            "dataUsu" => $dataUsu
         ]);
     }
 
@@ -12410,8 +12623,14 @@ class NominaController extends Controller
         return $redondeo;
     }
     public function cambiarConceptosFijosIndex(){
-        $empresas = DB::table("empresa")->orderBy("razonSocial")->get();
-        return view('/nomina.cambiarConceptoFijo', ["empresas" => $empresas ]);
+        $usu = UsuarioController::dataAdminLogueado();
+        $empresas = DB::table("empresa");
+        if(isset($usu) && $usu->fkRol == 2){
+            $empresas->whereIn("idempresa", $usu->empresaUsuario);
+        }        
+        $empresas = $empresas->orderBy("razonSocial")->get();
+        
+        return view('/nomina.cambiarConceptoFijo', ["empresas" => $empresas, "dataUsu" => $usu ]);
     }
     public function subirCambioConceptoFijo(Request $req){
 

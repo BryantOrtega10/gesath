@@ -633,6 +633,10 @@ Route::group([
 	Route::post('/habDesHabUsu/{id}/{estado}', 'UsuarioController@hab_deshab_usu');
 	Route::get('/getVistaPass/{id}', 'UsuarioController@vistaActPass');
 	Route::post('/cambiarContrasenia/{id}', 'UsuarioController@actPass');
+
+	Route::get('/addEmpresa/{numEmpresa}', 'UsuarioController@addEmpresa');
+	
+
 });
 
 Route::group([
@@ -658,9 +662,35 @@ Route::group([
 	
 });
 
+Route::group([
+	'prefix' => 'ActualizarDatos',
+	'middleware' => ['auth', 'guest:2,3'],
+], function() {
+	Route::get('/redondeos', 'ActualizarDatosController@redondeos');
+	Route::post('/cambiarRedondeos', 'ActualizarDatosController@cambiarRedondeos');
+	
+	Route::get('/upcAdicional', 'ActualizarDatosController@upcAdicional');
+	Route::post('/cambiarUpc', 'ActualizarDatosController@cambiarUpc');
+	
+	Route::group([ 'prefix' => 'valoresRetencion' ], function() {
+		Route::get('/', 'ActualizarDatosController@valoresRetencion');
+		Route::get('/add', 'ActualizarDatosController@getFormRetencion');
+		Route::post('/insert', 'ActualizarDatosController@insert');
+		Route::get('/delete/{id}', 'ActualizarDatosController@delete');
+		Route::get('/edit/{id}', 'ActualizarDatosController@getFormRetencionEdit');
+		Route::post('/update/{id}', 'ActualizarDatosController@update');
+	});
+	
+	
+});
 
 
-
+Route::group([
+	'prefix' => 'menu',
+	'middleware' => ['auth', 'guest:2,3'],
+], function() {
+	Route::get('/buscar/{textoBusqueda?}', 'MenuController@buscar');
+});
 
 
 Route::get('/recuperar_pass', 'InicioController@vistaRecuperarMail');

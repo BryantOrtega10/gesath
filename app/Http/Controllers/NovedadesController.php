@@ -13,10 +13,15 @@ use DateInterval;
 class NovedadesController extends Controller
 {
     public function index(){
-        $nominas = DB::table("nomina")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $nominas = DB::table("nomina");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){
+            $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
+        } 
+        $nominas = $nominas->get();
         $tipos_novedades = DB::table("tiponovedad")->get();
         
-        $dataUsu = UsuarioController::dataAdminLogueado();
+        
         return view('/novedades.cargarNovedad',[
             'nominas' => $nominas,
             'tipos_novedades' => $tipos_novedades,
@@ -866,6 +871,7 @@ class NovedadesController extends Controller
         return response()->json(['success'=>true]);
     }
     public function lista(Request $req){
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $novedades = DB::table("novedad","n")
         ->select([
             "n.*",
@@ -903,6 +909,10 @@ class NovedadesController extends Controller
             $arrConsulta["nomina"]=$req->nomina;
             $novedades = $novedades->where("n.fkNomina","=",$req->nomina);
         }
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $novedades = $novedades->whereIn("em.idempresa", $dataUsu->empresaUsuario);
+        }
+
         if(isset($req->tipoNovedad)){
             $arrConsulta["tipoNovedad"]=$req->tipoNovedad;
             $novedades = $novedades->where("n.fkTipoNovedad","=",$req->tipoNovedad);
@@ -914,6 +924,10 @@ class NovedadesController extends Controller
         else{
             $novedades = $novedades->where("n.fkEstado","=","7");
         }
+        
+        
+        
+
 
         if(isset($req->numDoc)){
             $arrConsulta["numDoc"]=$req->numDoc;
@@ -936,7 +950,12 @@ class NovedadesController extends Controller
             SELECT p.idPeriodo from periodo as p where p.fkEstado = '1'
         )")
         ->paginate();
-        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $nominas = DB::table("nomina");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $nominas = $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
+        }
+        $nominas = $nominas->orderBy("nombre")->get();
+
         $tiposnovedades = DB::table("tiponovedad")->orderBy("nombre")->get();
         $estados = DB::table("estado")
         ->whereIn("idestado",[7,8,9])
@@ -948,7 +967,8 @@ class NovedadesController extends Controller
             "nominas" => $nominas,
             "req" => $req,
             "estados" => $estados,
-            "arrConsulta" => $arrConsulta
+            "arrConsulta" => $arrConsulta,
+            "dataUsu" => $dataUsu
         ]);        
 
     }
@@ -991,13 +1011,14 @@ class NovedadesController extends Controller
         ->select(["c.*"])
         ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
         ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)->get();
-
+        $dataUsu = UsuarioController::dataAdminLogueado();
         if(isset($novedad->fkAusencia)){
             $ausencia = DB::table('ausencia')->where("idAusencia","=", $novedad->fkAusencia)->first();
             return view('/novedades.modificar.ausencia',[
                 'novedad' => $novedad,
                 'ausencia' => $ausencia,
-                'conceptos' => $conceptos
+                'conceptos' => $conceptos,
+                "dataUsu" => $dataUsu
             ]);      
         }
         else if(isset($novedad->fkIncapacidad)){
@@ -1012,7 +1033,8 @@ class NovedadesController extends Controller
                 'novedad' => $novedad,
                 'incapacidad' => $incapacidad,
                 'conceptos' => $conceptos,
-                'tiposAfiliacion' => $tiposAfiliacion
+                'tiposAfiliacion' => $tiposAfiliacion,
+                "dataUsu" => $dataUsu
 
             ]);      
         }
@@ -1022,7 +1044,8 @@ class NovedadesController extends Controller
             return view('/novedades.modificar.licencia',[
                 'novedad' => $novedad,
                 'licencia' => $licencia,
-                'conceptos' => $conceptos
+                'conceptos' => $conceptos,
+                "dataUsu" => $dataUsu
             ]);      
         }
         else if(isset($novedad->fkHorasExtra)){
@@ -1032,14 +1055,16 @@ class NovedadesController extends Controller
                 return view('/novedades.modificar.horas_extra1',[
                     'novedad' => $novedad,
                     'horas_extra' => $horas_extra,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);  
             }
             else{
                 return view('/novedades.modificar.horas_extra2',[
                     'novedad' => $novedad,
                     'horas_extra' => $horas_extra,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);  
             }
                 
@@ -1050,7 +1075,8 @@ class NovedadesController extends Controller
             return view('/novedades.modificar.retiro',[
                 'novedad' => $novedad,
                 'retiro' => $retiro,
-                'motivosRetiro' => $motivosRetiro
+                'motivosRetiro' => $motivosRetiro,
+                "dataUsu" => $dataUsu
             ]);      
         }
         else if(isset($novedad->fkVacaciones)){
@@ -1066,14 +1092,16 @@ class NovedadesController extends Controller
                 return view('/novedades.modificar.vacaciones',[
                     'novedad' => $novedad,
                     'vacaciones' => $vacaciones,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);
             }
             else{
                 return view('/novedades.modificar.vacaciones2',[
                     'novedad' => $novedad,
                     'vacaciones' => $vacaciones,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);
             }
         }
@@ -1085,7 +1113,8 @@ class NovedadesController extends Controller
             return view('/novedades.modificar.otra_novedad',[
                 'novedad' => $novedad,
                 'otra_novedad' => $otra_novedad,
-                'conceptos' => $conceptos
+                'conceptos' => $conceptos,
+                "dataUsu" => $dataUsu
             ]);
         }
         
@@ -1636,12 +1665,19 @@ class NovedadesController extends Controller
         ]);
     }
     public function seleccionarArchivoMasivoNovedades(){
-        $nominas = DB::table("nomina")->orderBy("nombre")->get();
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        $nominas = DB::table("nomina");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $nominas = $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
+        }
+        $nominas = $nominas->orderBy("nombre")->get();
+
         $cargas = DB::table("carganovedad")->where("fkEstado", "=","3")->get();
 
         return view('/novedades.subirNovedades',[
             'nominas' => $nominas,
-            'cargas' => $cargas
+            'cargas' => $cargas,
+            "dataUsu" => $dataUsu
         ]);
     }
     public function cargaMasivaNovedades(Request $req){
@@ -2303,11 +2339,13 @@ class NovedadesController extends Controller
 
         $errores = DB::table("carga_novedad_error","cne")->where("fkCargaNovedad","=",$idCarga)->get();
         
-        
+        $dataUsu = UsuarioController::dataAdminLogueado();
+
         return view('/novedades.listaNovedadesCarga',[
             'novedades' => $novedades,
             'idCarga' => $idCarga,
-            "errores" => $errores
+            "errores" => $errores,
+            "dataUsu" => $dataUsu
         ]);        
     }
     public function cancelarSubida($idCarga){
@@ -2325,6 +2363,7 @@ class NovedadesController extends Controller
     }
     
     public function novedadesxLiquidacion($idLiquidacionNomina, Request $req){
+        $dataUsu = UsuarioController::dataAdminLogueado();
         $novedades = DB::table("novedad","n")
         ->select(["c.nombre as nombreConcepto","est.nombre as nombreEstado","dp.*","ti.nombre as tipoDocumento",
                   "em.razonSocial as nombreEmpresa", "nom.nombre as nombreNomina","n.*"])
@@ -2356,6 +2395,7 @@ class NovedadesController extends Controller
         
         return view("/novedades/listaNovedadesxLiq", [
             "novedades" => $novedades,
+            "dataUsu" => $dataUsu,
             "req" => $req
         ]);
         
@@ -2391,13 +2431,14 @@ class NovedadesController extends Controller
         ->select(["c.*"])
         ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
         ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)->get();
-
+        $dataUsu = UsuarioController::dataAdminLogueado();
         if(isset($novedad->fkAusencia)){
             $ausencia = DB::table('ausencia')->where("idAusencia","=", $novedad->fkAusencia)->first();
             return view('/novedades.ver.ausencia',[
                 'novedad' => $novedad,
                 'ausencia' => $ausencia,
-                'conceptos' => $conceptos
+                'conceptos' => $conceptos,
+                "dataUsu" => $dataUsu
             ]);      
         }
         else if(isset($novedad->fkIncapacidad)){
@@ -2412,7 +2453,8 @@ class NovedadesController extends Controller
                 'novedad' => $novedad,
                 'incapacidad' => $incapacidad,
                 'conceptos' => $conceptos,
-                'tiposAfiliacion' => $tiposAfiliacion
+                'tiposAfiliacion' => $tiposAfiliacion,
+                "dataUsu" => $dataUsu
 
             ]);      
         }
@@ -2422,7 +2464,8 @@ class NovedadesController extends Controller
             return view('/novedades.ver.licencia',[
                 'novedad' => $novedad,
                 'licencia' => $licencia,
-                'conceptos' => $conceptos
+                'conceptos' => $conceptos,
+                "dataUsu" => $dataUsu
             ]);      
         }
         else if(isset($novedad->fkHorasExtra)){
@@ -2432,14 +2475,16 @@ class NovedadesController extends Controller
                 return view('/novedades.ver.horas_extra1',[
                     'novedad' => $novedad,
                     'horas_extra' => $horas_extra,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);  
             }
             else{
                 return view('/novedades.ver.horas_extra2',[
                     'novedad' => $novedad,
                     'horas_extra' => $horas_extra,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);  
             }
                 
@@ -2450,7 +2495,8 @@ class NovedadesController extends Controller
             return view('/novedades.ver.retiro',[
                 'novedad' => $novedad,
                 'retiro' => $retiro,
-                'motivosRetiro' => $motivosRetiro
+                'motivosRetiro' => $motivosRetiro,
+                "dataUsu" => $dataUsu
             ]);      
         }
         else if(isset($novedad->fkVacaciones)){
@@ -2466,14 +2512,16 @@ class NovedadesController extends Controller
                 return view('/novedades.ver.vacaciones',[
                     'novedad' => $novedad,
                     'vacaciones' => $vacaciones,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);
             }
             else{
                 return view('/novedades.ver.vacaciones2',[
                     'novedad' => $novedad,
                     'vacaciones' => $vacaciones,
-                    'conceptos' => $conceptos
+                    'conceptos' => $conceptos,
+                    "dataUsu" => $dataUsu
                 ]);
             }
         }
@@ -2485,7 +2533,8 @@ class NovedadesController extends Controller
             return view('/novedades.ver.otra_novedad',[
                 'novedad' => $novedad,
                 'otra_novedad' => $otra_novedad,
-                'conceptos' => $conceptos
+                'conceptos' => $conceptos,
+                "dataUsu" => $dataUsu
             ]);
         }
         

@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 @section('title', 'Solicitudes de liquidaci&oacute;n')
 @section('menuLateral')
-    @include('layouts.partials.menu')
+    @include('layouts.partials.menu', [
+        'dataUsu' => $dataUsu
+    ])
 @endsection
 
 @section('contenido')

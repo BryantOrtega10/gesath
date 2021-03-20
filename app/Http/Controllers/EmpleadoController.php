@@ -24,6 +24,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class EmpleadoController extends Controller
 {
     public function index(Request $req){
+        $usu = UsuarioController::dataAdminLogueado();
+        
         $empleados = DB::table('empleado')->select( 'empleado.idempleado',
                                                     'empleado.tEmpleado',
                                                     'est.nombre AS estado',
@@ -64,6 +66,10 @@ class EmpleadoController extends Controller
         }
         else{
             $req->centroCosto = NULL;
+        }
+
+        if(isset($usu) && $usu->fkRol == 2){
+            $empleados->whereIn("empleado.fkEmpresa", $usu->empresaUsuario);
         }
 
         if(isset($req->centroCosto)){
@@ -110,7 +116,7 @@ class EmpleadoController extends Controller
         
         $ciudades = DB::table("ubicacion")->where("fkTipoUbicacion","=","3")->orderBy("nombre")->get();
         $estados = DB::table("estado","e")->whereIn('e.idestado',[1,2,3])->get();
-        $usu = UsuarioController::dataAdminLogueado();
+        
 
         return view('/empleado.verEmpleados',['empleados'=> $empleados, 
         'ciudades' => $ciudades,
@@ -4949,6 +4955,7 @@ class EmpleadoController extends Controller
 
 
     public function indexReintegro(Request $req){
+        $usu = UsuarioController::dataAdminLogueado();
         $empleados = DB::table('empleado')->select( 'empleado.idempleado',
                                                     'empleado.tEmpleado',
                                                     'est.nombre AS estado',
@@ -4990,6 +4997,10 @@ class EmpleadoController extends Controller
             $req->centroCosto = NULL;
         }
 
+        if(isset($usu) && $usu->fkRol == 2){
+            $empleados->whereIn("empleado.fkEmpresa", $usu->empresaUsuario);
+        }
+        
         if(isset($req->centroCosto)){
             $empleados->where("cc.idcentroCosto", "=", $req->centroCosto);
             $arrConsulta["centroCosto"] = $req->centroCosto;
@@ -5034,8 +5045,8 @@ class EmpleadoController extends Controller
         
         $ciudades = DB::table("ubicacion")->where("fkTipoUbicacion","=","3")->orderBy("nombre")->get();
         $estados = DB::table("estado","e")->whereIn('e.idestado',[1,2,3])->get();
-        $usu = UsuarioController::dataAdminLogueado();
-
+        
+        
         return view('/empleado.verEmpleadosReintegro',['empleados'=> $empleados, 
         'ciudades' => $ciudades,
          "req" => $req, 
