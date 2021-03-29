@@ -32,6 +32,9 @@
                         <option value = "TLS" @if ($smtp->smtp_encrypt == "TLS")
                             selected
                         @endif>TLS</option>
+                        <option value = "SSL" @if ($smtp->smtp_encrypt == "SSL")
+                            selected
+                        @endif>SSL</option>
                     </select>
                 </div>
                 <div class="form-group">

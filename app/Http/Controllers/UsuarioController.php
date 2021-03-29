@@ -44,11 +44,28 @@ class UsuarioController extends Controller
         ->first();
 
         $empresaUsuario = DB::table("user_empresa")->where("fkUser", "=",$usuario->id)->get();
+        $permisosUsuario = DB::table("permisos_user")->where("fkUser", "=",$usuario->id)->get();
+
         $empresasArr = array();
         foreach($empresaUsuario as $empUser){
             array_push($empresasArr, $empUser->fkEmpresa);
         }
+
+        $permisosArr = array();
+        foreach($permisosUsuario as $permisoUsuario){
+            array_push($permisosArr, $permisoUsuario->fkMenu);
+        }
+        if($dataUsu->fkRol == 3){
+            $menus = DB::table("menu","m")->orderBy("m.fkMenu")->get();
+            $permisosArr = array();
+            foreach($menus as $menu){
+                array_push($permisosArr, $menu->idMenu);
+            }
+        }
+       
+
         $dataUsu->empresaUsuario = $empresasArr;
+        $dataUsu->permisosUsuario = $permisosArr;
 
         return $dataUsu;
     }
@@ -61,10 +78,38 @@ class UsuarioController extends Controller
         )
         ->orderBy("razonSocial")
         ->get();
+
+        $menus = DB::table("menu","m")->orderBy("m.fkMenu")->get();
+        $arrMenu = array();
+        foreach($menus as $itemMenu){
+            $itemMenu->subItems = array();
+            if(isset($itemMenu->fkMenu)){
+                if(isset($arrMenu[$itemMenu->fkMenu])){
+                    array_push($arrMenu[$itemMenu->fkMenu]->subItems, $itemMenu);
+                }
+                else{
+                    foreach($arrMenu as $menuLv1){
+                        foreach($menuLv1->subItems as $menuLv2){
+                            if($menuLv2->idMenu == $itemMenu->fkMenu){
+                                array_push($menuLv2->subItems, $itemMenu);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else{
+                $arrMenu[$itemMenu->idMenu] = $itemMenu;
+            }
+        }
+        
         return view('/usuarios/addUsuario', [
-            'empresas' => $empresas
+            'empresas' => $empresas,
+            'arrMenu' => $arrMenu
         ]);
     }
+
+    
 
     public function create(CrearUsuarioAdminRequest $request) {
         // Creamos primero registro de datos personales
@@ -84,6 +129,13 @@ class UsuarioController extends Controller
                     }   
                 }
             }
+
+            if(!isset($request->permiso)){
+                return response()->json([
+                    'success' => false, 'mensaje' => 'Error seleccione al menos un permiso'
+                ]);
+            }
+
         }
 
         
@@ -131,7 +183,14 @@ class UsuarioController extends Controller
             }
         }
 
-
+        if(isset($request->permiso)){
+            foreach($request->permiso as $permiso){
+                DB::table("permisos_user")->insert([
+                    "fkUser" => $usuario->id,
+                    "fkMenu" => $permiso
+                ]);
+            }
+        }
 
 
         if ($save) {
@@ -149,12 +208,42 @@ class UsuarioController extends Controller
             $usuario = User::findOrFail($id);
             $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
             $empresas_usuario = DB::table("user_empresa")->where("fkUser", "=",$id)->get();
+            $permisos_usuario = DB::table("permisos_user")->where("fkUser", "=",$id)->get();
+            $arrPermisoUser = array();
+            foreach ($permisos_usuario as $permiso_usuario){
+                array_push($arrPermisoUser, $permiso_usuario->fkMenu);
+            }
 
-
+            $menus = DB::table("menu","m")->orderBy("m.fkMenu")->get();
+            $arrMenu = array();
+            foreach($menus as $itemMenu){
+                $itemMenu->subItems = array();
+                if(isset($itemMenu->fkMenu)){
+                    if(isset($arrMenu[$itemMenu->fkMenu])){
+                        array_push($arrMenu[$itemMenu->fkMenu]->subItems, $itemMenu);
+                    }
+                    else{
+                        foreach($arrMenu as $menuLv1){
+                            foreach($menuLv1->subItems as $menuLv2){
+                                if($menuLv2->idMenu == $itemMenu->fkMenu){
+                                    array_push($menuLv2->subItems, $itemMenu);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                else{
+                    $arrMenu[$itemMenu->idMenu] = $itemMenu;
+                }
+            }
+            
             return view('/usuarios/editUsuario', [
                 'usuario' => $usuario,
                 "empresas" => $empresas,
-                "empresas_usuario" => $empresas_usuario
+                "arrPermisoUser" => $arrPermisoUser,
+                "empresas_usuario" => $empresas_usuario,
+                "arrMenu" => $arrMenu
             ]);
 		}
 		catch (ModelNotFoundException $e)
@@ -196,6 +285,11 @@ class UsuarioController extends Controller
                             ]);
                         }   
                     }
+                }
+                if(!isset($request->permiso)){
+                    return response()->json([
+                        'success' => false, 'mensaje' => 'Error seleccione al menos un permiso'
+                    ]);
                 }
             }
     
@@ -245,6 +339,15 @@ class UsuarioController extends Controller
                             "fkEmpresa" => $empresa
                         ]);
                     }            
+                }
+            }
+            DB::table("permisos_user")->where("fkUser", "=", $usuario->id)->delete();
+            if(isset($request->permiso)){
+                foreach($request->permiso as $permiso){
+                    DB::table("permisos_user")->insert([
+                        "fkUser" => $usuario->id,
+                        "fkMenu" => $permiso
+                    ]);
                 }
             }
             if ($save) {

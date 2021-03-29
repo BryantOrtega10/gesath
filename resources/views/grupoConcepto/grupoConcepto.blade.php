@@ -12,9 +12,11 @@
     <div class="col-9">
         <h1 class="granAzul">Grupo conceptos</h1>
     </div>
+    @if (in_array("127",$dataUsu->permisosUsuario))
     <div class="col-3 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addGrupoConcepto">Agregar grupo concepto</a>
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
 <div class="table-responsive">
@@ -35,9 +37,15 @@
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
+                            @if (in_array("130",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $grupo->idgrupoConcepto }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver detalle</a>
+                            @endif
+                            @if (in_array("128",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $grupo->idgrupoConcepto }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar</a>
+                            @endif
+                            @if (in_array("129",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $grupo->idgrupoConcepto }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar</a>
+                            @endif
                         </div>
                     </div>
                 </td>

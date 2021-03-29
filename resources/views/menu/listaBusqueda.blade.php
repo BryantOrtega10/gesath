@@ -1,11 +1,13 @@
 @if (sizeof($itemsMenu) > 0)
     <ul class="subMenu">
         @foreach ($itemsMenu as $item)
-            <li>
-                <a href="{{$item->link}}" >
-                    <span class="textoMenu">{{$item->nombre}}</span>
-                </a>
-            </li>
+            @if ($item->link != "")
+                <li>
+                    <a href="{{$item->link}}" >
+                        <span class="textoMenu">{{$item->nombre}}</span>
+                    </a>
+                </li>
+            @endif            
         @endforeach    
     </ul>
 @else

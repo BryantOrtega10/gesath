@@ -11,12 +11,16 @@
     <div class="col-8">
         <h1 class="granAzul">Concepto</h1>
     </div>
+    @if (in_array("125",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
         <a class="btn btnAzulGen btnGeneral text-center"href="/concepto/exportar"> <i class="fas fa-download"></i> Exportar lista conceptos</a>
     </div>
+    @endif
+    @if (in_array("123",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addConcepto">Agregar concepto</a>
     </div>
+    @endif
 </div>
 
 <div class="cajaGeneral">
@@ -59,8 +63,12 @@
                         <td>{{ $concepto->subTipo }}</td>
                         <td><a href="/concepto/condiciones/{{ $concepto->idconcepto }}">Condiciones</a></td>
                         <td>
+                            @if (in_array("124",$dataUsu->permisosUsuario))
                             <a href="/concepto/getForm/edit/{{ $concepto->idconcepto }}" class="editar"><i class="fas fa-edit"></i></a>
+                            @endif
+                            @if (in_array("126",$dataUsu->permisosUsuario))
                             <a href="/concepto/getForm/copy/{{ $concepto->idconcepto }}" class="editar"><i class="fas fa-copy"></i></a>
+                            @endif
                             
                         
                         </td>

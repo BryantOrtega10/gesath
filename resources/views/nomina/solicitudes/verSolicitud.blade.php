@@ -42,6 +42,7 @@
     </div>
 
     <div class="row">
+        @if (in_array("59",$dataUsu->permisosUsuario))
         <div class="col-3">
             <form action="/nomina/aprobarSolicitud" method="POST" class="formGeneral" id="formModificarSolicitud" autocomplete="off">
                 @csrf                
@@ -49,6 +50,8 @@
                 <input type="hidden" name="idLiquidacion" value="{{$liquidaciones->idLiquidacionNomina}}" />
             </form>
         </div>
+        @endif
+        @if (in_array("60",$dataUsu->permisosUsuario))
         <div class="col-3">
             <form action="/nomina/cancelarSolicitud" method="POST" class="formGeneral" id="formModificarSolicitud2" autocomplete="off">
                 @csrf
@@ -56,24 +59,34 @@
                 <input type="hidden" name="idLiquidacion" value="{{$liquidaciones->idLiquidacionNomina}}" />
             </form>
         </div>
+        @endif
+        @if (in_array("61",$dataUsu->permisosUsuario))
         <div class="col-3 text-center">
             <a href="/nomina/recalcularNomina/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen recalcularNomina">Recalcular nomina</a><br>
         </div>
+        @endif
     </div>  
     <div class="row">
+        @if (in_array("62",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/nomina/documentoRetencion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> ReteFuente</a><br>
         </div>
+        @endif
+        @if (in_array("63",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Nomina horizontal</a><br>
         </div>
+        @endif
+        @if (in_array("64",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/reportes/comprobantePdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> PDF Consolidado</a><br>
         </div>
+        @endif
+        @if (in_array("65",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/reportes/comprobantePdfNuevoD/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download" aria-hidden="true"></i> Reporte PDF corto</a><br>
         </div>
-    
+        @endif
     </div>
     
 
@@ -129,9 +142,15 @@
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                       
                         <div class="dropdown-menu dropdown-menu-right">
-                            <a href="/reportes/comprobantePdf/{{$boucher->idBoucherPago}}" target="_blank" class="dropdown-item" >Comprobante de pago</a>
+                            @if (in_array("66",$dataUsu->permisosUsuario))
+                                <a href="/reportes/comprobantePdf/{{$boucher->idBoucherPago}}" target="_blank" class="dropdown-item" >Comprobante de pago</a>
+                            @endif
+                            @if (in_array("67",$dataUsu->permisosUsuario))
                             <a href="/nomina/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo dropdown-item">Enviar por correo</a>
+                            @endif
+                            @if (in_array("68",$dataUsu->permisosUsuario))
                             <a href="/nomina/recalcularComprobante/{{$boucher->idBoucherPago}}" class="recalcular dropdown-item" data-id="{{$boucher->idBoucherPago}}">Recalcular</a>
+                            @endif
                         </div>
                     </div>
                     
@@ -139,7 +158,9 @@
             </tr>
             <tr>
                 <td colspan="5">
-                    <div class="detalleBoucher" data-id="{{$boucher->idBoucherPago}}"></div>
+                    @if (in_array("69",$dataUsu->permisosUsuario))
+                        <div class="detalleBoucher" data-id="{{$boucher->idBoucherPago}}"></div>
+                    @endif
                 </td>
             </tr>
         @endforeach

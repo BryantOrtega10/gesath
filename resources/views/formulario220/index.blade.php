@@ -9,7 +9,9 @@
 @section('contenido')
 <div class="cajaGeneral">
     <h1 class="granAzul">Administrar Formulario 220</h1>
+    @if (in_array("135",$dataUsu->permisosUsuario))
     <a class="btn btn-primary" href="#" id="addFormulario220">Agregar Año</a>
+    @endif
     <div class="table-responsive">
         <table class="table table-hover table-striped" id = "formularios">
             <thead>
@@ -26,7 +28,11 @@
                         <td>{{$formulario->idFormulario220}}</td>
                         <td>{{$formulario->anio}}</td>
                         <td><img src="{{ Storage::url($formulario->rutaImagen) }}" class="formulario" /></td>
-                        <td><a href="/formulario220/getForm/edit/{{$formulario->idFormulario220}}" class="editar">Editar</a></td>
+                        <td>
+                            @if (in_array("136",$dataUsu->permisosUsuario))
+                            <a href="/formulario220/getForm/edit/{{$formulario->idFormulario220}}" class="editar">Editar</a>
+                            @endif
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

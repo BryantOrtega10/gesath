@@ -7,6 +7,7 @@
 @endsection
 
 @section('contenido')
+@if (in_array("90",$dataUsu->permisosUsuario))
 <form method="POST" id="" autocomplete="off" class="formGeneral" action="/datosPasadosVac/subirArchivo"
                     enctype="multipart/form-data">
                     @csrf
@@ -25,7 +26,9 @@
         </div>
     </div>
 </form>
+@endif
     <div class="cajaGeneral">
+        @if (in_array("89",$dataUsu->permisosUsuario))
         <form method="POST" id="formAdd" autocomplete="off" class="formGeneral"
             action="/datosPasadosVac/insertarManualmente" enctype="multipart/form-data">
             @csrf
@@ -101,6 +104,7 @@
                 </div>
             </div>
         </form>
+        @endif
     </div>
     <div class="cajaGeneral">
         <div class="row">
@@ -122,7 +126,9 @@
                             <td>{{ $cargaDatoPasado->fechaCarga }}</td>
                             <td>{{ ceil(($cargaDatoPasado->numActual / $cargaDatoPasado->numRegistros) * 100) }}%</td>
                             <td>{{ $cargaDatoPasado->nombre }}</td>
-                            <td><a href="/datosPasadosVac/verCarga/{{ $cargaDatoPasado->idCargaDatosPasados }}">Ver carga</a>
+                            <td>@if (in_array("91",$dataUsu->permisosUsuario))
+                                <a href="/datosPasadosVac/verCarga/{{ $cargaDatoPasado->idCargaDatosPasados }}">Ver carga</a>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

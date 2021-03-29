@@ -20,8 +20,10 @@
                         <h2>Filtros de B&uacute;squeda</h2>
                     </div>
                     <div class="col-3 text-right">
-                        <a href="/empleado/formCrear/1" class="btnGeneral btnAzulGen btnMed text-center"> <i
-                                class="far fa-user"></i> Crear Empleado</a>
+                        @if (in_array("51",$dataUsu->permisosUsuario))
+                            <a href="/empleado/formCrear/1" class="btnGeneral btnAzulGen btnMed text-center"> <i
+                            class="far fa-user"></i> Crear Empleado</a>
+                        @endif
                     </div>
                 </div>
                 <hr>
@@ -133,20 +135,32 @@
                                     <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                                   
                                     <div class="dropdown-menu dropdown-menu-right">
+                                        @if (in_array("52",$dataUsu->permisosUsuario))
                                         <a href="/empleado/formModificar/{{ $empleado->idempleado }}" class="dropdown-item editar">
                                             <i class="fas fa-edit"></i> Editar</a>
+                                        @endif
+                                        @if (in_array("53",$dataUsu->permisosUsuario))
                                         <a href="/empleado/formVer/{{ $empleado->idempleado }}" class="dropdown-item  ver">
                                             <i class="fas fa-eye"></i> Ver</a>
+                                        @endif
+                                        
                                         <a href="/empleado/mostrarPorqueFalla/{{ $empleado->idempleado }}" class="verPorqueFalla dropdown-item ">
                                             <i class="fas fa-question-circle"></i> Campos pendientes</a>
+                                        
                                         @if ($empleado->fkEstado == '2')
+                                            @if (in_array("8",$dataUsu->permisosUsuario))
                                             <a href="/empleado/formReintegro/{{ $empleado->idempleado }}" data-id="{{ $empleado->idempleado }}" class="dropdown-item ">
                                                 <i class="fas fa-redo"></i> Reintegrar</a>
+                                            @endif
+                                            @if (in_array("54",$dataUsu->permisosUsuario))
                                             <a href="#" class="eliminarDefUsuario dropdown-item " data-id="{{ $empleado->idempleado }}">
                                                 <i class="fas fa-trash"></i> Eliminar</a>
+                                            @endif
                                         @else
+                                            @if (in_array("54",$dataUsu->permisosUsuario))
                                             <a href="#" class="eliminarUsuario dropdown-item " data-id="{{ $empleado->idempleado }}">
                                                 <i class="fas fa-user-minus"></i> Desactivar</a>
+                                            @endif
                                         @endif
                                     </div>
                                 </div>

@@ -1240,9 +1240,16 @@ class EmpleadoController extends Controller
             $modContrato["numeroDias"] = $dias;
         }
 
-        $affected = DB::table('contrato')
+        if(!isset($req->idContratoActivo)){
+            $affected = DB::table('contrato')
+            ->insert($modContrato);
+        }
+        else{
+            $affected = DB::table('contrato')
               ->where('idcontrato', $req->idContratoActivo)
               ->update($modContrato);
+        }
+        
         
         
 

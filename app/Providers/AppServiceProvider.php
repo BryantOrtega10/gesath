@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,5 +31,33 @@ class AppServiceProvider extends ServiceProvider
             dd($moneda);
             return '<?php echo number_format ('.$moneda.', 2 , "." ,  "," ); ?>';
         });
+        
+        $menus = DB::table("menu","m")->orderBy("m.fkMenu")->get();
+        $arrMenu = array();
+        foreach($menus as $itemMenu){
+            $itemMenu->subItems = array();
+            if(isset($itemMenu->fkMenu)){
+                if(isset($arrMenu[$itemMenu->fkMenu])){
+                    array_push($arrMenu[$itemMenu->fkMenu]->subItems, $itemMenu);
+                }
+                else{
+                    foreach($arrMenu as $menuLv1){
+                        foreach($menuLv1->subItems as $menuLv2){
+                            if($menuLv2->idMenu == $itemMenu->fkMenu){
+                                array_push($menuLv2->subItems, $itemMenu);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else{
+                $arrMenu[$itemMenu->idMenu] = $itemMenu;
+            }
+        }
+        
+        view()->share('arrMenu', $arrMenu);
+
+
     }
 }

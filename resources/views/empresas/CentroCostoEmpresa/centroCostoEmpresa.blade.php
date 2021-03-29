@@ -11,9 +11,11 @@
     <div class="col-9">
         <h1 class="granAzul">Centros de costo empresa</h1>
     </div>
+    @if (in_array("105",$dataUsu->permisosUsuario))
     <div class="col-3 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addCentroCosto" dataId = "{{ request()->route()->parameters['idEmpresa'] }}">Agregar Centro de costo</a>
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
 <div class="table-responsive">
@@ -36,9 +38,16 @@
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
+                            @if (in_array("106",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Centro</a>
+                            @endif
+                            @if (in_array("107",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Centro</a>
+                            @endif
+                            @if (in_array("108",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $cen->idcentroCosto }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Centro</a>
+                            @endif
+                            
                         </div>
                     </div>
                 </td>

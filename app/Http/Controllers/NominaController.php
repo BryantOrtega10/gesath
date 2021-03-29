@@ -994,14 +994,13 @@ class NominaController extends Controller
             }
             else if(isset($formulaConcepto->fkGrupoConceptoInicial)){
 
-                $grupoConceptoCalculo = DB::table("conceptofijo")->select(DB::raw('SUM(conceptofijo.valor) as totalValor', 'grupoconcepto.nombre'))
+                $grupoConceptoCalculo = DB::table("conceptofijo")->select(DB::raw('SUM(conceptofijo.valor) as totalValor'), 'grupoconcepto.nombre')
                     ->join("grupoconcepto_concepto as gcc", "gcc.fkConcepto","=","conceptofijo.fkConcepto")
                     ->join("grupoconcepto","grupoconcepto.idgrupoConcepto","=","gcc.fkGrupoConcepto")
                     ->where("conceptofijo.fkEmpleado","=", $idEmpleado)
                     ->where("conceptofijo.fkEstado","=","1")
                     ->where("gcc.fkGrupoConcepto", "=", $formulaConcepto->fkGrupoConceptoInicial)                       
                     ->first();
-
                 $valor1=floatval($grupoConceptoCalculo->totalValor);
                 array_push($arrComoCalcula, "Se toma el grupo de concepto ".$grupoConceptoCalculo->nombre." con valor: ".number_format($valor1,0,",", "."));
             }
@@ -6573,7 +6572,13 @@ class NominaController extends Controller
             
             $nuevoIbc =  $ibcGeneral2;
             if(isset($arrValorxConcepto[24])){
-                $nuevoIbc= $nuevoIbc + floatval($arrValorxConcepto[24]['valorAus']);
+                if(isset($arrValorxConcepto[24]['valorAus'])){
+                    $nuevoIbc= $nuevoIbc + floatval($arrValorxConcepto[24]['valorAus']);
+                }
+                else{
+                    $nuevoIbc= $nuevoIbc - floatval($arrValorxConcepto[24]['valor']);
+                }
+                         
             }
             if($empleado->fkTipoCotizante == 51){
                 if($numeroDias>=1 && $numeroDias<=7){
@@ -8597,6 +8602,7 @@ class NominaController extends Controller
 
                 $itemsBoucherMismoPeriodoNomin = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("ibp.*")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
@@ -8604,6 +8610,7 @@ class NominaController extends Controller
                 ->where("ln.fechaInicio","=",$fechaInicio)
                 ->where("ln.fechaFin","=",$fechaFin)
                 ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
+                ->where("gcc.fkGrupoConcepto", "=","46")
                 ->whereNotIn("ln.fkTipoLiquidacion",["7","10","11"]) //Puede tenerlas en el mismo periodo
                 ->get();
                 
@@ -8626,6 +8633,7 @@ class NominaController extends Controller
                     if(substr($liquidacionNomina->fechaInicio,8,2) == "01"){
                         $itemsBoucherPeriodo16 = DB::table("item_boucher_pago", "ibp")
                         ->selectRaw("ibp.*")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")
                         ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                         ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                         ->where("bp.fkEmpleado","=",$empleado->idempleado)
@@ -8633,6 +8641,7 @@ class NominaController extends Controller
                         ->where("ln.fechaInicio","=",date("Y-m-16",strtotime($fechaInicio)))
                         ->where("ln.fechaFin","=",date("Y-m-t",strtotime($fechaInicio)))
                         ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
+                        ->where("gcc.fkGrupoConcepto", "=","46")
                         ->whereNotIn("ln.fkTipoLiquidacion",["7","10","11"]) //Puede tenerlas en el mismo periodo
                         ->get();
                         
@@ -8654,6 +8663,7 @@ class NominaController extends Controller
                     //Verificar mes anterior
                     $itemsBoucherPeriodoMesAnt = DB::table("item_boucher_pago", "ibp")
                     ->selectRaw("ibp.*")
+                    ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")
                     ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
@@ -8661,6 +8671,7 @@ class NominaController extends Controller
                     ->where("ln.fechaInicio","=",date("Y-m-01",strtotime($fechaInicio."- 1 month")))
                     ->where("ln.fechaFin","=",date("Y-m-t",strtotime($fechaInicio."- 1 month")))
                     ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
+                    ->where("gcc.fkGrupoConcepto", "=","46")
                     ->whereIn("ln.fkTipoLiquidacion",["3","7"])
                     ->get();
 
@@ -10173,7 +10184,7 @@ class NominaController extends Controller
                 }
 
                 //Calculo retencion retiro
-                if( $tipoliquidacion == "3"){
+                if($tipoliquidacion == "3"){
                     $ingreso = 0;
                     $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
                         ->where("gcc.fkGrupoConcepto", "=", "9")
@@ -10581,6 +10592,7 @@ class NominaController extends Controller
 
                 $itemsBoucherMismoPeriodoNomin = DB::table("item_boucher_pago", "ibp")
                 ->selectRaw("ibp.*")
+                ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
@@ -10589,6 +10601,7 @@ class NominaController extends Controller
                 ->where("ln.fechaFin","=",$fechaFin)
                 ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                 ->whereNotIn("ln.fkTipoLiquidacion",["7","10","11"]) //Puede tenerlas en el mismo periodo
+                ->where("gcc.fkGrupoConcepto", "=","46")
                 ->get();
                 
                 foreach($itemsBoucherMismoPeriodoNomin as $itemBoucherMismoPeriodoNomin){                        
@@ -10604,11 +10617,14 @@ class NominaController extends Controller
                     }
                 }
 
+               
+
 
                 if($periodo == 15){                
                     if(substr($liquidacionNomina->fechaInicio,8,2) == "01"){
                         $itemsBoucherPeriodo16 = DB::table("item_boucher_pago", "ibp")
                         ->selectRaw("ibp.*")
+                        ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")
                         ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                         ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                         ->where("bp.fkEmpleado","=",$empleado->idempleado)
@@ -10617,6 +10633,7 @@ class NominaController extends Controller
                         ->where("ln.fechaFin","=",date("Y-m-t",strtotime($fechaInicio)))
                         ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                         ->whereNotIn("ln.fkTipoLiquidacion",["7","10","11"]) //Puede tenerlas en el mismo periodo
+                        ->where("gcc.fkGrupoConcepto", "=","46")
                         ->get();
                         
                         foreach($itemsBoucherPeriodo16 as $itemBoucherMismoPeriodoNomin){                        
@@ -10641,6 +10658,7 @@ class NominaController extends Controller
                     //Verificar mes anterior
                     $itemsBoucherPeriodoMesAnt = DB::table("item_boucher_pago", "ibp")
                     ->selectRaw("ibp.*")
+                    ->join("grupoconcepto_concepto as gcc","gcc.fkConcepto","=","ibp.fkConcepto")
                     ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
@@ -10650,11 +10668,11 @@ class NominaController extends Controller
                     ->whereRaw("YEAR(ln.fechaLiquida) = '".date("Y",strtotime($fechaInicio))."'")
                     ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                     ->whereIn("ln.fkTipoLiquidacion",["3","7"])
+                    ->where("gcc.fkGrupoConcepto", "=","46")
                     ->get();
                     
                     foreach($itemsBoucherPeriodoMesAnt as $itemBoucherMismoPeriodoNomin){                        
                         if(isset($arrValorxConcepto[$itemBoucherMismoPeriodoNomin->fkConcepto])){
-
                             $arrComoCalcula[$itemBoucherMismoPeriodoNomin->fkConcepto] = ($arrComoCalcula[$itemBoucherMismoPeriodoNomin->fkConcepto] ?? array());
 
                             array_push($arrComoCalcula[$itemBoucherMismoPeriodoNomin->fkConcepto],
@@ -10665,11 +10683,21 @@ class NominaController extends Controller
                             $arrValorxConcepto[$itemBoucherMismoPeriodoNomin->fkConcepto]["valor"] = round($arrValorxConcepto[$itemBoucherMismoPeriodoNomin->fkConcepto]["valor"]) - $itemBoucherMismoPeriodoNomin->valor;
                             $arrValorxConcepto[$itemBoucherMismoPeriodoNomin->fkConcepto]["cantidad"] = round($arrValorxConcepto[$itemBoucherMismoPeriodoNomin->fkConcepto]["cantidad"]) - $itemBoucherMismoPeriodoNomin->cantidad;
                         }
-                    }
-                    
+                    }                   
                     
                 }
 
+                if($novedadesRetiro->fechaReal == $fechaFin){
+                    $grupoConceptoIBCOtros = DB::table("grupoconcepto_concepto","gcc")
+                    ->where("gcc.fkGrupoConcepto", "=", '46')//19->IBC Otros
+                    ->get();
+                    foreach($grupoConceptoIBCOtros as $grupoConcepto){
+                        if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto])){
+                            $arrValorxConcepto[$grupoConcepto->fkConcepto]["valor"] = 0;
+                        }
+                    }
+                }
+                
                 if((isset($arrValorxConcepto[1]["valor"]) && $arrValorxConcepto[1]["valor"]==0) || (isset($arrValorxConcepto[2]["valor"]) && $arrValorxConcepto[2]["valor"]==0)){
                     $arrValorxConcepto[18]["valor"]=0;
                     $arrValorxConcepto[19]["valor"]=0;

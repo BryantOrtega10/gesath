@@ -11,9 +11,11 @@
     <div class="col-9">
         <h1 class="granAzul">Variables</h1>
     </div>
+    @if (in_array("121",$dataUsu->permisosUsuario))
     <div class="col-3 text-right">
         <a class="btn btnAzulGen btnGeneral text-center"href="#" id="addVariable">Agregar variable</a>
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
     <div class="table-responsive">
@@ -34,7 +36,11 @@
                     <td>{{ $variable->nombre }}</td>
                     <td>{{ $variable->descripcion }}</td>
                     <td>{{ $variable->valor }}</td>
-                    <td><a href="/variables/getForm/edit/{{ $variable->idVariable }}" class="editar"><i class="fas fa-edit"></i></a></td>
+                    <td>
+                        @if (in_array("122",$dataUsu->permisosUsuario))
+                            <a href="/variables/getForm/edit/{{ $variable->idVariable }}" class="editar"><i class="fas fa-edit"></i></a>
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

@@ -10,9 +10,11 @@
     <div class="col-9">
         <h1 class="granAzul">Nómina empresa</h1>
     </div>
+    @if (in_array("110",$dataUsu->permisosUsuario))
     <div class="col-3 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addNominaEmpresa" dataId = "{{ request()->route()->parameters['idNomina'] }}">Agregar Nómina</a>
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
 <div class="table-responsive">
@@ -39,9 +41,15 @@
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
+                            @if (in_array("109",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $nom->idNomina }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Nómina</a>
+                            @endif
+                            @if (in_array("111",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $nom->idNomina }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Nómina</a>
+                            @endif
+                            @if (in_array("112",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $nom->idNomina }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Nómina</a>
+                            @endif
                         </div>
                     </div>
                 </td>

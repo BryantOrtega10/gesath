@@ -12,7 +12,9 @@
         <h1 class="granAzul">Distibucion centro de costos</h1>
     </div>
     <div class="col-3 text-right">
-        <a class="btnGeneral btnAzulGen btnGra text-center" href="#" id="addDistri">Agregar nueva distribucion</a>
+        @if (in_array("84",$dataUsu->permisosUsuario))
+            <a class="btnGeneral btnAzulGen btnGra text-center" href="#" id="addDistri">Agregar nueva distribucion</a>
+        @endif
     </div>
 </div>
 <div class="row">
@@ -45,8 +47,13 @@
                             <div class="btn-group">
                                 <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                                 <div class="dropdown-menu dropdown-menu-right">
-                                    <a href="/nomina/distri/modificarDistri/{{$distri_centro_costo->id_distri_centro_costo}}" class="dropdown-item"><i class="fas fa-edit"></i> Modificar</a>
-                                    <a href="/nomina/distri/copiarDistri/{{$distri_centro_costo->id_distri_centro_costo}}" class=" dropdown-item copiarDistri"><i class="fas fa-copy"></i> Copiar</a>
+                                    @if (in_array("86",$dataUsu->permisosUsuario))
+                                        <a href="/nomina/distri/modificarDistri/{{$distri_centro_costo->id_distri_centro_costo}}" class="dropdown-item"><i class="fas fa-edit"></i> Modificar</a>
+                                    @endif
+                                    @if (in_array("88",$dataUsu->permisosUsuario))
+                                        <a href="/nomina/distri/copiarDistri/{{$distri_centro_costo->id_distri_centro_costo}}" class=" dropdown-item copiarDistri"><i class="fas fa-copy"></i> Copiar</a>
+                                    @endif
+
                                 </div>
                             </div>
                             

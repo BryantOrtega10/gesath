@@ -7,6 +7,7 @@
 @endsection
 
 @section('contenido')
+@if (in_array("87",$dataUsu->permisosUsuario))
 <form method="POST" id="" autocomplete="off" class="formGeneral" action="/nomina/distri/subirPlano" enctype="multipart/form-data">
     @csrf
     <input type="hidden" class="form-control" name="id_distri_centro_costo" value="{{$distri->id_distri_centro_costo}}" />
@@ -27,6 +28,7 @@
         
     </div>
 </form>
+@endif
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
@@ -53,7 +55,9 @@
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="text-center"><input type="submit" value="Modificar" class="btnSubmitGen" /></div>
+                        @if (in_array("85",$dataUsu->permisosUsuario))
+                            <div class="text-center"><input type="submit" value="Modificar" class="btnSubmitGen" /></div>
+                        @endif
                     </div>
                 </div>
             </form>
@@ -120,7 +124,9 @@
                         @endforeach
                         <td>{{$total}}%</td>
                         <td>
+                            @if (in_array("85",$dataUsu->permisosUsuario))
                             <a href="/nomina/distri/editarDistriEm/{{$empleado->idempleado}}/{{$distri->id_distri_centro_costo}}" class="editarDistriEm">Editar</a>
+                            @endif
                         </td>
                     </tr>
                 @endforeach

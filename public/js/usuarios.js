@@ -280,8 +280,10 @@ $(document).ready(function() {
     $("body").on("change", "#fkRol", (e) => {
         if ($("#fkRol option:selected").val() == "2") {
             $(".cont_empresas").addClass("activo");
+            $(".cont_permisos").addClass("activo");
         } else {
             $(".cont_empresas").removeClass("activo");
+            $(".cont_permisos").removeClass("activo");
         }
     });
 
@@ -311,5 +313,8 @@ $(document).ready(function() {
         $(".filaEmpresa[data-id='" + $(this).attr("data-id") + "']").remove();
     });
 
+    $("body").on("change", ".permisos_lv1 input[type='checkbox']", function(e) {
+        $(this).parent().parent().find($("input[type='checkbox']")).prop("checked", $(this).prop("checked"));
+    });
 
 });

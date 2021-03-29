@@ -12,9 +12,11 @@
     <div class="col-9">
         <h1 class="granAzul">Ubicaci&oacute;n</h1>
     </div>
+    @if (in_array("96",$dataUsu->permisosUsuario))
     <div class="col-3 text-right">
         <a class="btn btnGeneral btnAzulGen text-center" href="#" id="addVariable">Agregar ubicaci&oacute;n</a>
     </div>
+    @endif
 </div>
 
 <div class="cajaGeneral">
@@ -38,7 +40,9 @@
                     <td>{{ $ubicacion->tpu_nombre }}</td>
                     <td>{{ $ubicacion->u2_nombre }}</td>
                     <td>{{ $ubicacion->nombre }}</td>
+                    @if (in_array("97",$dataUsu->permisosUsuario))
                     <td><a href="/ubicacion/getForm/edit/{{ $ubicacion->idubicacion }}" class="editar"><i class="fas fa-edit"></i></a></td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>

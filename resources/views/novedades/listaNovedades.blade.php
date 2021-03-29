@@ -80,7 +80,9 @@
             @csrf
             <div class="row">
                 <div class="col-3 text-left">
+                    @if (in_array("55",$dataUsu->permisosUsuario))
                     <input type="submit" class="secundarioVerdadero" value="Eliminar seleccionados" />
+                    @endif
                 </div>
             </div><br>            
             <table class="table table-hover table-striped">
@@ -137,9 +139,15 @@
                                 <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                               
                                 <div class="dropdown-menu dropdown-menu-right">
+                                    @if (in_array("56",$dataUsu->permisosUsuario))
                                     <a href="/novedades/modificarNovedad/{{ $novedad->idNovedad }}" class="editar dropdown-item"><i class="fas fa-edit"></i> Modificar</a>
+                                    @endif
+                                    @if (in_array("57",$dataUsu->permisosUsuario))
                                     <a href="/novedades/verNovedad/{{ $novedad->idNovedad }}" class="ver dropdown-item"><i class="fas fa-eye"></i> Ver</a>
+                                    @endif
+                                    @if (in_array("55",$dataUsu->permisosUsuario))
                                     <a href="#" data-id="{{ $novedad->idNovedad }}" class="eliminar dropdown-item"><i class="fas fa-trash"></i> Eliminar</a>
+                                    @endif
                                 </div>
                             </div>
                         </td>

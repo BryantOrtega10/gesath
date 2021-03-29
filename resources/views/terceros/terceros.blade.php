@@ -11,12 +11,16 @@
     <div class="col-8">
         <h1 class="granAzul">Terceros</h1>
     </div>
+    @if (in_array("101",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="/terceros/exportar"> <i class="fas fa-download"></i> Exportar lista terceros</a>
     </div>
+    @endif
+    @if (in_array("98",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addTercero">Agregar tercero</a>
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
 <div class="table-responsive">
@@ -49,9 +53,15 @@
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
+                            @if (in_array("100",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $tercero->idTercero }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver detalle</a>
+                            @endif
+                            @if (in_array("99",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $tercero->idTercero }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar</a>
+                            @endif
+                            @if (in_array("102",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $tercero->idTercero }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar</a>
+                            @endif
                         </div>
                     </div>
                 </td>

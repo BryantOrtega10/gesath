@@ -42,14 +42,17 @@
     </div>
 
     <div class="row">
-        
-        <div class="col-3 text-center">
-            <a href="/nomina/reversar/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Reversar nomina</a><br>
-        </div>
-        <div class="col-3 text-center">
-            <a href="/nomina/documentoRetencion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">ReteFuente</a><br>
-        </div>
-        @if ($liquidaciones->fkTipoLiquidacion == 8)
+        @if (in_array("71",$dataUsu->permisosUsuario))
+            <div class="col-3 text-center">
+                <a href="/nomina/reversar/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Reversar nomina</a><br>
+            </div>
+        @endif
+        @if (in_array("70",$dataUsu->permisosUsuario))
+            <div class="col-3 text-center">
+                <a href="/nomina/documentoRetencion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">ReteFuente</a><br>
+            </div>
+        @endif
+        @if ($liquidaciones->fkTipoLiquidacion == 8 && in_array("141",$dataUsu->permisosUsuario))
             <div class="col-3">
                 <form action="/nomina/cancelarSolicitud" method="POST" class="formGeneral" id="formModificarSolicitud2" autocomplete="off">
                     @csrf
@@ -58,24 +61,34 @@
                 </form>
             </div>
         @endif
+        @if (in_array("72",$dataUsu->permisosUsuario))
         <div class="col-3 text-center">
             <a href="/novedades/novedadesxLiquidacion/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen">Novedades</a>
         </div>
+        @endif
 
     </div>
     <div class="row">
+        @if (in_array("76",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/reportes/documentoNominaHorizontal/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Nomina horizontal</a><br>
         </div>
+        @endif
+        @if (in_array("75",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/reportes/comprobantePdfConsolidado/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Comprobantes PDF Consolidado</a><br>
         </div>
+        @endif
+        @if (in_array("74",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/reportes/comprobantePdfNuevoD/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-download"></i> Reporte Pdf </a><br>
         </div>
+        @endif
+        @if (in_array("73",$dataUsu->permisosUsuario))
         <div class="col-3 text-center"><br>
             <a href="/nomina/envioCorreos/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen"><i class="fas fa-envelope"></i>Enviar comprobantes por email</a><br>
         </div>
+        @endif
     </div>  
     <br>
     <form autocomplete="off" action="{{ Request::url() }}" method="GET" id="filtrarEmpleado" class="formGeneral">
@@ -128,15 +141,21 @@
                     <div class="btn-group">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                         <div class="dropdown-menu dropdown-menu-right">
+                            @if (in_array("77",$dataUsu->permisosUsuario))
                             <a href="/reportes/comprobantePdf/{{$boucher->idBoucherPago}}" target="_blank" class="dropdown-item">Comprobante de pago</a>
+                            @endif
+                            @if (in_array("73",$dataUsu->permisosUsuario))
                             <a href="/nomina/envioCorreos/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo dropdown-item">Enviar por correo</a>
+                            @endif
                         </div>
                     </div>
                 </td>
             </tr>
             <tr>
                 <td colspan="5">
+                    @if (in_array("78",$dataUsu->permisosUsuario))
                     <div class="detalleBoucher" data-id="{{$boucher->idBoucherPago}}"></div>
+                    @endif
                 </td>
             </tr>
         @endforeach

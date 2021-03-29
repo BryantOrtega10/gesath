@@ -14,12 +14,14 @@
     <div class="col-2 text-right">
         <a href="/reportes/prestamos" class="btn btn-primary">Reportes de Prestamos/Embargo</a>
     </div>
+    @if (in_array("93",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
         <a href="/prestamos/agregar" class="btn btn-primary" id="addPrestamo">Agregar Prestamo</a>
     </div>
     <div class="col-2 text-right">
         <a href="/prestamos/agregarEmbargo" class="btn btn-primary" id="addEmbargo">Agregar Embargo</a>
     </div>        
+    @endif
 </div>
 <div class="row">
     <div class="col-12">
@@ -45,8 +47,12 @@
                     <td>${{number_format($prestamo->saldoActual, 0, ",", ".")}}</td>
                     <td>{{$prestamo->nombreEstado}}</td>
                     <td>
+                        @if (in_array("94",$dataUsu->permisosUsuario))
                         <a class="modificarPrestamo" href="/prestamos/getForm/edit/{{$prestamo->idPrestamo}}"><i class="fas fa-edit"></i></a>
+                        @endif
+                        @if (in_array("95",$dataUsu->permisosUsuario))
                         <a class="eliminarPrestamo" href="/prestamos/eliminar/{{$prestamo->idPrestamo}}"><i class="fas fa-trash"></i></a>
+                        @endif
                     </td>
                 </tr>
                 @endforeach

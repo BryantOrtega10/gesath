@@ -58,6 +58,44 @@
         </div>
         <input type="hidden" id="numEmpresa" value="{{$numEmpresa}}"  />
     </div>
+
+    <div class="cont_permisos @if ($usuario->fkRol == 2) activo @endif">
+        <ul class="permisos_lv1">
+        @foreach ($arrMenu as $menu)
+            <li>
+                <div class="form-check">
+                    <input class="form-check-input" @if (in_array($menu->idMenu, $arrPermisoUser)) checked @endif type="checkbox" name="permiso[]" value="{{$menu->idMenu}}" id="permiso_{{$menu->idMenu}}" /> 
+                    <label class="form-check-label" for="permiso_{{$menu->idMenu}}">{{$menu->nombre}}</label>
+                </div>
+                
+                @if (sizeof($menu->subItems) > 0)
+                    <ul class="permisos_lv2">
+                    @foreach ($menu->subItems as $menulv2)
+                    <li>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" @if (in_array($menulv2->idMenu, $arrPermisoUser)) checked @endif  name="permiso[]" value="{{$menulv2->idMenu}}" id="permiso_{{$menulv2->idMenu}}"  /> 
+                            <label class="form-check-label" for="permiso_{{$menulv2->idMenu}}">{{$menulv2->nombre}}</label>
+                        </div>
+                        @if (sizeof($menulv2->subItems) > 0)
+                            <ul class="permisos_lv3">
+                            @foreach ($menulv2->subItems as $menulv3)
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" @if (in_array($menulv3->idMenu, $arrPermisoUser)) checked @endif type="checkbox" name="permiso[]" value="{{$menulv3->idMenu}}" id="permiso_{{$menulv3->idMenu}}" />
+                                        <label class="form-check-label" for="permiso_{{$menulv3->idMenu}}">{{$menulv3->nombre}}</label>
+                                    </div>
+                                </li>
+                            @endforeach
+                            </ul>
+                        @endif
+                    </li>
+                    @endforeach
+                    </ul>
+                @endif
+            </li>
+        @endforeach
+        </ul>
+    </div>
     <div class="row">
         <div class="col form-group">
             <label for="primerNombre">Nombre</label>

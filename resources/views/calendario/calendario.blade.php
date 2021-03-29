@@ -12,7 +12,9 @@
 <div class="row">
     <div class="col-3">
         <a class="btn btnAzulGen" href="#" id="verCalendario">Ver fechas</a>
+        @if (in_array("137",$dataUsu->permisosUsuario))
         <a class="btn btnAzulGen" href="#" id="editCalendario">Editar fechas</a>
+        @endif
     </div>
     
 </div><br>

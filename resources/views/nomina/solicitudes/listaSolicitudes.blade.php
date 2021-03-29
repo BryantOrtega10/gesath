@@ -13,7 +13,9 @@
             <h1 class="granAzul">Solicitudes de liquidaci&oacute;n</h1>
         </div>
         <div class="col-5 text-right">
-            <a class="btnGeneral btnAzulGen btnMed text-center" href="/nomina/agregarSolicitudLiquidacion">Agregar Solicitud</a>
+            @if (in_array("58",$dataUsu->permisosUsuario))
+                <a class="btnGeneral btnAzulGen btnMed text-center" href="/nomina/agregarSolicitudLiquidacion">Agregar Solicitud</a>
+            @endif
         </div>
     </div>
     

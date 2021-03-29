@@ -74,11 +74,15 @@
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                       
                         <div class="dropdown-menu dropdown-menu-right">
-                            @if ($liquidacion->fkTipoLiquidacion == 8)
+                            @if ($liquidacion->fkTipoLiquidacion == 8 && in_array("141",$dataUsu->permisosUsuario))
                                 <a href="/nomina/cancelarSolicitud" class="dropdown-item cancelarSolicitud" data-id="{{$liquidacion->idLiquidacionNomina}}">Cancelar liquidación</a>
                             @endif
+                            @if (in_array("70",$dataUsu->permisosUsuario))
                             <a href="/nomina/documentoRetencion/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Documento retencion en la fuente</a>
+                            @endif
+                            @if (in_array("71",$dataUsu->permisosUsuario))
                             <a href="/nomina/reversar/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Reversar nomina</a>
+                            @endif
                             <a href="/nomina/verSolicitudLiquidacionSinEdit/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Ver</a>
                         </div>
                     </div>
@@ -135,7 +139,7 @@
                     console.log(data);
                 }
             });
-        });
+        }); 
 
     });
 </script>

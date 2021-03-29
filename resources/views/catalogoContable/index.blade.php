@@ -10,7 +10,9 @@
 <div class="cajaGeneral">
     <div class="row">
         <div class="col-7"><h1 class="granAzul">Catalogo contable</h1></div>
-        <div class="col-5 text-right"><a  class="btnGeneral btnAzulGen btnGrande text-center" href="/catalogo-contable/descargarPlano"><i class="fas fa-download"></i> Descargar plano</a></div>
+        @if (in_array("79",$dataUsu->permisosUsuario))
+            <div class="col-5 text-right"><a  class="btnGeneral btnAzulGen btnGrande text-center" href="/catalogo-contable/descargarPlano"><i class="fas fa-download"></i> Descargar plano</a></div>
+        @endif
     </div>
     <form autocomplete="off" action="/catalogo-contable/" method="GET"  class="formGeneral" id="filtrar">
         @csrf    
@@ -48,8 +50,12 @@
     </form>
 
     <div class="text-left">
+        @if (in_array("80",$dataUsu->permisosUsuario))
         <a class="btn btnAzulGen" href="#" id="addCuenta">Agregar cuenta</a>
+        @endif
+        @if (in_array("81",$dataUsu->permisosUsuario))
         <a class="btn btnAzulGen" href="/catalogo-contable/subirPlano" >Agregar por archivo plano</a>
+        @endif
     </div>
     <br>
     <div class="table-responsive">
@@ -120,8 +126,12 @@
                         TODOS
                     @endif</td>
                     <td>
+                        @if (in_array("82",$dataUsu->permisosUsuario))
                         <a href="/catalogo-contable/getForm/edit/{{ $cata["id"] }}" class="editar"><i class="fas fa-edit"></i></a>
+                        @endif
+                        @if (in_array("83",$dataUsu->permisosUsuario))
                         <a href="/catalogo-contable/eliminar/{{ $cata["id"] }}" class="eliminar"><i class="fas fa-trash"></i></a>
+                        @endif
                     </td>
                 </tr>
 

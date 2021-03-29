@@ -11,9 +11,11 @@
     <div class="col-9">
         <h1 class="granAzul">Empresas</h1>
     </div>
+    @if (in_array("103",$dataUsu->permisosUsuario))
     <div class="col-3 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addEmpresa">Agregar empresa</a>
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
 <div class="table-responsive">
@@ -40,15 +42,34 @@
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                         <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
+                            @if (in_array("104",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item centro_costo" href = "/empresa/centroCosto/{{$empresa->idempresa}}"><i class="fas fa-dollar-sign"></i> Centros de costo</a>
+                            @endif
+                            @if (in_array("109",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item nome" href = "/empresa/nomina/{{$empresa->idempresa}}"><i class="fas fa-money-bill-alt"></i> Nómina</a>
+                            @endif
+                            @if (in_array("113",$dataUsu->permisosUsuario))                            
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item smtp" href = "/empresa/smtp/{{$empresa->idempresa}}"><i class="far fa-envelope"></i> Configuración SMTP</a>
+                            @endif
+                            @if (in_array("114",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item centroTrabajo" href = "/empresa/centroTrabajo/{{$empresa->idempresa}}"><i class="fas fa-briefcase"></i> Centros de trabajo</a>
+                            @endif
+                            
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item" href = "/mensajes/mensajesxEmpresa/{{$empresa->idempresa}}"><i class="fas fa-envelope-open-text"></i> Mensajes</a>
+                            
+                            @if (in_array("118",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item" href = "/empresa/permisosPortal/{{$empresa->idempresa}}"><i class="fas fa-lock"></i> Permisos portal empleado</a>                            
+                            @endif
+                            
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Empresa</a>
+                            
+                            @if (in_array("119",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Empresa</a>
+                            @endif
+                            @if (in_array("120",$dataUsu->permisosUsuario))
                             <a dataId ="{{ $empresa->idempresa }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Empresa</a>
+                            @endif
+                            
                         </div>
                     </div>
                 </td>

@@ -97,7 +97,9 @@
                             </td>
                             <td>{{$datoPasado->estado}}</td>
                             <td>
+                                @if (in_array("92",$dataUsu->permisosUsuario))
                                 <a href="#" class="modificar mostrarModificacion" data-id="{{$datoPasado->idDatosPasados}}">Modificar</a>
+                                @endif
 
                                 <a href="#" class="modificarEnvio btnSubmitGen ocultoModificacion" data-id="{{$datoPasado->idDatosPasados}}">Modificar</a>
                                 <br><br>

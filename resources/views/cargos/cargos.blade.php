@@ -11,12 +11,16 @@
     <div class="col-8">
         <h1 class="granAzul">Cargos</h1>
     </div>
+    @if (in_array("134",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="/cargos/subirPlano"> <i class="fas fa-upload"></i> Subir archivo plano</a>
     </div>
+    @endif
+    @if (in_array("131",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
         <a class="btn btnAzulGen btnGeneral text-center"  href="#" id="addCargo">Agregar cargo</a>
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
     <div class="table-responsive">
@@ -37,9 +41,15 @@
                         <div class="dropdown">
                             <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>
                             <div class="dropdown-menu"  aria-labelledby="dropdownMenuButton">
+                                
                                 <a dataId ="{{ $cargo->idCargo }}" class="dropdown-item detalle"><i class="far fa-eye"></i> Ver Cargo</a>
+                                
+                                @if (in_array("132",$dataUsu->permisosUsuario))
                                 <a dataId ="{{ $cargo->idCargo }}" class="dropdown-item editar"><i class="fas fa-edit"></i> Editar Cargo</a>
+                                @endif
+                                @if (in_array("133",$dataUsu->permisosUsuario))
                                 <a dataId ="{{ $cargo->idCargo }}" class="dropdown-item color_rojo eliminar"><i class="fas fa-trash"></i> Eliminar Cargo</a>
+                                @endif
                             </div>
                         </div>
                     </td>

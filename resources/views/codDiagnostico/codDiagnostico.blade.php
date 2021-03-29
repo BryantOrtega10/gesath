@@ -11,9 +11,11 @@
     <div class="col-9">
         <h1 class="granAzul">Códigos diagnósticos</h1>
     </div>
+    @if (in_array("138",$dataUsu->permisosUsuario))
     <div class="col-3 text-right">
         <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addCodigo">Agregar código diagnóstico</a> 
     </div>
+    @endif
 </div>
 <div class="cajaGeneral">
     <div class="table-responsive">
