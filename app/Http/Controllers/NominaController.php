@@ -2309,7 +2309,7 @@ class NominaController extends Controller
         ]);
     }
 
-    public function unirSSyContabilidad($idLiquidacion){
+    public function unirSSyContabilidad($idLiquidacion, $idEmpleado = NULL){
         //INICIO CALCULO SS EMPLEADOR CON DOC DE SS
         $reportes = new ReportesNominaController();
         $liquidacion = DB::table("liquidacionnomina","ln")
@@ -2329,78 +2329,85 @@ class NominaController extends Controller
 
         foreach($arrSeguridadSocial as $itemSeguridadSocial){
             if(isset($itemSeguridadSocial[101])){
+                
                 if($prevBoucher != 0 && $prevBoucher != $itemSeguridadSocial[101]){
                     //Modifico registro de parafiscales de la suma de SS
                     $boucherPago = DB::table('boucherpago',"bp")
                     ->select("ln.fechaInicio","bp.fkEmpleado")
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
-                    ->where("bp.idBoucherPago","=",$prevBoucher)->first();
-                    $fechaInicio = date("Y-m-01",strtotime($boucherPago->fechaInicio));
-                    $fechaFin = date("Y-m-t",strtotime($boucherPago->fechaInicio));
-
-                    //Cargar la suma de aportes en el mes
-                    $itemsBoucherPension = DB::table("item_boucher_pago", "ibp")
-                    ->selectRaw("Sum(ibp.descuento) as suma")
-                    ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
-                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
-                    ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
-                    ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
-                    ->where("ibp.fkConcepto","=","19") //19 - APORTE PENSIÓN
-                    ->first();
-
-                    $prevAfp = $prevAfp - ($itemsBoucherPension->suma ?? 0);
-
-                    //Cargar la suma de aportes en el mes
-                    $itemsBoucherAporteVoluntario = DB::table("item_boucher_pago", "ibp")
-                    ->selectRaw("Sum(ibp.descuento) as suma")
-                    ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
-                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
-                    ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
-                    ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
-                    ->where("ibp.fkConcepto","=","33") //19 - APORTE PENSIÓN
-                    ->first();
-
-                    $prevAporteVoluntario = $prevAporteVoluntario - ($itemsBoucherAporteVoluntario->suma ?? 0);
-                    
-
-
-
-
-                    
-                    $prevAfp = $prevAfp; //NOTA: Hay que cambiarlo a "parafiscal" aparte
-
-
-
-
-                    $itemsBoucherSalud = DB::table("item_boucher_pago", "ibp")
-                    ->selectRaw("Sum(ibp.descuento) as suma")
-                    ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
-                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
-                    ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
-                    ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
-                    ->where("ibp.fkConcepto","=","18") //19 - APORTE SALUD
-                    ->first();
-
-                    $prevEps = $prevEps - ($itemsBoucherSalud->suma ?? 0);
-                    
-                    $parafiscales = DB::table('parafiscales',"p")
-                    ->where("p.fkBoucherPago","=",$prevBoucher)->first();
-                    $arrModParaFiscales = [
-                        "afp" => intval($prevAfp),
-                        "eps" => intval($prevEps),
-                        "arl" => intval($prevArl),
-                        "ccf" => intval($prevCcf),
-                        "icbf" => intval($prevIcbf),
-                        "sena" => intval($prevSena),
-                        "fondoSolidaridad" => intval($prevAporteVoluntario)
-                    ];
-
-                    if(isset($parafiscales)){
-                        DB::table('parafiscales')
-                        ->where("idParafiscales","=",$parafiscales->idParafiscales)
-                        ->update($arrModParaFiscales);
+                    ->where("bp.idBoucherPago","=",$prevBoucher);                    
+                    if(isset($idEmpleado)){
+                        $boucherPago = $boucherPago->where("fkEmpleado","=",$idEmpleado);
                     }
-                    
+                    $boucherPago = $boucherPago->first();
+                             
+                    if(isset($boucherPago)){
+                        $fechaInicio = date("Y-m-01",strtotime($boucherPago->fechaInicio));
+                        $fechaFin = date("Y-m-t",strtotime($boucherPago->fechaInicio));
+    
+                        //Cargar la suma de aportes en el mes
+                        $itemsBoucherPension = DB::table("item_boucher_pago", "ibp")
+                        ->selectRaw("Sum(ibp.descuento) as suma")
+                        ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                        ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
+                        ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
+                        ->where("ibp.fkConcepto","=","19") //19 - APORTE PENSIÓN
+                        ->first();
+    
+                        $prevAfp = $prevAfp - ($itemsBoucherPension->suma ?? 0);
+    
+                        //Cargar la suma de aportes en el mes
+                        $itemsBoucherAporteVoluntario = DB::table("item_boucher_pago", "ibp")
+                        ->selectRaw("Sum(ibp.descuento) as suma")
+                        ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                        ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
+                        ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
+                        ->where("ibp.fkConcepto","=","33") //19 - APORTE PENSIÓN
+                        ->first();
+    
+                        $prevAporteVoluntario = $prevAporteVoluntario - ($itemsBoucherAporteVoluntario->suma ?? 0);
+                        
+    
+    
+    
+    
+                        
+                        $prevAfp = $prevAfp; //NOTA: Hay que cambiarlo a "parafiscal" aparte
+    
+    
+    
+    
+                        $itemsBoucherSalud = DB::table("item_boucher_pago", "ibp")
+                        ->selectRaw("Sum(ibp.descuento) as suma")
+                        ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                        ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
+                        ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
+                        ->where("ibp.fkConcepto","=","18") //19 - APORTE SALUD
+                        ->first();
+    
+                        $prevEps = $prevEps - ($itemsBoucherSalud->suma ?? 0);
+                        
+                        $parafiscales = DB::table('parafiscales',"p")
+                        ->where("p.fkBoucherPago","=",$prevBoucher)->first();
+                        $arrModParaFiscales = [
+                            "afp" => intval($prevAfp),
+                            "eps" => intval($prevEps),
+                            "arl" => intval($prevArl),
+                            "ccf" => intval($prevCcf),
+                            "icbf" => intval($prevIcbf),
+                            "sena" => intval($prevSena),
+                            "fondoSolidaridad" => intval($prevAporteVoluntario)
+                        ];
+    
+                        if(isset($parafiscales)){
+                            DB::table('parafiscales')
+                            ->where("idParafiscales","=",$parafiscales->idParafiscales)
+                            ->update($arrModParaFiscales);
+                        }
+                    }
                 }
                 if($prevBoucher != $itemSeguridadSocial[101]){
                     //Reseteo variables 
@@ -2429,50 +2436,56 @@ class NominaController extends Controller
             $boucherPago = DB::table('boucherpago',"bp")
             ->select("ln.fechaInicio","bp.fkEmpleado")
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
-            ->where("bp.idBoucherPago","=",$prevBoucher)->first();
-            $fechaInicio = date("Y-m-01",strtotime($boucherPago->fechaInicio));
-            $fechaFin = date("Y-m-t",strtotime($boucherPago->fechaInicio));
-
-            //Cargar la suma de aportes en el mes
-            $itemsBoucherPension = DB::table("item_boucher_pago", "ibp")
-            ->selectRaw("Sum(ibp.descuento) as suma")
-            ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
-            ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
-            ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
-            ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
-            ->where("ibp.fkConcepto","=","19") //19 - APORTE PENSIÓN
-            ->first();
-
-            $prevAfp = $prevAfp - ($itemsBoucherPension->suma ?? 0);
-
-            $itemsBoucherSalud = DB::table("item_boucher_pago", "ibp")
-            ->selectRaw("Sum(ibp.descuento) as suma")
-            ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
-            ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
-            ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
-            ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
-            ->where("ibp.fkConcepto","=","18") //19 - APORTE SALUD
-            ->first();
-
-            $prevEps = $prevEps - ($itemsBoucherSalud->suma ?? 0);
-            
-            $parafiscales = DB::table('parafiscales',"p")
-            ->where("p.fkBoucherPago","=",$prevBoucher)->first();
-            $arrModParaFiscales = [
-                "afp" => intval($prevAfp),
-                "eps" => intval($prevEps),
-                "arl" => intval($prevArl),
-                "ccf" => intval($prevCcf),
-                "icbf" => intval($prevIcbf),
-                "sena" => intval($prevSena),
-            ];
-
-
-            if(isset($parafiscales)){
-                DB::table('parafiscales')
-                ->where("idParafiscales","=",$parafiscales->idParafiscales)
-                ->update($arrModParaFiscales);
+            ->where("bp.idBoucherPago","=",$prevBoucher);
+            if(isset($idEmpleado)){
+                $boucherPago = $boucherPago->where("fkEmpleado","=",$idEmpleado);
             }
+            $boucherPago = $boucherPago->first();
+            if(isset($boucherPago)){
+                $fechaInicio = date("Y-m-01",strtotime($boucherPago->fechaInicio));
+                $fechaFin = date("Y-m-t",strtotime($boucherPago->fechaInicio));
+    
+                //Cargar la suma de aportes en el mes
+                $itemsBoucherPension = DB::table("item_boucher_pago", "ibp")
+                ->selectRaw("Sum(ibp.descuento) as suma")
+                ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
+                ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
+                ->where("ibp.fkConcepto","=","19") //19 - APORTE PENSIÓN
+                ->first();
+    
+                $prevAfp = $prevAfp - ($itemsBoucherPension->suma ?? 0);
+    
+                $itemsBoucherSalud = DB::table("item_boucher_pago", "ibp")
+                ->selectRaw("Sum(ibp.descuento) as suma")
+                ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$boucherPago->fkEmpleado)
+                ->whereBetween("ln.fechaLiquida",[$fechaInicio, $fechaFin])
+                ->where("ibp.fkConcepto","=","18") //19 - APORTE SALUD
+                ->first();
+    
+                $prevEps = $prevEps - ($itemsBoucherSalud->suma ?? 0);
+                
+                $parafiscales = DB::table('parafiscales',"p")
+                ->where("p.fkBoucherPago","=",$prevBoucher)->first();
+                $arrModParaFiscales = [
+                    "afp" => intval($prevAfp),
+                    "eps" => intval($prevEps),
+                    "arl" => intval($prevArl),
+                    "ccf" => intval($prevCcf),
+                    "icbf" => intval($prevIcbf),
+                    "sena" => intval($prevSena),
+                ];
+    
+    
+                if(isset($parafiscales)){
+                    DB::table('parafiscales')
+                    ->where("idParafiscales","=",$parafiscales->idParafiscales)
+                    ->update($arrModParaFiscales);
+                }
+            }            
             
         }
         return response()->json([

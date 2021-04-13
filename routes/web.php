@@ -179,7 +179,7 @@ Route::group([
 
 	Route::get('cargarInfoxComprobante/{id}','NominaController@cargarInfoxBoucher');
 
-	Route::get('unirSSyContabilidad/{id}','NominaController@unirSSyContabilidad');
+	Route::get('unirSSyContabilidad/{id}/{idEmpleado?}','NominaController@unirSSyContabilidad');
 	
 	Route::post('aprobarSolicitud','NominaController@aprobarSolicitud');
 	Route::post('cancelarSolicitud','NominaController@cancelarSolicitud');

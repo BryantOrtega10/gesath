@@ -3756,6 +3756,8 @@ class ReportesNominaController extends Controller
                 
                 
                 $valorNovedad = (intval($conceptoFijoSalario->valor)/30)*$novedadSancion->cantidadDias;
+
+                
                 $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
@@ -3765,7 +3767,10 @@ class ReportesNominaController extends Controller
                 //$arrayPlace[46] =  $this->plantillaTxt("0",9,"0","left");
 
 
-               
+                if($empleado->esPensionado != "0"){
+                    $arrayPlace[41] = $this->plantillaTxt(0,9,"0","right");
+                    $arrayPlace[45] = $this->plantillaTxt("0.0",7,"0","left");
+                }
 
 
                
@@ -3931,8 +3936,15 @@ class ReportesNominaController extends Controller
                 }
 
 
-
-                $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                if($empleado->esPensionado != "0"){
+                    $arrayPlace[41] = $this->plantillaTxt(0,9,"0","right");
+                    $arrayPlace[45] = $this->plantillaTxt("0.0",7,"0","left");
+                }
+                else{
+                    $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $ibcAFP = $ibcAFP - $restaIbc;
+                }
+                
                 $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
@@ -3943,7 +3955,7 @@ class ReportesNominaController extends Controller
                 $arrayFila[62] = $this->plantillaTxt(0,9,"0","right");
 
 
-                $ibcAFP = $ibcAFP - $restaIbc;
+                
                 $ibcEPS = $ibcEPS - $restaIbc;
                 $ibcARL = $ibcARL - $restaIbc;
                 $ibcCCF = $ibcCCF - $restaIbc;
@@ -4015,7 +4027,17 @@ class ReportesNominaController extends Controller
                 
                 
                 $valorNovedad = ($itemBoucherNovedad->valor > 0 ? $itemBoucherNovedad->valor : $itemBoucherNovedad->valor*-1);
-                $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+
+                if($empleado->esPensionado != "0"){
+                    $arrayPlace[41] = $this->plantillaTxt(0,9,"0","right");
+                    $arrayPlace[45] = $this->plantillaTxt("0.0",7,"0","left");
+                }
+                else{
+                    $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $ibcAFP = $ibcAFP - $valorNovedad;
+                }
+                
+                
                 $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
@@ -4024,7 +4046,7 @@ class ReportesNominaController extends Controller
                 $arrayFila[62] = $this->plantillaTxt(0,9,"0","right");
 
 
-                $ibcAFP = $ibcAFP - $valorNovedad;
+                
                 $ibcEPS = $ibcEPS - $valorNovedad;
                 $ibcARL = $ibcARL - $valorNovedad;
                 $ibcCCF = $ibcCCF - $valorNovedad;
@@ -4198,8 +4220,17 @@ class ReportesNominaController extends Controller
                 }
                 
 
-
-                $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                
+                if($empleado->esPensionado != "0"){
+                    $arrayPlace[41] = $this->plantillaTxt(0,9,"0","right");
+                    $arrayPlace[45] = $this->plantillaTxt("0.0",7,"0","left");
+                }
+                else{
+                    $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $ibcAFP = $ibcAFP - $restaIbc;
+                }
+                
+                
                 $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
@@ -4208,7 +4239,7 @@ class ReportesNominaController extends Controller
                 $arrayFila[62] = $this->plantillaTxt(0,9,"0","right");
 
 
-                $ibcAFP = $ibcAFP - $restaIbc;
+                
                 $ibcEPS = $ibcEPS - $restaIbc;
                 $ibcARL = $ibcARL - $restaIbc;
                 $ibcCCF = $ibcCCF - $restaIbc;
@@ -4282,7 +4313,15 @@ class ReportesNominaController extends Controller
                 ->first();
                 
                 $valorNovedad = ($itemBoucherNovedad->valor > 0 ? $itemBoucherNovedad->valor : $itemBoucherNovedad->valor*-1);
-                $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                if($empleado->esPensionado != "0"){
+                    $arrayPlace[41] = $this->plantillaTxt(0,9,"0","right");
+                    $arrayPlace[45] = $this->plantillaTxt("0.0",7,"0","left");
+                }
+                else{
+                    $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $ibcAFP = $ibcAFP - $valorNovedad;
+                }
+                
                 $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
@@ -4291,7 +4330,7 @@ class ReportesNominaController extends Controller
                 $arrayFila[62] = $this->plantillaTxt(0,9,"0","right");
 
 
-                $ibcAFP = $ibcAFP - $valorNovedad;
+                
                 $ibcEPS = $ibcEPS - $valorNovedad;
                 $ibcARL = $ibcARL - $valorNovedad;
                 $ibcCCF = $ibcCCF - $valorNovedad;
@@ -4404,7 +4443,16 @@ class ReportesNominaController extends Controller
                 
                 
                 $valorNovedad = ($itemBoucherNovedad->valor > 0 ? $itemBoucherNovedad->valor : $itemBoucherNovedad->valor*-1);
-                $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+
+                if($empleado->esPensionado != "0"){
+                    $arrayPlace[41] = $this->plantillaTxt(0,9,"0","right");
+                    $arrayPlace[45] = $this->plantillaTxt("0.0",7,"0","left");
+                }
+                else{
+                    $arrayPlace[41] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $ibcAFP = $ibcAFP - $valorNovedad;
+                }
+                
                 $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
@@ -4412,7 +4460,7 @@ class ReportesNominaController extends Controller
                 
 
 
-                $ibcAFP = $ibcAFP - $valorNovedad;
+                
                 $ibcEPS = $ibcEPS - $valorNovedad;
                 $ibcARL = $ibcARL - $valorNovedad;
                 $ibcCCF = $ibcCCF - $valorNovedad;
@@ -5463,7 +5511,7 @@ class ReportesNominaController extends Controller
     
                 }
                 else{
-                    $arrayFila2[45] = $this->plantillaTxt("",7,"0","left");
+                    $arrayFila2[45] = $this->plantillaTxt("0.0",7,"0","left");
                     $arrayFila2[46] = $this->plantillaTxt("",9,"0","right");
                 }
     
