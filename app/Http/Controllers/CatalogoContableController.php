@@ -950,6 +950,7 @@ class CatalogoContableController extends Controller
                                     if(!isset( $arrayInt[1][$datosCuentaEmpleador->cuenta])){
                                         $arrayInt[1][$datosCuentaEmpleador->cuenta] = array();
                                     }
+                                    $valor_original = $diferencia;
                                     $diferencia = $diferencia * ($arrCentroCosto["porcentaje"]/100);
                                     if(isset($datosCuentaEmpleador)){
                                         array_push($arrayInt[1][$datosCuentaEmpleador->cuenta], 
@@ -962,6 +963,7 @@ class CatalogoContableController extends Controller
                                                 "transaccion" => $datosCuentaEmpleador->transaccion,
                                                 "porcentaje" => $arrCentroCosto["porcentaje"],
                                                 "valor" => round($diferencia),
+                                                "valor_original" => $valor_original,
                                                 "tipoReg" => $tipoRegDif,
                                                 "idConcepto" => "",
                                                 "nombreConcepto" => "",
@@ -981,7 +983,7 @@ class CatalogoContableController extends Controller
 
               
                        
-                
+                        $valor_original = $valor;
                         $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                         array_push($arrayInt[1][$datoCuentaTipo1->cuenta], 
                             array(
@@ -993,6 +995,7 @@ class CatalogoContableController extends Controller
                                 "transaccion" => $datoCuentaTipo1->transaccion,
                                 "porcentaje" => $arrCentroCosto["porcentaje"],
                                 "valor" => round($valor),
+                                "valor_original" => $valor_original,
                                 "tipoReg" => $tipoReg,
                                 "idConcepto" => $itemBoucher->idconcepto,
                                 "nombreConcepto" => $itemBoucher->con_nombre,
@@ -1092,6 +1095,7 @@ class CatalogoContableController extends Controller
                     
                     
                     if($val){
+                        $valor_original = $valor;
                         $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                         
                         array_push($arrayInt[2][$datoCuentaTipo2->cuenta], 
@@ -1104,6 +1108,7 @@ class CatalogoContableController extends Controller
                                 "transaccion" => $datoCuentaTipo2->transaccion,
                                 "porcentaje" => $arrCentroCosto["porcentaje"],
                                 "valor" => round($valor),
+                                "valor_original" => $valor_original,
                                 "tipoReg" => $tipoReg,
                                 "idConcepto" => $fkConcepto,
                                 "nombreConcepto" => "",
@@ -1144,9 +1149,25 @@ class CatalogoContableController extends Controller
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
                     ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
+                    ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"]) 
                     ->orderBy("idParafiscales","desc")
                     ->limit("1")
                     ->get();
+
+                    if(sizeof($parafiscales)==0){
+                        $parafiscales = DB::table("parafiscales", "para")
+                        ->selectRaw("para.*")
+                        ->join("boucherpago as bp","bp.idBoucherPago","=","para.fkBoucherPago")
+                        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                        ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
+                        ->whereIn("ln.fkTipoLiquidacion",["3"]) 
+                        ->orderBy("idParafiscales","desc")
+                        ->limit("1")
+                        ->get();
+                    }
+
+
 
                     $valor = 0;
                     if(!isset( $arrayInt[3][$datoCuentaTipo3->cuenta])){
@@ -1200,7 +1221,7 @@ class CatalogoContableController extends Controller
                             $val = true; 
                                                        
                             if($val){
-                              
+                                $valor_original = $valor;
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
@@ -1212,6 +1233,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
+                                        "valor_original" => $valor_original,
                                         "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
@@ -1224,10 +1246,8 @@ class CatalogoContableController extends Controller
                     }
                     else if($datoCuentaTipo3->subTipoConsulta == "2"){
                         foreach($parafiscales as $parafiscal){
-
                             $valor = $parafiscal->eps;
-                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);
-        
+                            $tipoReg = $this->comportamientoPorNaturaleza($datoCuentaTipo3->cuenta);        
                             if($valor < 0){
                                 if($tipoReg == "CREDITO"){
                                     $tipoReg = "DEBITO";
@@ -1266,7 +1286,10 @@ class CatalogoContableController extends Controller
                             }*/
                             $val = true;                            
                             if($val){
+                                $valor_original = $valor;
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
+
+
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
                                         "arrCentrosCosto" => $arrCentroCosto,
@@ -1277,6 +1300,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
+                                        "valor_original" => $valor_original,
                                         "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
@@ -1332,6 +1356,7 @@ class CatalogoContableController extends Controller
 
                             $val = true;                            
                             if($val){
+                                $valor_original = $valor;
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
@@ -1343,6 +1368,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
+                                        "valor_original" => $valor_original,
                                         "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
@@ -1396,6 +1422,7 @@ class CatalogoContableController extends Controller
                             }*/
                             $val = true;                            
                             if($val){
+                                $valor_original = $valor;
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
@@ -1407,6 +1434,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
+                                        "valor_original" => $valor_original,
                                         "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
@@ -1462,6 +1490,7 @@ class CatalogoContableController extends Controller
 
                             $val = true;                            
                             if($val){
+                                $valor_original = $valor;
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
@@ -1473,6 +1502,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
+                                        "valor_original" => $valor_original,
                                         "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
@@ -1528,6 +1558,7 @@ class CatalogoContableController extends Controller
                             }*/
                             $val = true;                            
                             if($val){
+                                $valor_original = $valor;
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
@@ -1539,6 +1570,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
+                                        "valor_original" => $valor_original,
                                         "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
@@ -1594,6 +1626,7 @@ class CatalogoContableController extends Controller
                             }*/
                             $val = true;                            
                             if($val){
+                                $valor_original = $valor;
                                 $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
                                 array_push($arrayInt[3][$datoCuentaTipo3->cuenta], 
                                     array(
@@ -1605,6 +1638,7 @@ class CatalogoContableController extends Controller
                                         "transaccion" => $datoCuentaTipo3->transaccion,
                                         "porcentaje" => $arrCentroCosto["porcentaje"],
                                         "valor" => round($valor),
+                                        "valor_original" => $valor_original,
                                         "tipoReg" => $tipoReg,
                                         "idConcepto" => "",
                                         "nombreConcepto" => "",
@@ -1615,8 +1649,8 @@ class CatalogoContableController extends Controller
                             }
                         }                        
                     }
-
                 }
+               
 
                 if($existenCuentasConEseCentroCosto){
                     //Consular por tipo la cuenta
@@ -1637,8 +1671,8 @@ class CatalogoContableController extends Controller
                     ->get();
                 }
 
-
-
+               
+                
                 //CONCEPTOS_FIJOS
                 foreach($datosCuentaTipo4 as $datoCuentaTipo4){
                     /*if(!isset($datoCuentaTipo4->fkCentroCosto)){
@@ -1664,6 +1698,7 @@ class CatalogoContableController extends Controller
                     ->where("ibp.fkConcepto","=",$datoCuentaTipo4->fkConcepto) 
                     ->where("ln.fkTipoLiquidacion","=","11")
                     ->get();
+
                     if(sizeof($itemsBoucherFueraNomina)>0){
                         foreach($itemsBoucherFueraNomina as $itemBoucherFueraNomina){
                             $itemsBoucher->push($itemBoucherFueraNomina);
@@ -1682,10 +1717,6 @@ class CatalogoContableController extends Controller
                         
                         //$itemBoucher->valor = $this->roundSup($itemBoucher->valor, -2); 
                         
-                        if(!isset($itemBoucher->valor)){
-                            dd($itemBoucher, $datoCuentaTipo4);
-                        }
-
                         if($itemBoucher->valor < 0 && $itemBoucher->con_naturaleza=="1"){
                             if($tipoReg == "CREDITO"){
                                 $tipoReg = "DEBITO";
@@ -1713,7 +1744,7 @@ class CatalogoContableController extends Controller
                         }  
                         
 
-                        $diferencia = 0;
+                        /*$diferencia = 0;
                         foreach($arrConceptosAjustePeso as $arrConceptoAjustePeso){
                             if($arrConceptoAjustePeso["concepto"] == $itemBoucher->idconcepto){
                                 $diferencia =  $valor - $this->roundSup($valor, -2);
@@ -1760,6 +1791,8 @@ class CatalogoContableController extends Controller
                                                                      
                                     if(isset($datosCuentaEmpleador)){
                                         if(sizeof($arrayInt[3][$datosCuentaEmpleador->cuenta]) > 0){
+                                            //dd($arrayInt[3][$datoCuentaTipo4->cuenta][0]["valor"], $diferencia, $datoCuentaTipo4, $itemBoucher->idconcepto);
+
                                             $arrayInt[3][$datosCuentaEmpleador->cuenta][0]["valor"] = round($diferencia) + $arrayInt[3][$datosCuentaEmpleador->cuenta][0]["valor"];
                                         }else{
                                             array_push($arrayInt[3][$datosCuentaEmpleador->cuenta], 
@@ -1784,13 +1817,13 @@ class CatalogoContableController extends Controller
                                     
                                 }
                             }
-                        }   
+                        }   */
                        
 
                         
 
 
-                        $val = true;
+                       /* $val = true;
                         if(!isset( $arrayInt[4][$datoCuentaTipo4->cuenta]) && !isset($arrayInt[3][$datoCuentaTipo4->cuenta])){
                             $arrayInt[4][$datoCuentaTipo4->cuenta] = array();
                         }
@@ -1809,57 +1842,48 @@ class CatalogoContableController extends Controller
                                 $val = true;
                             }
 
+                        }*/
+                        $val = true;
+                        if(!isset( $arrayInt[4][$datoCuentaTipo4->cuenta])){
+                            $arrayInt[4][$datoCuentaTipo4->cuenta] = array();
                         }
-                        
+                        else{
+                            $porcentajeInterno = 0;
+                            foreach($arrayInt[4][$datoCuentaTipo4->cuenta] as $arrCuentaInt4){
+                                if($arrCuentaInt4["idConcepto"] == $itemBoucher->idconcepto){
+                                    $porcentajeInterno = $porcentajeInterno + $arrCuentaInt4["porcentaje"];
+                                }
+                                
+                            }
+                            if($porcentajeInterno > 100){
+                                $val = true;
+                            }
+    
+                        }
                         
                         if($val){
-                            $valor = $valor * ($arrCentroCosto["porcentaje"]/100);
-                            
-                            if(isset($arrayInt[3][$datoCuentaTipo4->cuenta]) && sizeof($arrayInt[3][$datoCuentaTipo4->cuenta]) > 0){
-                                if($arrayInt[3][$datoCuentaTipo4->cuenta][0]["transaccion"] == $datoCuentaTipo4->transaccion){
-                                    $arrayInt[3][$datoCuentaTipo4->cuenta][0]["valor"] = round($valor) + $arrayInt[3][$datoCuentaTipo4->cuenta][0]["valor"];
-                                }
-                                else{
-                                    array_push($arrayInt[4][$datoCuentaTipo4->cuenta], 
-                                        array(
-                                            "arrCentrosCosto" => $arrCentroCosto,
-                                            "empleado" => $empleado,
-                                            "tablaConsulta" => "1",
-                                            "cuenta" => $datoCuentaTipo4->cuenta,
-                                            "descripcion" => $datoCuentaTipo4->descripcion,
-                                            "transaccion" => $datoCuentaTipo4->transaccion,
-                                            "porcentaje" => $arrCentroCosto["porcentaje"],
-                                            "valor" => round($valor),
-                                            "tipoReg" => $tipoReg,
-                                            "idConcepto" => $itemBoucher->idconcepto,
-                                            "nombreConcepto" => $itemBoucher->con_nombre,
-                                            "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo4->fkTipoTercero, $empleado, $datoCuentaTipo4->fkTercero)
-                                        )
-                                    );
-                                }                                
-                            }else{
-                                array_push($arrayInt[4][$datoCuentaTipo4->cuenta], 
-                                    array(
-                                        "arrCentrosCosto" => $arrCentroCosto,
-                                        "empleado" => $empleado,
-                                        "tablaConsulta" => "1",
-                                        "cuenta" => $datoCuentaTipo4->cuenta,
-                                        "descripcion" => $datoCuentaTipo4->descripcion,
-                                        "transaccion" => $datoCuentaTipo4->transaccion,
-                                        "porcentaje" => $arrCentroCosto["porcentaje"],
-                                        "valor" => round($valor),
-                                        "tipoReg" => $tipoReg,
-                                        "idConcepto" => $itemBoucher->idconcepto,
-                                        "nombreConcepto" => $itemBoucher->con_nombre,
-                                        "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo4->fkTipoTercero, $empleado, $datoCuentaTipo4->fkTercero)
-                                    )
-                                );
-                            }                            
+                            $valor_original = $valor;
+                            $valor = $valor * ($arrCentroCosto["porcentaje"]/100);     
+                      
+                            array_push($arrayInt[4][$datoCuentaTipo4->cuenta], 
+                                array(
+                                    "arrCentrosCosto" => $arrCentroCosto,
+                                    "empleado" => $empleado,
+                                    "tablaConsulta" => "1",
+                                    "cuenta" => $datoCuentaTipo4->cuenta,
+                                    "descripcion" => $datoCuentaTipo4->descripcion,
+                                    "transaccion" => $datoCuentaTipo4->transaccion,
+                                    "porcentaje" => $arrCentroCosto["porcentaje"],
+                                    "valor" => round($valor),
+                                    "valor_original" => $valor_original,
+                                    "tipoReg" => $tipoReg,
+                                    "idConcepto" => $itemBoucher->idconcepto,
+                                    "nombreConcepto" => $itemBoucher->con_nombre,
+                                    "tercero" => $this->cargarTerceroAdecuado($datoCuentaTipo4->fkTipoTercero, $empleado, $datoCuentaTipo4->fkTercero)
+                                )
+                            );                          
                         }
-                        if($empleado->numeroIdentificacion == "1018449583" && $diferencia != 0){
-
-                           // dump($datosCuentaEmpleador,$valor, $arrayInt, $itemBoucher->idconcepto);
-                        }   
+                        
                     }     
 
 
@@ -1904,6 +1928,34 @@ class CatalogoContableController extends Controller
         else{
             $fechaInforme = date("Y-m-",strtotime($req->fechaReporte))."30";
         }
+        //dd($arrSalida);
+
+        foreach($arrSalida as $key => $arrSalid){
+            foreach($arrSalid as $key2 => $arrSalid2){
+                foreach($arrSalid2 as $key3 =>  $arrSalid3){                    
+                    $cuentaDecimales5 = 0;
+                    foreach($arrSalid3 as $key4 => $arrSalid4){
+
+                        $valor = $arrSalid4["valor_original"] * ($arrSalid4["porcentaje"]/100);     
+                        $valorEntero = floor($valor);
+                        $diferencia = $valor - $valorEntero;
+                        if($diferencia == 0.5){
+                            $cuentaDecimales5++;
+                        }
+                        $arrSalida[$key][$key2][$key3][$key4]["diff"] = $diferencia;
+
+                        if($cuentaDecimales5 == 2){
+                            $arrSalida[$key][$key2][$key3][$key4]["valor"] = $arrSalid4["valor"] - 1;
+                            $cuentaDecimales5 = 0;
+                           
+                        }
+                    }
+                }
+            }
+        }
+        //dd($arrSalida);
+
+
         foreach($arrSalida as $arrSalid){
             foreach($arrSalid as $arrSalid2){
                 foreach($arrSalid2 as $arrSalid3){                    

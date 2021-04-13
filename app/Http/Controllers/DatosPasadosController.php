@@ -608,7 +608,7 @@ class DatosPasadosController extends Controller
             DB::table("novedad")->insert($arrInsertNovedad);
         }
         else{
-            dd($datoPasado);
+          
         }
         return redirect('/datosPasadosVac/verCarga/'.$idCargaDatosPasados);
 

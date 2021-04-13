@@ -28,7 +28,6 @@ class AppServiceProvider extends ServiceProvider
         // Directiva para convertir numero a numero separado
         Blade::directive('moneda', function ($money) {
             $moneda = (int) $money;
-            dd($moneda);
             return '<?php echo number_format ('.$moneda.', 2 , "." ,  "," ); ?>';
         });
         

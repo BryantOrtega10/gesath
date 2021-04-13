@@ -178,6 +178,9 @@ Route::group([
 	Route::get('recalcularyCambioComprobante/{id}/{numDias}/{numHoras}','NominaController@recalcularBoucher');
 
 	Route::get('cargarInfoxComprobante/{id}','NominaController@cargarInfoxBoucher');
+
+	Route::get('unirSSyContabilidad/{id}','NominaController@unirSSyContabilidad');
+	
 	Route::post('aprobarSolicitud','NominaController@aprobarSolicitud');
 	Route::post('cancelarSolicitud','NominaController@cancelarSolicitud');
 	Route::get('comoCalculo/{id}','NominaController@comoCalculo');

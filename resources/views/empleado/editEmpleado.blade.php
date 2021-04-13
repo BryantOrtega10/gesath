@@ -955,39 +955,66 @@
                         </div>
                     </div>
                     <div class="centroCostoCont">
-                        @for ($i = 1; $i <= sizeof($centrosCostoxEmpleado); $i++)
-                            <div class="centroCosto" data-id="{{$i}}">
-                                @if ($i!=1)
+                        @if (sizeof($centrosCostoxEmpleado) > 0)
+                            @for ($i = 1; $i <= sizeof($centrosCostoxEmpleado); $i++)
+                                <div class="centroCosto" data-id="{{$i}}">
+                                    @if ($i!=1)
+                                        <div class="row">
+                                            <div class="col-11"></div>
+                                            <div class="col-1 text-right">
+                                                <a href="#" class="btn btn-outline-danger quitarCentroCosto" data-id="{{$i}}">Quitar</a>
+                                            </div>
+                                        </div>                                    
+                                    @endif
+                                    
+                                    <input type="hidden" name="idEmpleadoCentroCosto[]" id="idEmpleadoCentroCosto1" value="{{$centrosCostoxEmpleado[$i-1]->idEmpleadoCentroCosto}}" />
                                     <div class="row">
-                                        <div class="col-11"></div>
-                                        <div class="col-1 text-right">
-                                            <a href="#" class="btn btn-outline-danger quitarCentroCosto" data-id="{{$i}}">Quitar</a>
+                                        <div class="col-3">
+                                            <div class="form-group hasText">
+                                                <label for="infoCentroCosto{{$i}}" class="control-label">Centro de costo</label>
+                                                <select class="form-control" id="infoCentroCosto{{$i}}" name="infoCentroCosto[]">
+                                                    <option value=""></option>
+                                                    @foreach ($centrosCostos as $centroCostos)
+                                                        <option value="{{$centroCostos->idcentroCosto}}" @if ($centroCostos->idcentroCosto == $centrosCostoxEmpleado[$i-1]->fkCentroCosto) selected @endif>{{$centroCostos->nombre}}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>                                    
-                                @endif
-                                
-                                <input type="hidden" name="idEmpleadoCentroCosto[]" id="idEmpleadoCentroCosto1" value="{{$centrosCostoxEmpleado[$i-1]->idEmpleadoCentroCosto}}" />
-                                <div class="row">
-                                    <div class="col-3">
-                                        <div class="form-group hasText">
-                                            <label for="infoCentroCosto{{$i}}" class="control-label">Centro de costo</label>
-                                            <select class="form-control" id="infoCentroCosto{{$i}}" name="infoCentroCosto[]">
-                                                <option value=""></option>
-                                                @foreach ($centrosCostos as $centroCostos)
-                                                    <option value="{{$centroCostos->idcentroCosto}}" @if ($centroCostos->idcentroCosto == $centrosCostoxEmpleado[$i-1]->fkCentroCosto) selected @endif>{{$centroCostos->nombre}}</option>
-                                                @endforeach
-                                            </select>
+                                        <div class="col-3">
+                                            <div class="form-group hasText">
+                                                <label for="infoPorcentaje{{$i}}" class="control-label">Porcentaje</label>
+                                                <input type="text" class="form-control" id="infoPorcentaje{{$i}}" name="infoPorcentaje[]" readonly value="{{$centrosCostoxEmpleado[$i-1]->porcentajeTiempoTrabajado}}%"/>                    
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-3">
-                                        <div class="form-group hasText">
-                                            <label for="infoPorcentaje{{$i}}" class="control-label">Porcentaje</label>
-                                            <input type="text" class="form-control" id="infoPorcentaje{{$i}}" name="infoPorcentaje[]" readonly value="{{$centrosCostoxEmpleado[$i-1]->porcentajeTiempoTrabajado}}%"/>                    
+                                </div>
+                            @endfor
+                        @else 
+                            <div class="centroCostoCont">
+                                <div class="centroCosto" data-id="1">
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <label for="infoCentroCosto1" class="control-label">Centro de costo</label>
+                                                <select class="form-control" id="infoCentroCosto1" name="infoCentroCosto[]">
+                                                    <option value=""></option>
+                                                    @foreach ($centrosCostos as $centroCostos)
+                                                        <option value="{{$centroCostos->idcentroCosto}}">{{$centroCostos->nombre}}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="form-group hasText">
+                                                <label for="infoPorcentaje1" class="control-label">Porcentaje</label>
+                                                <input type="text" class="form-control" id="infoPorcentaje1" name="infoPorcentaje[]" readonly value="100%"/>                    
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        @endfor
+                        @endif
+                        
                     </div>                    
                 </section>
                 <section>
@@ -995,70 +1022,108 @@
                         <h2>Informaci&oacute;n contrato</h2>
                         <hr />
                     </div>
-                    <input type="hidden" name="idContratoActivo" value="{{$contratoActivo->idcontrato}}" />
-                    <input type="hidden" name="fechaInicioActivoAnt" value="{{$contratoActivo->fechaInicio}}" />
-
-                    <div class="row">
-                        <div class="col-3">
-                            <div class="form-group @isset($contratoActivo->fkTipoContrato) hasText @endisset">
-                                <label for="infoTipoContrato" class="control-label">Tipo Contrato</label>
-                                <select class="form-control" id="infoTipoContrato" name="infoTipoContrato">
-                                    <option value=""></option>
-                                    @foreach ($tipoContratos as $tipoContrato)
-                                        <option value="{{$tipoContrato->idtipoContrato}}" @if($contratoActivo->fkTipoContrato == $tipoContrato->idtipoContrato) selected @endif >{{$tipoContrato->nombre}}</option>
-                                    @endforeach 
-                                </select>
+                    @if (isset($contratoActivo))
+                        <input type="hidden" name="idContratoActivo" value="{{$contratoActivo->idcontrato}}" />
+                        <input type="hidden" name="fechaInicioActivoAnt" value="{{$contratoActivo->fechaInicio}}" />
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="form-group @isset($contratoActivo->fkTipoContrato) hasText @endisset">
+                                    <label for="infoTipoContrato" class="control-label">Tipo Contrato</label>
+                                    <select class="form-control" id="infoTipoContrato" name="infoTipoContrato">
+                                        <option value=""></option>
+                                        @foreach ($tipoContratos as $tipoContrato)
+                                            <option value="{{$tipoContrato->idtipoContrato}}" @if($contratoActivo->fkTipoContrato == $tipoContrato->idtipoContrato) selected @endif >{{$tipoContrato->nombre}}</option>
+                                        @endforeach 
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-group  @isset($contratoActivo->tipoDuracionContrato) hasText @endisset">
-                                <label for="infoTipoDuracionContrato" class="control-label">Tipo duración</label>
-                                <select class="form-control" id="infoTipoDuracionContrato" name="infoTipoDuracionContrato">
-                                    <option value=""></option>
-                                    <option value="MES" @if($contratoActivo->tipoDuracionContrato == "MES") selected @endif>MES</option>
-                                    <option value="DÍA" @if($contratoActivo->tipoDuracionContrato == "DÍA") selected @endif>DÍA</option>
-                                </select>
-
+                            <div class="col-3">
+                                <div class="form-group  @isset($contratoActivo->tipoDuracionContrato) hasText @endisset">
+                                    <label for="infoTipoDuracionContrato" class="control-label">Tipo duración</label>
+                                    <select class="form-control" id="infoTipoDuracionContrato" name="infoTipoDuracionContrato">
+                                        <option value=""></option>
+                                        <option value="MES" @if($contratoActivo->tipoDuracionContrato == "MES") selected @endif>MES</option>
+                                        <option value="DÍA" @if($contratoActivo->tipoDuracionContrato == "DÍA") selected @endif>DÍA</option>
+                                    </select>
+    
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-group hasText">
-                                <label for="infoDuracionContrato" class="control-label">Duración contrato</label>
-                                <input type="text" class="form-control" id="infoDuracionContrato" name="infoDuracionContrato" 
-                                    @if ($contratoActivo->tipoDuracionContrato == "MES")
-                                        value="{{$contratoActivo->numeroMeses}}"
-                                    @else
-                                        @if ($contratoActivo->tipoDuracionContrato == "DÍA")
-                                            value="{{$contratoActivo->numeroDias}}"
+                            <div class="col-3">
+                                <div class="form-group hasText">
+                                    <label for="infoDuracionContrato" class="control-label">Duración contrato</label>
+                                    <input type="text" class="form-control" id="infoDuracionContrato" name="infoDuracionContrato" 
+                                        @if ($contratoActivo->tipoDuracionContrato == "MES")
+                                            value="{{$contratoActivo->numeroMeses}}"
+                                        @else
+                                            @if ($contratoActivo->tipoDuracionContrato == "DÍA")
+                                                value="{{$contratoActivo->numeroDias}}"
+                                            @endif
                                         @endif
-                                    @endif
-                                
-                                />
+                                    
+                                    />
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-group @isset($contratoActivo->fechaFin) hasText @endisset">
+                                    <label for="infoFechaFin" class="control-label">Fecha fin contrato</label>
+                                    <input type="date" class="form-control" id="infoFechaFin" name="infoFechaFin" readonly value="{{$contratoActivo->fechaFin}}"/>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-3">
-                            <div class="form-group @isset($contratoActivo->fechaFin) hasText @endisset">
-                                <label for="infoFechaFin" class="control-label">Fecha fin contrato</label>
-                                <input type="date" class="form-control" id="infoFechaFin" name="infoFechaFin" readonly value="{{$contratoActivo->fechaFin}}"/>
+                    
+                        <div class="row">
+                            <div class="col-3">
+                                <button type="button" id="btnNuevoContrato" class="btn btn-success">Nuevo Contrato</button>
                             </div>
                         </div>
-                    </div>
-                
-                    <div class="row">
-                        <div class="col-3">
-                            <button type="button" id="btnNuevoContrato" class="btn btn-success">Nuevo Contrato</button>
+                        <div class="nuevoContrato">
+                            <div class="subTitulo">
+                                <h2>Informaci&oacute;n nuevo contrato</h2>
+                                <hr />
+                            </div>
+                            <div class="row">
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="infoTipoContratoN" class="control-label">Tipo Contrato</label>
+                                        <select class="form-control" id="infoTipoContratoN" name="infoTipoContratoN">
+                                            <option value=""></option>
+                                            @foreach ($tipoContratos as $tipoContrato)
+                                                <option value="{{$tipoContrato->idtipoContrato}}">{{$tipoContrato->nombre}}</option>
+                                            @endforeach 
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="infoTipoDuracionContratoN" class="control-label">Tipo duración</label>
+                                        <select class="form-control" id="infoTipoDuracionContratoN" name="infoTipoDuracionContratoN">
+                                            <option value=""></option>
+                                            <option value="MES">MES</option>
+                                            <option value="DÍA">DÍA</option>
+                                        </select>
+    
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="infoDuracionContratoN" class="control-label">Duración contrato</label>
+                                        <input type="text" class="form-control" id="infoDuracionContratoN" name="infoDuracionContratoN"/>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
+                                        <label for="infoFechaFinN" class="control-label">Fecha fin contrato</label>
+                                        <input type="date" class="form-control" id="infoFechaFinN" name="infoFechaFinN" readonly/>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="nuevoContrato">
-                        <div class="subTitulo">
-                            <h2>Informaci&oacute;n nuevo contrato</h2>
-                            <hr />
-                        </div>
+                    @else
                         <div class="row">
                             <div class="col-3">
                                 <div class="form-group">
-                                    <label for="infoTipoContratoN" class="control-label">Tipo Contrato</label>
-                                    <select class="form-control" id="infoTipoContratoN" name="infoTipoContratoN">
+                                    <label for="infoTipoContrato" class="control-label">Tipo Contrato</label>
+                                    <select class="form-control" id="infoTipoContrato" name="infoTipoContrato">
                                         <option value=""></option>
                                         @foreach ($tipoContratos as $tipoContrato)
                                             <option value="{{$tipoContrato->idtipoContrato}}">{{$tipoContrato->nombre}}</option>
@@ -1068,8 +1133,8 @@
                             </div>
                             <div class="col-3">
                                 <div class="form-group">
-                                    <label for="infoTipoDuracionContratoN" class="control-label">Tipo duración</label>
-                                    <select class="form-control" id="infoTipoDuracionContratoN" name="infoTipoDuracionContratoN">
+                                    <label for="infoTipoDuracionContrato" class="control-label">Tipo duración</label>
+                                    <select class="form-control" id="infoTipoDuracionContrato" name="infoTipoDuracionContrato">
                                         <option value=""></option>
                                         <option value="MES">MES</option>
                                         <option value="DÍA">DÍA</option>
@@ -1079,18 +1144,22 @@
                             </div>
                             <div class="col-3">
                                 <div class="form-group">
-                                    <label for="infoDuracionContratoN" class="control-label">Duración contrato</label>
-                                    <input type="text" class="form-control" id="infoDuracionContratoN" name="infoDuracionContratoN"/>
+                                    <label for="infoDuracionContrato" class="control-label">Duración contrato</label>
+                                    <input type="text" class="form-control" id="infoDuracionContrato" name="infoDuracionContrato"/>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group">
-                                    <label for="infoFechaFinN" class="control-label">Fecha fin contrato</label>
-                                    <input type="date" class="form-control" id="infoFechaFinN" name="infoFechaFinN" readonly/>
+                                    <label for="infoFechaFin" class="control-label">Fecha fin contrato</label>
+                                    <input type="date" class="form-control" id="infoFechaFin" name="infoFechaFin" readonly/>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
+
+                    
+
+                    
 
                 </section>
                 <section>

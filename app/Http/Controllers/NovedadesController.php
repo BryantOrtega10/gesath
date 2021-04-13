@@ -946,10 +946,10 @@ class NovedadesController extends Controller
         
 
 
-        $novedades = $novedades->whereRaw("n.fkPeriodoActivo in(
+        /*$novedades = $novedades->whereRaw("n.fkPeriodoActivo in(
             SELECT p.idPeriodo from periodo as p where p.fkEstado = '1'
-        )")
-        ->paginate();
+        )")*/
+        $novedades = $novedades->paginate();
         $nominas = DB::table("nomina");
         if(isset($dataUsu) && $dataUsu->fkRol == 2){            
             $nominas = $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
@@ -2424,13 +2424,16 @@ class NovedadesController extends Controller
         ->join("datospersonales as dp", "dp.idDatosPersonales", "=", "e.fkDatosPersonales")
         ->join("concepto as c","c.idconcepto", "=", "n.fkConcepto")
         ->where("idNovedad","=", $idNovedad)->first();
-
+        
+        
 
 
         $conceptos = DB::table("concepto", "c")
         ->select(["c.*"])
         ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
         ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)->get();
+
+
         $dataUsu = UsuarioController::dataAdminLogueado();
         if(isset($novedad->fkAusencia)){
             $ausencia = DB::table('ausencia')->where("idAusencia","=", $novedad->fkAusencia)->first();

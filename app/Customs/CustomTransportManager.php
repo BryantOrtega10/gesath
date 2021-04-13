@@ -16,7 +16,6 @@ class CustomTransportManager extends TransportManager {
     {
         $this->app = $app;
         $smtp = SMTPConfigModel::select(['*'])->first();
-        dd($smtp);
         if( $smtp ){
             $this->app['config']['mail'] = [
                 'driver'        => 'SMTP',

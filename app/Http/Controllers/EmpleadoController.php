@@ -1250,7 +1250,7 @@ class EmpleadoController extends Controller
               ->update($modContrato);
         }
         
-        
+         
         
 
         if(isset($req->infoTipoContratoN)){
@@ -2212,9 +2212,8 @@ class EmpleadoController extends Controller
 
 
                     }
-                }
-                else{
-                    if(strtotime($req->conFiFechaInicioCambio) <= strtotime("now")){
+                    else{
+                
                         $conceptoSalario = DB::table("conceptofijo", "cf")
                         ->whereIn("cf.fkConcepto",["1","2"])
                         ->where("cf.fkEmpleado", "=", $req->idEmpleado)
@@ -2234,7 +2233,32 @@ class EmpleadoController extends Controller
                         DB::table('conceptofijo')
                         ->where("idConceptoFijo","=",$conceptoSalario->idConceptoFijo)
                         ->update($updateConceptoFijo);
+                    
                     }
+                    
+                }
+                else{
+                
+                    $conceptoSalario = DB::table("conceptofijo", "cf")
+                    ->whereIn("cf.fkConcepto",["1","2"])
+                    ->where("cf.fkEmpleado", "=", $req->idEmpleado)
+                    ->first();
+                    $updateConceptoFijo = array(
+                        "valor"=> $req->conValorCambio,
+                        "fechaInicio"=> $req->conFiFechaInicioCambio,
+                        "fkEstado" => 1,                
+                    );
+
+
+
+                    DB::table('cambiosalario')
+                    ->where("idCambioSalario","=",$idCambioSalario)
+                    ->update(array("fkEstado" => "5"));
+
+                    DB::table('conceptofijo')
+                    ->where("idConceptoFijo","=",$conceptoSalario->idConceptoFijo)
+                    ->update($updateConceptoFijo);
+                
                 }
                 
             }

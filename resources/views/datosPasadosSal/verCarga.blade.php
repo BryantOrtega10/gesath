@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Carga datos pasados')
+@section('title', 'Carga saldos')
 @section('menuLateral')
     @include('layouts.partials.menu', [
         'dataUsu' => $dataUsu
@@ -9,7 +9,7 @@
 @section('contenido')
 <div class="row">
     <div class="col-12">
-        <h1 class="granAzul">Carga datos pasados</h1>
+        <h1 class="granAzul">Carga saldos</h1>
     </div>
 </div>
 <div class="row">

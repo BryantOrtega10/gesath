@@ -30,6 +30,7 @@ $(document).ready(function() {
                     $("#infoNomina").html(data.opcionesNomina);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
                     console.log("error");
                     console.log(data);
                 }
@@ -48,6 +49,7 @@ $(document).ready(function() {
                 $('#busquedaEmpleadoModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 console.log("error");
                 console.log(data);
             }
@@ -67,6 +69,7 @@ $(document).ready(function() {
                 $('#busquedaEmpleadoModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 console.log("error");
                 console.log(data);
             }
@@ -83,9 +86,11 @@ $(document).ready(function() {
             url: $(this).attr("action"),
             data: formdata,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 $(".resFormBusEmpleado").html(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 console.log("error");
                 console.log(data);
             }
@@ -103,6 +108,7 @@ $(document).ready(function() {
                 $(".resFormBusEmpleado").html(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 console.log("error");
                 console.log(data);
             }
@@ -128,6 +134,7 @@ $(document).ready(function() {
                 $("#idBoucherPago").html(data.mensaje);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 console.log("error");
                 console.log(data);
             }
@@ -154,6 +161,7 @@ $(document).ready(function() {
                         }
                     },
                     error: function(data) {
+                        $("#cargando").css("display", "none");
                         console.log("error");
                         console.log(data);
                     }

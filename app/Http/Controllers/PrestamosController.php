@@ -16,12 +16,28 @@ class PrestamosController extends Controller
         ->join("concepto as c","c.idconcepto", "=", "p.fkConcepto") 
         ->join("estado as est", "est.idEstado", "=", "p.fkEstado")
         ;
-
+        $arrConsulta = array();
         if(isset($req->estado)){
+            $arrConsulta["estado"]=$req->estado;
             $prestamos = $prestamos->where("p.fkEstado","=",$req->estado);
         }
         else{
             $prestamos = $prestamos->where("p.fkEstado","=","1");
+        }
+        
+        if(isset($req->numDoc)){
+            $arrConsulta["numDoc"]=$req->numDoc;
+            $prestamos = $prestamos->where("dp.numeroIdentificacion","LIKE","%".$req->numDoc."%");
+        }
+        if(isset($req->nombre)){
+            $arrConsulta["nombre"]=$req->nombre;
+            $prestamos = $prestamos->where(function($query) use($req){
+                $query->where("dp.primerNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoNombre","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.primerApellido","LIKE","%".$req->nombre."%")
+                ->orWhere("dp.segundoApellido","LIKE","%".$req->nombre."%")
+                ->orWhereRaw("CONCAT(dp.primerApellido,' ',dp.segundoApellido,' ',dp.primerNombre,' ',dp.segundoNombre) LIKE '%".$req->nombre."%'");
+            });
         }
 
         if(isset($usu) && $usu->fkRol == 2){            
@@ -29,13 +45,14 @@ class PrestamosController extends Controller
         }
         $prestamos = $prestamos->orderBy("dp.primerApellido")->paginate(15);
 
-        $arrConsulta = array();
+        
         
 
         return view('/prestamos.index', [
             "prestamos" => $prestamos,
             "arrConsulta" => $arrConsulta,
-            "dataUsu" => $usu
+            "dataUsu" => $usu,
+            "req" => $req
         ]);
         
     }

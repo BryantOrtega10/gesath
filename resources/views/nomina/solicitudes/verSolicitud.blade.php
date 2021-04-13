@@ -146,7 +146,7 @@
                                 <a href="/reportes/comprobantePdf/{{$boucher->idBoucherPago}}" target="_blank" class="dropdown-item" >Comprobante de pago</a>
                             @endif
                             @if (in_array("67",$dataUsu->permisosUsuario))
-                            <a href="/nomina/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo dropdown-item">Enviar por correo</a>
+                            <a href="/nomina/envioCorreos/enviarComprobante/{{$boucher->idBoucherPago}}" class="enviarCorreo dropdown-item">Enviar por correo</a>
                             @endif
                             @if (in_array("68",$dataUsu->permisosUsuario))
                             <a href="/nomina/recalcularComprobante/{{$boucher->idBoucherPago}}" class="recalcular dropdown-item" data-id="{{$boucher->idBoucherPago}}">Recalcular</a>

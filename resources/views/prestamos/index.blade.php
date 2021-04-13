@@ -26,6 +26,23 @@
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
+            <form autocomplete="off" action="/prestamos/" method="GET" class="formGeneral" id="filtrar">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group @isset($req->nombre) hasText @endisset">
+                            <label for="nombre" class="control-label">Nombre:</label>
+                            <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
+                        </div>               
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group @isset($req->numDoc) hasText @endisset">
+                            <label for="numDoc" class="control-label">Número Identificación:</label>
+                            <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
+                        </div>               
+                    </div>
+                    <div class="col-3"  ><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/>  </div>
+                </div>
+            </form>
             <table class="table table-hover table-striped">
                 <tr>
                     <th>#</th>
@@ -73,4 +90,12 @@
 <script type="text/javascript" src="{{ URL::asset('js/jquery.inputmask.js') }}"></script>
 <script type="text/javascript" src="{{ URL::asset('js/jquery.inputmask.numeric.extensions.js') }}"></script>
 <script type="text/javascript" src="{{ URL::asset('js/prestamo.js') }}"></script>
+<script type="text/javascript">
+$(document).ready(function(e){
+    $(".recargar").click(function(e){
+        e.preventDefault();
+        window.open("/prestamos","_self");
+    });
+})
+</script>
 @endsection

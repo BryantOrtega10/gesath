@@ -24,7 +24,6 @@ class CustomMailServiceProvider extends MailServiceProvider
     public function register()
     {
         $smtp = DB::table('smtp_config')->first();
-        // dd($smtp);
         if ($smtp) {
             $config = array(
                 'driver'     => 'SMTP',

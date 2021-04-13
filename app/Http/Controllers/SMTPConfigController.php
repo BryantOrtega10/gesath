@@ -30,7 +30,7 @@ class SMTPConfigController extends Controller
         ->join('empresa', 'smtp_config.id_smpt', 'empresa.fkSmtpConf')
         ->where('empresa.idempresa', $id)
         ->first();
-        // dd($smtp);
+
         $usu = UsuarioController::dataAdminLogueado();
         return view('/empresas/smtpConf.smtpConfig', [
             "smtp" => $smtp,

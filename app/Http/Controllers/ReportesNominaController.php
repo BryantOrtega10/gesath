@@ -450,7 +450,7 @@ class ReportesNominaController extends Controller
         dp.primerApellido,dp.segundoApellido,ti.nombre as tipoidentificacion, 
         dp.numeroIdentificacion, bp.diasTrabajados, ibp.valor, ibp.cantidad, 
         bp.idBoucherPago, ccfijo.valor as valorSalario,c.fkNaturaleza,
-        emp.razonSocial as nom_empresa,nom.nombre as nom_nomina,
+        emp.razonSocial as nom_empresa,nom.nombre as nom_nomina, cargo.nombreCargo,
         (SELECT centrocosto.nombre from centrocosto where idcentroCosto in
         (Select empleado_centrocosto.fkCentroCosto from empleado_centrocosto where empleado_centrocosto.fkEmpleado = e.idempleado) 
         limit 0,1) as centroCosto")        
@@ -464,6 +464,7 @@ class ReportesNominaController extends Controller
         ->join("conceptofijo as ccfijo","ccfijo.fkEmpleado", "=", "e.idempleado")
         ->join("empresa as emp","emp.idempresa", "=", "e.fkEmpresa")
         ->join("nomina as nom","nom.idNomina", "=", "e.fkNomina")
+        ->join("cargo","cargo.idCargo","=","e.fkCargo")
         ->whereBetween("ln.fechaLiquida",[$req->fechaInicio, $req->fechaFin])
         ->where("n.fkEmpresa", "=", $req->empresa)
         ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
@@ -486,7 +487,7 @@ class ReportesNominaController extends Controller
             $matrizReporte[$nomina->idempleado]["Empresa"][$nomina->idBoucherPago] = $nomina->nom_empresa;     
             $matrizReporte[$nomina->idempleado]["Nomina"][$nomina->idBoucherPago] = $nomina->nom_nomina;     
             $matrizReporte[$nomina->idempleado]["Centro costo"][$nomina->idBoucherPago] = $nomina->centroCosto;   
-
+            $matrizReporte[$nomina->idempleado]["Cargo"][$nomina->idBoucherPago] = $nomina->nombreCargo;   
             $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idBoucherPago] = $nomina->tipoidentificacion;
             $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idBoucherPago] = $nomina->numeroIdentificacion;     
             $matrizReporte[$nomina->idempleado]["Nombre"][$nomina->idBoucherPago] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
@@ -639,13 +640,13 @@ class ReportesNominaController extends Controller
         $empleadoActual = 0;
         for($i = 1; $i<sizeof($reporteFinal) ;$i++){
 
-            if($empleadoActual != $reporteFinal[$i][5]){
-                $empleadoActual = $reporteFinal[$i][5];
+            if($empleadoActual != $reporteFinal[$i][6]){
+                $empleadoActual = $reporteFinal[$i][6];
             }
     
             $existeEmp = -1;
             foreach($reporteDatosJuntos as $row => $reporteTemp){
-                if($reporteTemp[5] == $empleadoActual){
+                if($reporteTemp[6] == $empleadoActual){
                     //Existe el empleado en el reporte conjunto
                     $existeEmp = $row;
                 }
@@ -657,7 +658,7 @@ class ReportesNominaController extends Controller
             }
             else{
                 foreach($reporteFinal[$i] as $row => $columna){
-                    if(is_numeric($columna) && $row!=5 && $row!=8 && is_numeric($reporteDatosJuntos[$existeEmp][$row])){
+                    if(is_numeric($columna) && $row!=6 && $row!=9 && is_numeric($reporteDatosJuntos[$existeEmp][$row])){
                         try{
                             $reporteDatosJuntos[$existeEmp][$row] = $reporteDatosJuntos[$existeEmp][$row] + $columna;
                         }
@@ -830,7 +831,7 @@ class ReportesNominaController extends Controller
         }
         
 
-
+        
 
         //VACACIONES
         $novedadesVacacionActual = DB::table("novedad","n")
@@ -1110,6 +1111,43 @@ class ReportesNominaController extends Controller
                 $diasDemas = $diasLab - ($meses * 30);
                 $tiempoTrabTxt = $meses." Meses ".$diasDemas." días";
 
+                $fechaFinMesActual = date("Y-m-t", strtotime($novedadesRetiro->fechaReal));
+                $fechaInicioMesActual = date("Y-m-01", strtotime($novedadesRetiro->fechaReal));
+                $ultimoBoucher = DB::table("boucherpago", "bp")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
+                ->orderBy("bp.idBoucherPago","desc")
+                ->first();
+                
+                
+                if(!isset($ultimoBoucher)){
+                    $ultimoBoucher = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+                }
+                else{
+                    $ultimoBoucherRetiro = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+
+                    $ultimoBoucher->ibc_afp = $ultimoBoucher->ibc_afp + ($ultimoBoucherRetiro->ibc_afp ?? 0);
+                    $ultimoBoucher->ibc_eps = $ultimoBoucher->ibc_eps + ($ultimoBoucherRetiro->ibc_eps ?? 0);
+                    $ultimoBoucher->ibc_arl = $ultimoBoucher->ibc_arl + ($ultimoBoucherRetiro->ibc_arl ?? 0);
+                    $ultimoBoucher->ibc_ccf = $ultimoBoucher->ibc_ccf + ($ultimoBoucherRetiro->ibc_ccf ?? 0);
+                    $ultimoBoucher->ibc_otros = $ultimoBoucher->ibc_otros + ($ultimoBoucherRetiro->ibc_otros ?? 0);
+                }
+                $IBL = $ultimoBoucher->ibc_eps;
+
                 $html.='                    
                 <div class="page liquida">
                     <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
@@ -1202,7 +1240,7 @@ class ReportesNominaController extends Controller
                             <th>Fondo Pensiones</th>
                             <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
                             <th>IBL Seguridad Social </th>
-                            <td>$ '.number_format($this->roundSup($empresayLiquidacion->ibc_eps,-2),0, ",", ".").'</td>
+                            <td>$ '.number_format($this->roundSup($IBL,-2),0, ",", ".").'</td>
                         </tr>
                         <tr>
                             <th>Fondo Cesantías </th>
@@ -2303,6 +2341,43 @@ class ReportesNominaController extends Controller
                 $diasDemas = $diasLab - ($meses * 30);
                 $tiempoTrabTxt = $meses." Meses ".$diasDemas." días";
 
+                $fechaFinMesActual = date("Y-m-t", strtotime($novedadesRetiro->fechaReal));
+                $fechaInicioMesActual = date("Y-m-01", strtotime($novedadesRetiro->fechaReal));
+                $ultimoBoucher = DB::table("boucherpago", "bp")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
+                ->orderBy("bp.idBoucherPago","desc")
+                ->first();
+               
+                
+                if(!isset($ultimoBoucher)){
+                    $ultimoBoucher = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+                }
+                else{
+                    $ultimoBoucherRetiro = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+
+                    $ultimoBoucher->ibc_afp = $ultimoBoucher->ibc_afp + ($ultimoBoucherRetiro->ibc_afp ?? 0);
+                    $ultimoBoucher->ibc_eps = $ultimoBoucher->ibc_eps + ($ultimoBoucherRetiro->ibc_eps ?? 0);
+                    $ultimoBoucher->ibc_arl = $ultimoBoucher->ibc_arl + ($ultimoBoucherRetiro->ibc_arl ?? 0);
+                    $ultimoBoucher->ibc_ccf = $ultimoBoucher->ibc_ccf + ($ultimoBoucherRetiro->ibc_ccf ?? 0);
+                    $ultimoBoucher->ibc_otros = $ultimoBoucher->ibc_otros + ($ultimoBoucherRetiro->ibc_otros ?? 0);
+                }
+                $IBL = $ultimoBoucher->ibc_eps;
+               
                 $html.='                    
                 <div class="page liquida">
                     <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
@@ -2395,7 +2470,7 @@ class ReportesNominaController extends Controller
                             <th>Fondo Pensiones</th>
                             <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
                             <th>IBL Seguridad Social </th>
-                            <td>$ '.number_format($this->roundSup($empresayLiquidacion->ibc_eps,-2),0, ",", ".").'</td>
+                            <td>$ '.number_format($this->roundSup($IBL,-2),0, ",", ".").'</td>
                         </tr>
                         <tr>
                             <th>Fondo Cesantías </th>
@@ -3136,7 +3211,7 @@ class ReportesNominaController extends Controller
         $dompdf->render();
 
         // Output the generated PDF to Browser
-        $dompdf->stream("Comprobante de Pago ".$idBoucherPago.".pdf", array('compress' => 1, 'Attachment' => 1));
+        $dompdf->stream("Comprobante de Pago ".$idBoucherPago.".pdf", array('compress' => 1, 'Attachment' => 0));
     }
     
     public function diasVacacionesDisponibles($idEmpleado){
@@ -3365,16 +3440,47 @@ class ReportesNominaController extends Controller
             ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
             ->where("bp.fkEmpleado","=",$empleado->idempleado)
             ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+            ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
             ->orderBy("bp.idBoucherPago","desc")
             ->first();
+            if(!isset($ultimoBoucher)){
+                $ultimoBoucher = DB::table("boucherpago", "bp")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                ->whereIn("ln.fkTipoLiquidacion",["3"])
+                ->orderBy("bp.idBoucherPago","desc")
+                ->first();
+            }
+            else{
+                $ultimoBoucherRetiro = DB::table("boucherpago", "bp")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                ->whereIn("ln.fkTipoLiquidacion",["3"])
+                ->orderBy("bp.idBoucherPago","desc")
+                ->first();
+    
+                $ultimoBoucher->ibc_afp = $ultimoBoucher->ibc_afp + ($ultimoBoucherRetiro->ibc_afp ?? 0);
+                $ultimoBoucher->ibc_eps = $ultimoBoucher->ibc_eps + ($ultimoBoucherRetiro->ibc_eps ?? 0);
+                $ultimoBoucher->ibc_arl = $ultimoBoucher->ibc_arl + ($ultimoBoucherRetiro->ibc_arl ?? 0);
+                $ultimoBoucher->ibc_ccf = $ultimoBoucher->ibc_ccf + ($ultimoBoucherRetiro->ibc_ccf ?? 0);
+                $ultimoBoucher->ibc_otros = $ultimoBoucher->ibc_otros + ($ultimoBoucherRetiro->ibc_otros ?? 0);
+            }
+
+            
+
+            
             $arrayFila[101] = $ultimoBoucher->idBoucherPago;
             $arraySinNada = $arrayFila;
             
             $esRetiroNegativo = 0;
+            if($empleado->numeroIdentificacion == "1032426411"){
+                //dd($periodoTrabajado, $ultimoBoucher);
+            }
+            
             if($ultimoBoucher->ibc_afp < 0 || ($ultimoBoucher->ibc_eps == 0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"  && $empleado->fkTipoCotizante != "51")){
                 $esRetiroNegativo = 1;
-
-
 
                 $minimosRedondeo = DB::table("tabla_smmlv_redondeo")->where("dias","=","30")->first();
                 if($conceptoFijoSalario->valor < $minimosRedondeo->ibc){
@@ -3462,6 +3568,8 @@ class ReportesNominaController extends Controller
             if(sizeof($novedadesRetiro)>0){
                 $arrayFila[15] = $this->plantillaTxt("X",1," ","left");
                 $arrayFila[80] = $this->plantillaTxt($novedadesRetiro[0]->fecha,10,"","left");
+
+                
                 $diasRetiro = 30 - intval(substr($novedadesRetiro[0]->fecha,8,2));
                 if($diasRetiro>0){
                     if($esRetiroNegativo == 0){
@@ -3479,7 +3587,7 @@ class ReportesNominaController extends Controller
                 $arrayFila[15] = $this->plantillaTxt("",1," ","left");
                 $arrayFila[80] = $this->plantillaTxt("",10," ","left");
             }
-
+            
             
             
             
@@ -3549,9 +3657,10 @@ class ReportesNominaController extends Controller
             $arrayFila[31] = $this->plantillaTxt(" ",6," ","left");
             //VSP
             $cambioSalario = DB::table("cambiosalario","cs")
-                ->where("cs.fkEmpleado", "=", $empleado->idempleado)
-                ->whereBetween("cs.fechaCambio", [$fechaInicioMesActual, $fechaFinMesActual])
-                ->get();
+            ->where("cs.fkEmpleado", "=", $empleado->idempleado)
+            ->whereBetween("cs.fechaCambio", [$fechaInicioMesActual, $fechaFinMesActual])
+            ->where("cs.fkEstado","=","5")
+            ->get();
 
             if(sizeof($cambioSalario)>0){
                 $arrayFila[20] = $this->plantillaTxt("X",1," ","left");
@@ -3628,13 +3737,22 @@ class ReportesNominaController extends Controller
                 $arrayPlace[83] = $this->plantillaTxt($fechaFinSLN,10," ","left");
 
                 //Tarifa en 0 para ausentismos
-                
 
+                //Fondo de Solidaridad 
+                $arrayPlace[50] = $this->plantillaTxt("0",9,"0","right");
+                $arrayPlace[51] = $this->plantillaTxt("0",9,"0","right");
+
+                //ARL
                 $arrayPlace[60] =  $this->plantillaTxt("0.0",9,"0","left");
-
-
-
                 $arrayPlace[62] = $this->plantillaTxt("0",9,"0","right");
+
+                //SALUD
+                $arrayPlace[53] =  $this->plantillaTxt("0.0",7,"0","left");
+                $arrayPlace[54] =  $this->plantillaTxt("0",9,"0","left");
+                
+                //CCF
+                $arrayPlace[63] = $this->plantillaTxt("0.0",7,"0","left");
+                $arrayPlace[64] =  $this->plantillaTxt("0",9,"0","left");
                 
                 
                 $valorNovedad = (intval($conceptoFijoSalario->valor)/30)*$novedadSancion->cantidadDias;
@@ -3647,12 +3765,10 @@ class ReportesNominaController extends Controller
                 //$arrayPlace[46] =  $this->plantillaTxt("0",9,"0","left");
 
 
-                $arrayPlace[53] =  $this->plantillaTxt("0.0",7,"0","left");
-                $arrayPlace[54] =  $this->plantillaTxt("0",9,"0","left");
+               
 
 
-                $arrayPlace[63] = $this->plantillaTxt("0.0",7,"0","left");
-                $arrayPlace[64] =  $this->plantillaTxt("0",9,"0","left");
+               
 
                 array_push($arrayNuevoRegistro, $arrayPlace);   
 
@@ -3822,6 +3938,8 @@ class ReportesNominaController extends Controller
                 $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
                 $arrayPlace[94] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
 
+
+                
                 $arrayFila[62] = $this->plantillaTxt(0,9,"0","right");
 
 
@@ -4604,9 +4722,7 @@ class ReportesNominaController extends Controller
                 $totalFPS = $totalFPS + $itemBoucherFPS->suma;
             }
             
-        /* if($empleado->idempleado == 32){
-                dd($ultimoBoucher);
-            }*/
+
             
 
             if($totalFPS > 0){
@@ -4668,7 +4784,7 @@ class ReportesNominaController extends Controller
                 }                
             }
             if($empleado->fkTipoCotizante == "51"){
-                $totalPorcentajeEPS = 0;
+                $totalPorcentajeEPS = "0.0";
             }
 
             $arrayFila[53] =$this->plantillaTxt($totalPorcentajeEPS,7,"0","left");   
@@ -4743,7 +4859,7 @@ class ReportesNominaController extends Controller
                 $arrayFila[60] = $this->plantillaTxt("0.0",9,"0","left");
             }
             if($empleado->fkTipoCotizante == "51"){
-                $arrayFila[60] = $this->plantillaTxt("0.0",9,"0","left");
+                //$arrayFila[60] = $this->plantillaTxt("0.0",9,"0","left");
             }
             
             //Centro de Trabajo
@@ -4808,7 +4924,7 @@ class ReportesNominaController extends Controller
 
 
             //TARIFA CCF
-            if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"  && $empleado->fkTipoCotizante != "51"){
+            if($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"){
                 $varsCCF = DB::table("variable", "v")->whereIn("v.idVariable",["53"])->get();
                 $totalPorcentajeCCF = 0;
                 foreach($varsCCF as $varCCF){
@@ -5187,8 +5303,33 @@ class ReportesNominaController extends Controller
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$empleado->idempleado)
                 ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
                 ->orderBy("bp.idBoucherPago","desc")
                 ->first();
+                if(!isset($ultimoBoucher)){
+                    $ultimoBoucher = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+                }
+                else{
+                    $ultimoBoucherRetiro = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+        
+                    $ultimoBoucher->ibc_afp = $ultimoBoucher->ibc_afp + ($ultimoBoucherRetiro->ibc_afp ?? 0);
+                    $ultimoBoucher->ibc_eps = $ultimoBoucher->ibc_eps + ($ultimoBoucherRetiro->ibc_eps ?? 0);
+                    $ultimoBoucher->ibc_arl = $ultimoBoucher->ibc_arl + ($ultimoBoucherRetiro->ibc_arl ?? 0);
+                    $ultimoBoucher->ibc_ccf = $ultimoBoucher->ibc_ccf + ($ultimoBoucherRetiro->ibc_ccf ?? 0);
+                    $ultimoBoucher->ibc_otros = $ultimoBoucher->ibc_otros + ($ultimoBoucherRetiro->ibc_otros ?? 0);
+                }
     
                 //Parte 2
                 if(!isset($arrayFila2[41])){
@@ -5197,13 +5338,7 @@ class ReportesNominaController extends Controller
                 else{
                     $ibcAFP = intval($arrayFila2[41]);
                 }
-                /*if($empleado->idempleado == 502){
-                    echo $periodoTrabajado."<br>";
-                    echo $ultimoBoucher->ibc_afp."<br>";
-                    echo $periodoTrabajadoSinNov."<br>";
-                    dd($ibcAFP);
-                }*/
-                
+
                 $minimosRedondeo = DB::table("tabla_smmlv_redondeo")->where("dias","=",$periodoTrabajado)->first();
 
                 //$ibcAFP = $ultimoBoucher->ibc_afp;
@@ -5357,48 +5492,56 @@ class ReportesNominaController extends Controller
                     $totalFPS = $totalFPS + $itemBoucherFPS->suma;
                 }
     
-                if($totalFPS > 0){
-                    $valorSalario = $ultimoBoucher->ibc_afp;            
-                    $variablesAporteFondo = DB::table("variable")->whereIn("idVariable",[11,12,13,14,15])->get();
-                    $varAporteFondo = array();
-                    foreach($variablesAporteFondo as $variablesAporteFond){
-                        $varAporteFondo[$variablesAporteFond->idVariable] = $variablesAporteFond->valor;
-                    }
-                    
-                    $variables = DB::table("variable")->where("idVariable","=","1")->first();
-                    $valorSalarioMinimo = $variables->valor;
-                
-                    if($valorSalario > ($valorSalarioMinimo * $varAporteFondo[11])){
-                        $porcentajeDescuento = $varAporteFondo[12];
-                    }
-    
-                    if($valorSalario > ($valorSalarioMinimo * $varAporteFondo[13])){
-    
-                        $diffSalariosMas = $valorSalario - ($valorSalarioMinimo * ($varAporteFondo[13] - 1));
-                        $numSalariosMas = floor($diffSalariosMas  / $valorSalarioMinimo);
-                        $porcentajeDescuento = $porcentajeDescuento + ($numSalariosMas * $varAporteFondo[14]);
-                    }
-                    if($porcentajeDescuento > $varAporteFondo[15]){
-                        $porcentajeDescuento = $varAporteFondo[15];
-                    }
-    
-                    $totalFPS = $ibcAFP*$porcentajeDescuento;
-
-                    $paraFPS = ($totalFPS * 0.005)/$porcentajeDescuento;
-                
-                    $paraFS = $totalFPS - $paraFPS;
+                if(!isset($arrayFila2[50])){
+                    if($totalFPS > 0){
+                        $valorSalario = $ultimoBoucher->ibc_afp;            
+                        $variablesAporteFondo = DB::table("variable")->whereIn("idVariable",[11,12,13,14,15])->get();
+                        $varAporteFondo = array();
+                        foreach($variablesAporteFondo as $variablesAporteFond){
+                            $varAporteFondo[$variablesAporteFond->idVariable] = $variablesAporteFond->valor;
+                        }
                         
-                    $paraFPS = $this->roundSup($paraFPS, -2);
+                        $variables = DB::table("variable")->where("idVariable","=","1")->first();
+                        $valorSalarioMinimo = $variables->valor;
                     
-                    $paraFS = $this->roundSup($paraFS, -2);
+                        if($valorSalario > ($valorSalarioMinimo * $varAporteFondo[11])){
+                            $porcentajeDescuento = $varAporteFondo[12];
+                        }
+        
+                        if($valorSalario > ($valorSalarioMinimo * $varAporteFondo[13])){
+        
+                            $diffSalariosMas = $valorSalario - ($valorSalarioMinimo * ($varAporteFondo[13] - 1));
+                            $numSalariosMas = floor($diffSalariosMas  / $valorSalarioMinimo);
+                            $porcentajeDescuento = $porcentajeDescuento + ($numSalariosMas * $varAporteFondo[14]);
+                        }
+                        if($porcentajeDescuento > $varAporteFondo[15]){
+                            $porcentajeDescuento = $varAporteFondo[15];
+                        }
+        
+                        $totalFPS = $ibcAFP*$porcentajeDescuento;
+    
+                        $paraFPS = ($totalFPS * 0.005)/$porcentajeDescuento;
+                    
+                        $paraFS = $totalFPS - $paraFPS;
+                            
+                        $paraFPS = $this->roundSup($paraFPS, -2);
+                        
+                        $paraFS = $this->roundSup($paraFS, -2);
+    
+                        $arrayFila2[50] = $this->plantillaTxt(intval($paraFPS),9,"0","right");
+                        $arrayFila2[51] = $this->plantillaTxt(intval($paraFS),9,"0","right");
+                    }
+                    else{
+                        $arrayFila2[50] = $this->plantillaTxt("",9,"0","right");
+                        $arrayFila2[51] = $this->plantillaTxt("",9,"0","right");
+                    }
+                }
 
-                    $arrayFila2[50] = $this->plantillaTxt(intval($paraFPS),9,"0","right");
-                    $arrayFila2[51] = $this->plantillaTxt(intval($paraFS),9,"0","right");
-                }
-                else{
-                    $arrayFila2[50] = $this->plantillaTxt("",9,"0","right");
-                    $arrayFila2[51] = $this->plantillaTxt("",9,"0","right");
-                }
+
+               
+
+
+
                 $arrayFila2[52] = $this->plantillaTxt("",9,"0","right");
     
     
@@ -6004,11 +6147,7 @@ class ReportesNominaController extends Controller
         }
         $idEmpleado = 0;
         $row = 0;
-        /*foreach($datosProv as $dato){
-            dd($dato);
-        }*/
-    
-    
+
 
 
 
@@ -9142,6 +9281,40 @@ class ReportesNominaController extends Controller
                 $diasDemas = $diasLab - ($meses * 30);
                 $tiempoTrabTxt = $meses." Meses ".$diasDemas." días";
 
+                $fechaFinMesActual = date("Y-m-t", strtotime($empresayLiquidacion->fechaLiquida));
+                $fechaInicioMesActual = date("Y-m-01", strtotime($empresayLiquidacion->fechaLiquida));
+                $ultimoBoucher = DB::table("boucherpago", "bp")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
+                ->orderBy("bp.idBoucherPago","desc")
+                ->first();
+                if(!isset($ultimoBoucher)){
+                    $ultimoBoucher = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+                }
+                else{
+                    $ultimoBoucherRetiro = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+
+                    $ultimoBoucher->ibc_afp = $ultimoBoucher->ibc_afp + ($ultimoBoucherRetiro->ibc_afp ?? 0);
+                    $ultimoBoucher->ibc_eps = $ultimoBoucher->ibc_eps + ($ultimoBoucherRetiro->ibc_eps ?? 0);
+                    $ultimoBoucher->ibc_arl = $ultimoBoucher->ibc_arl + ($ultimoBoucherRetiro->ibc_arl ?? 0);
+                    $ultimoBoucher->ibc_ccf = $ultimoBoucher->ibc_ccf + ($ultimoBoucherRetiro->ibc_ccf ?? 0);
+                    $ultimoBoucher->ibc_otros = $ultimoBoucher->ibc_otros + ($ultimoBoucherRetiro->ibc_otros ?? 0);
+                }
+                $IBL = $ultimoBoucher->ibc_eps;
                 $html.='                    
                 <div class="page liquida">
                     <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
@@ -9234,7 +9407,7 @@ class ReportesNominaController extends Controller
                             <th>Fondo Pensiones</th>
                             <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
                             <th>IBL Seguridad Social </th>
-                            <td>$ '.number_format($boucherPago->ibc_eps,0, ",", ".").'</td>
+                            <td>$ '.number_format($IBL,0, ",", ".").'</td>
                         </tr>
                         <tr>
                             <th>Fondo Cesantías </th>
