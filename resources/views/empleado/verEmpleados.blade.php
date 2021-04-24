@@ -127,7 +127,13 @@
                             <td>{{ $empleado->nombreNomina }}</td>
                             <td>{{ $empleado->centroCosto }}</td>
                             <td>
-                                <div class="estdoEmp{{ $empleado->claseEstado }}">{{ $empleado->estado }}</div>
+                                @if ($empleado->reintegros > 0)
+                                    <div class="estdoEmp reintegro"><a href="/empleado/verPeriodos/{{ $empleado->idempleado }}" class="ver_reintegro">REINTEGRO ({{$empleado->reintegros}})</a></div>
+                                @else
+                                    <div class="estdoEmp{{ $empleado->claseEstado }}">{{ $empleado->estado }}</div>
+                                @endif
+                                
+                                
                             </td>
                             <td>
                                 
@@ -190,6 +196,6 @@
             </div>
         </div>
     </div>
-
         <script type="text/javascript" src="{{ URL::asset('js/empleado/empleado.js') }}"></script>
+        
     @endsection

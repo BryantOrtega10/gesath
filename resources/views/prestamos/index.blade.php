@@ -26,7 +26,7 @@
 <div class="row">
     <div class="col-12">
         <div class="cajaGeneral">
-            <form autocomplete="off" action="/prestamos/" method="GET" class="formGeneral" id="filtrar">
+            <!--<form autocomplete="off" action="/prestamos/" method="GET" class="formGeneral" id="filtrar">
                 <div class="row">
                     <div class="col-3">
                         <div class="form-group @isset($req->nombre) hasText @endisset">
@@ -40,20 +40,35 @@
                             <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
                         </div>               
                     </div>
+                    <div class="col-3">
+                        <div class="form-group @isset($req->estado) hasText @endisset">
+                            <label for="estado" class="control-label">Estado:</label>
+                            <select name="estado" class="form-control" id="estado">
+                                <option value=""></option>
+                                @foreach ($estados as $estado)
+                                    <option value="{{ $estado->idestado }}" @isset($req->estado) @if ($req->estado == $estado->idestado) selected
+                                        @endif @endisset>{{ $estado->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>               
+                    </div>
                     <div class="col-3"  ><input type="submit" value="Consultar"/> <input type="reset" class="recargar" value="" style="margin-left: 5px;"/>  </div>
                 </div>
-            </form>
-            <table class="table table-hover table-striped">
-                <tr>
-                    <th>#</th>
-                    <th>Identificación</th>
-                    <th>Nombres</th>
-                    <th>Clase cuota</th>
-                    <th>Monto Inicial</th>
-                    <th>Saldo</th>
-                    <th>Estado</th>
-                    <th></th>
-                </tr>
+            </form>-->
+            <table class="table table-hover table-striped" id="prestamos_table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Identificación</th>
+                        <th>Nombres</th>
+                        <th>Clase cuota</th>
+                        <th>Monto Inicial</th>
+                        <th>Saldo</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
                 @foreach ($prestamos as $prestamo)
                 <tr>
                     <td>{{$prestamo->idPrestamo}}</td>
@@ -73,6 +88,7 @@
                     </td>
                 </tr>
                 @endforeach
+                </tbody>
             </table>
         </div>
     </div>

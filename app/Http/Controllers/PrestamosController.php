@@ -21,9 +21,7 @@ class PrestamosController extends Controller
             $arrConsulta["estado"]=$req->estado;
             $prestamos = $prestamos->where("p.fkEstado","=",$req->estado);
         }
-        else{
-            $prestamos = $prestamos->where("p.fkEstado","=","1");
-        }
+        
         
         if(isset($req->numDoc)){
             $arrConsulta["numDoc"]=$req->numDoc;
@@ -43,16 +41,17 @@ class PrestamosController extends Controller
         if(isset($usu) && $usu->fkRol == 2){            
             $prestamos = $prestamos->whereIn("e.fkEmpresa", $usu->empresaUsuario);
         }
-        $prestamos = $prestamos->orderBy("dp.primerApellido")->paginate(15);
+        $prestamos = $prestamos->orderBy("dp.primerApellido")->get();
 
-        
+        $estados = DB::table("estado")->whereIn("idestado",["1","8","9"])->get();
         
 
         return view('/prestamos.index', [
             "prestamos" => $prestamos,
             "arrConsulta" => $arrConsulta,
             "dataUsu" => $usu,
-            "req" => $req
+            "req" => $req,
+            "estados" => $estados
         ]);
         
     }

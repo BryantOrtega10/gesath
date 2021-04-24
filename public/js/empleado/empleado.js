@@ -136,5 +136,23 @@ $(document).ready(function() {
             });
         }
     });
+    $(".ver_reintegro").click(function(e) {
+        e.preventDefault();
+        $("#respMensaje").html("");
+        cargando();
+        $.ajax({
+            type: 'GET',
+            url: $(this).attr("href"),
+            success: function(data) {
+                $("#cargando").css("display", "none");
+                $("#respMensaje").html(data);
+                $("#mostrarPorqueFalla").modal("show");
 
+            },
+            error: function(data) {
+                console.log("error");
+                console.log(data);
+            }
+        });
+    });
 });

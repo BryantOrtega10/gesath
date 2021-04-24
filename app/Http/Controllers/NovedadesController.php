@@ -237,10 +237,19 @@ class NovedadesController extends Controller
             return response()->json(['success'=>true, 'nombreTercero' => $tercero->razonSocial, 'idTercero' => $tercero->idTercero]);
         }
         else{
+
+            $periodoActivo = DB::table("periodo")
+            ->where("fkEmpleado","=",$idEmpleado)
+            ->orderBy("idPeriodo", "desc")
+            ->first();
+            
             $tercero = DB::table("afiliacion", "a")->select(["t.razonSocial", "t.idTercero"])
             ->join("tercero AS t","t.idTercero","=","a.fkTercero")
             ->where("a.fkTipoAfilicacion","=", $tipoAfiliacion)
+            ->where("a.fkPeriodoActivo","=",$periodoActivo->idPeriodo)
             ->where("a.fkEmpleado","=",$idEmpleado)->first();
+
+
             return response()->json(['success'=>true, 'nombreTercero' => (isset($tercero->razonSocial) ? $tercero->razonSocial : ""), 'idTercero' => (isset($tercero->idTercero) ? $tercero->idTercero : "")]);
         }
         
@@ -1962,9 +1971,15 @@ class NovedadesController extends Controller
                         $req->idTerceroEntidad = $tercero->idTercero;
                     }
                     else{
+                        $periodoActivo = DB::table("periodo")
+                        ->where("fkEmpleado","=",$req->idEmpleado)
+                        ->orderBy("idPeriodo", "desc")
+                        ->first();
+                        
                         $tercero = DB::table("afiliacion", "a")->select(["t.razonSocial", "t.idTercero"])
                         ->join("tercero AS t","t.idTercero","=","a.fkTercero")
                         ->where("a.fkTipoAfilicacion","=", $req->tipoAfiliacion)
+                        ->where("a.fkPeriodoActivo","=",$periodoActivo->idPeriodo)
                         ->where("a.fkEmpleado","=",$req->idEmpleado)->first();
                         $req->idTerceroEntidad = $tercero->idTercero;
                     }

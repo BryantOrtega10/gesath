@@ -37,7 +37,10 @@ class EmpleadoController extends Controller
                                         ->selectRaw('(select cc2.nombre from centrocosto as cc2 where cc2.idcentroCosto 
                                                         in(Select ecc.fkCentroCosto from empleado_centrocosto as ecc where 
                                                         ecc.fkEmpleado = empleado.idempleado)
-                                                        limit 0,1) as centroCosto ')
+                                                        limit 0,1) as centroCosto,
+                                                        (SELECT count(idperiodo) FROM periodo p2 WHERE p2.fkEmpleado = empleado.idempleado and p2.fkEstado = 2)
+                                                        as reintegros
+                                                        ')
                                         ->join('datospersonales AS dp','empleado.fkDatosPersonales', '=', 'dp.idDatosPersonales')
                                         ->join('nomina AS n','empleado.fkNomina', '=', 'n.idNomina',"left")
                                         ->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
@@ -469,7 +472,14 @@ class EmpleadoController extends Controller
         $cargos = DB::table("cargo")->get();
         $entidadesFinancieras = DB::table("tercero")->where("fk_actividad_economica", "=", "4")->get();
         
-        $afiliaciones = DB::table("afiliacion")->where('fkEmpleado', "=", $idEmpleado)->get();
+        $periodoActivo = DB::table("periodo")
+                        ->where("fkEmpleado","=",$idEmpleado)
+                        ->where("fkEstado","=","1")->first();
+
+        $afiliaciones = DB::table("afiliacion")
+        ->where('fkEmpleado', "=", $idEmpleado)
+        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
+        ->get();
 
         $tipoafilicaciones = DB::table('tipoafilicacion')->get();
         $entidadesAfiliacion = array();
@@ -511,7 +521,24 @@ class EmpleadoController extends Controller
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
         ->where("cf.fkEmpleado", "=", $idEmpleado)->get();
-        $contratoActivo = DB::table('contrato')->where("fkEmpleado","=",$idEmpleado)->whereIn("fkEstado",array("1","4"))->first();
+        
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkEstado","=","1")->first();
+
+        if(!isset($periodoActivo)){
+            $periodoActivo = DB::table("periodo")
+            ->where("fkEmpleado","=",$idEmpleado)
+            ->where("fkEstado","=","2")
+            ->orderBy("idPeriodo","desc")
+            ->first();
+        }        
+
+        $contratoActivo = DB::table('contrato')
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
+        ->whereIn("fkEstado",array("1","4"))
+        ->first();
 
         $conceptos = DB::table("concepto")->whereNotIn("idconcepto", [1,2])->orderBy("nombre")->get();
 
@@ -800,7 +827,22 @@ class EmpleadoController extends Controller
         $cargos = DB::table("cargo")->get();
         $entidadesFinancieras = DB::table("tercero")->where("fk_actividad_economica", "=", "4")->get();
         
-        $afiliaciones = DB::table("afiliacion")->where('fkEmpleado', "=", $idEmpleado)->get();
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkEstado","=","1")->first();
+
+        if(!isset($periodoActivo)){
+            $periodoActivo = DB::table("periodo")
+            ->where("fkEmpleado","=",$idEmpleado)
+            ->where("fkEstado","=","2")
+            ->orderBy("idPeriodo","desc")
+            ->first();
+        }   
+
+        $afiliaciones = DB::table("afiliacion")
+        ->where('fkEmpleado', "=", $idEmpleado)
+        ->where('fkPeriodoActivo', "=", $periodoActivo->idPeriodo)
+        ->get();
 
         $tipoafilicaciones = DB::table('tipoafilicacion')->get();
         $entidadesAfiliacion = array();
@@ -835,7 +877,14 @@ class EmpleadoController extends Controller
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
         ->where("cf.fkEmpleado", "=", $idEmpleado)->get();
-        $contratoActivo = DB::table('contrato')->where("fkEmpleado","=",$idEmpleado)->whereIn("fkEstado",array("1","4"))->first();
+
+       
+
+        $contratoActivo = DB::table('contrato')
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
+        ->whereIn("fkEstado",array("1","4"))
+        ->first();
 
         $conceptos = DB::table("concepto")->whereNotIn("idconcepto", [1,2])->orderBy("nombre")->get();
 
@@ -1107,8 +1156,21 @@ class EmpleadoController extends Controller
             "fkNomina" => $req->infoNomina
         ]);
         
-        $insertContrato = array("fechaInicio" => $req->infoFechaIngreso, "fechaFin" => $req->infoFechaFin, 
-            "fkEstado" => "4", "fkTipoContrato" => $req->infoTipoContrato, "tipoDuracionContrato" => $req->infoTipoDuracionContrato, "fkEmpleado" => $req->idEmpleado);
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
+
+        
+
+        $insertContrato = array(
+            "fechaInicio" => $req->infoFechaIngreso,
+            "fechaFin" => $req->infoFechaFin, 
+            "fkEstado" => "4", 
+            "fkTipoContrato" => $req->infoTipoContrato, 
+            "tipoDuracionContrato" => $req->infoTipoDuracionContrato, 
+            "fkEmpleado" => $req->idEmpleado,
+            "fkPeriodoActivo" => $periodoActivo->idPeriodo
+        );
             
         if($req->infoTipoDuracionContrato == "MES"){ 
             $meses = $req->infoDuracionContrato;
@@ -1256,14 +1318,31 @@ class EmpleadoController extends Controller
         if(isset($req->infoTipoContratoN)){
             $fechaInicio = new DateTime($req->infoFechaFin);
             $fechaInicio->add(new DateInterval('P1D'));
+
+            $periodoActivo = DB::table("periodo")
+            ->where("fkEmpleado","=",$req->idEmpleado)
+            ->where("fkEstado","=","1")->first();
+    
+            if(!isset($periodoActivo)){
+                $periodoActivo = DB::table("periodo")
+                ->where("fkEmpleado","=",$req->idEmpleado)
+                ->where("fkEstado","=","2")
+                ->orderBy("idPeriodo","desc")
+                ->first();
+            }   
+
             $insertContrato = array(
                 "fechaInicio" => $fechaInicio->format('Y-m-d'), 
                 "fechaFin" => $req->infoFechaFinN, 
                 "fkEstado" => "4", 
                 "fkTipoContrato" => $req->infoTipoContratoN, 
                 "tipoDuracionContrato" => $req->infoTipoDuracionContratoN, 
-                "fkEmpleado" => $req->idEmpleado
+                "fkEmpleado" => $req->idEmpleado,
+                "fkPeriodoActivo" => $periodoActivo->idPeriodo
             );  
+
+           
+
             if($req->infoTipoDuracionContratoN == "MES"){ 
                 $meses = $req->infoDuracionContratoN;
                 $dias = $req->infoDuracionContratoN*30;
@@ -1473,19 +1552,22 @@ class EmpleadoController extends Controller
             ]);
         }
         
-
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
        
 
         $affected = DB::table('empleado')
               ->where('idempleado', $req->idEmpleado)
               ->update($updateEmpleado);
-
+              
         $modContrato = array(            
             "fechaFin" => $req->infoFechaFin, 
             "fkEstado" => "4", 
             "fkTipoContrato" => $req->infoTipoContrato, 
             "tipoDuracionContrato" => $req->infoTipoDuracionContrato, 
-            "fkEmpleado" => $req->idEmpleado
+            "fkEmpleado" => $req->idEmpleado,
+            "fkPeriodoActivo" => $periodoActivo->idPeriodo
         );
         
         if($req->fechaInicioActivoAnt == $req->fechaIngresoAnt){
@@ -1638,19 +1720,24 @@ class EmpleadoController extends Controller
         $afiliaciones = DB::table("afiliacion")->where('fkEmpleado', "=", $req->idEmpleado)->get();
 
 
-
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
 
 
         if(sizeof($afiliaciones)>0){
             foreach($req->afiliacionTipoAfilicacion as $key => $afiliacionTipoAfilicacion) {
            
 
-                $insertAfiliacion = array("fkTipoAfilicacion" => $afiliacionTipoAfilicacion,
-                                                    "fkTercero" => $req->afiliacionEntidad[$key],
-                                                    "fechaAfiliacion" => $req->afiliacionFecha[$key],
-                                                    "fkEmpleado" => $req->idEmpleado);
+                $insertAfiliacion = array(  "fkTipoAfilicacion" => $afiliacionTipoAfilicacion,
+                                            "fkTercero" => $req->afiliacionEntidad[$key],
+                                            "fechaAfiliacion" => $req->afiliacionFecha[$key],
+                                            "fkEmpleado" => $req->idEmpleado,
+                                            "fkPeriodoActivo" => $periodoActivo->idPeriodo);
                 
                 if($req->idAfiliacion[$key] == "-1"){
+
+
                     DB::table('afiliacion')->insert($insertAfiliacion);
                 }
                 else{
@@ -1694,9 +1781,10 @@ class EmpleadoController extends Controller
             foreach($req->afiliacionTipoAfilicacion as $key => $afiliacionTipoAfilicacion) {
            
                 $insertAfiliacion = array("fkTipoAfilicacion" => $afiliacionTipoAfilicacion,
-                                                    "fkTercero" => $req->afiliacionEntidad[$key],
-                                                    "fechaAfiliacion" => $req->afiliacionFecha[$key],
-                                                    "fkEmpleado" => $req->idEmpleado);
+                                            "fkTercero" => $req->afiliacionEntidad[$key],
+                                            "fechaAfiliacion" => $req->afiliacionFecha[$key],
+                                            "fkEmpleado" => $req->idEmpleado,
+                                            "fkPeriodoActivo" => $periodoActivo->idPeriodo);
     
                 DB::table('afiliacion')->insert($insertAfiliacion);
             }
@@ -2894,11 +2982,16 @@ class EmpleadoController extends Controller
                 }
             }
         }
-        
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkEstado","=","1")->first();
+
+      
 
         $afiliaciones = DB::table("afiliacion")
-            ->where('fkEmpleado', $idEmpleado)
-            ->get();
+        ->where('fkEmpleado', $idEmpleado)
+        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
+        ->get();
         $arrTipoAfiliacion = array("3");
         
        
@@ -3159,9 +3252,17 @@ class EmpleadoController extends Controller
         }
         
 
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkEstado","=","1")->first();
+
+      
+
         $afiliaciones = DB::table("afiliacion")
-            ->where('fkEmpleado', $idEmpleado)
-            ->get();
+        ->where('fkEmpleado', $idEmpleado)
+        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
+        ->get();
+
         $arrTipoAfiliacion = array("3");
         
 
@@ -3920,12 +4021,17 @@ class EmpleadoController extends Controller
                     $meses = 0;
                     $fechaFin = new DateTime($fechaIngreso);
                     
+                    $periodoActivo = DB::table("periodo")
+                    ->where("fkEmpleado","=",$idempleado)
+                    ->where("fkEstado","=","1")->first();
+
                     $insertContrato = array(
                         "fechaInicio" => $fechaIngreso,
                         "fkEstado" => "4",
                         "fkTipoContrato" => $row[1],
                         "tipoDuracionContrato" => "MES",
-                        "fkEmpleado" => $idempleado
+                        "fkEmpleado" => $idempleado,
+                        "fkPeriodoActivo" => $periodoActivo->idPeriodo
                     );
                     if(isset($row[2])){
                         $meses = intval($row[2]);
@@ -4005,12 +4111,15 @@ class EmpleadoController extends Controller
                             );
                             continue;
                         }
-
+                        $periodoActivo = DB::table("periodo")
+                        ->where("fkEmpleado","=",$idempleado)
+                        ->where("fkEstado","=","1")->first();
                         $insertAfiliacion1 = array(
                             "fkTipoAfilicacion" => "1",
                             "fkTercero" => $row[1],
                             "fechaAfiliacion" => $fechaAfiliacion,
-                            "fkEmpleado" => $idempleado
+                            "fkEmpleado" => $idempleado,
+                            "fkPeriodoActivo" => $periodoActivo->idPeriodo
                         );
                         DB::table('afiliacion')->insert($insertAfiliacion1);
                     }
@@ -4032,12 +4141,16 @@ class EmpleadoController extends Controller
                             );
                             continue;
                         }
+                        $periodoActivo = DB::table("periodo")
+                        ->where("fkEmpleado","=",$idempleado)
+                        ->where("fkEstado","=","1")->first();
 
                         $insertAfiliacion2 = array(
                             "fkTipoAfilicacion" => "2",
                             "fkTercero" => $row[2],
                             "fechaAfiliacion" => $fechaAfiliacion,
-                            "fkEmpleado" => $idempleado
+                            "fkEmpleado" => $idempleado,
+                            "fkPeriodoActivo" => $periodoActivo->idPeriodo
                         );
 
                         DB::table('afiliacion')->insert($insertAfiliacion2);
@@ -4061,11 +4174,16 @@ class EmpleadoController extends Controller
                             continue;
                         }
 
+                        $periodoActivo = DB::table("periodo")
+                        ->where("fkEmpleado","=",$idempleado)
+                        ->where("fkEstado","=","1")->first();
+
                         $insertAfiliacion3 = array(
                             "fkTipoAfilicacion" => "3",
                             "fkTercero" => $row[3],
                             "fechaAfiliacion" => $fechaAfiliacion,
-                            "fkEmpleado" => $idempleado
+                            "fkEmpleado" => $idempleado,
+                            "fkPeriodoActivo" => $periodoActivo->idPeriodo
                         );
 
                         DB::table('afiliacion')->insert($insertAfiliacion3);
@@ -4087,12 +4205,16 @@ class EmpleadoController extends Controller
                             );
                             continue;
                         }
+                        $periodoActivo = DB::table("periodo")
+                        ->where("fkEmpleado","=",$idempleado)
+                        ->where("fkEstado","=","1")->first();
 
                         $insertAfiliacion4 = array(
                             "fkTipoAfilicacion" => "4",
                             "fkTercero" => $row[4],
                             "fechaAfiliacion" => $fechaAfiliacion,
-                            "fkEmpleado" => $idempleado
+                            "fkEmpleado" => $idempleado,
+                            "fkPeriodoActivo" => $periodoActivo->idPeriodo
                         );
     
                         DB::table('afiliacion')->insert($insertAfiliacion4);
@@ -4713,8 +4835,21 @@ class EmpleadoController extends Controller
                 $tipoContratos = DB::table('tipoContrato')->get()->toArray();
                 $cargos = DB::table("cargo")->get()->toArray();
                 $entidadesFinancieras = DB::table("tercero")->where("fk_actividad_economica", "=", "4")->get()->toArray();
-                
-                $afiliaciones = DB::table("afiliacion")->where('fkEmpleado', "=", $idEmpleado)->get()->toArray();
+                $periodoActivo = DB::table("periodo")
+                ->where("fkEmpleado","=",$idEmpleado)
+                ->where("fkEstado","=","1")->first();
+                if(!isset($periodoActivo)){
+                    $periodoActivo = DB::table("periodo")
+                    ->where("fkEmpleado","=",$idEmpleado)
+                    ->where("fkEstado","=","2")
+                    ->orderBy("idPeriodo","desc")
+                    ->first();
+                }   
+                           
+                $afiliaciones = DB::table("afiliacion")
+                ->where('fkEmpleado', "=", $idEmpleado)
+                ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
+                ->get()->toArray();
     
                 $tipoafilicaciones = DB::table('tipoafilicacion')->get()->toArray();
                 $entidadesAfiliacion = array();
@@ -4748,7 +4883,13 @@ class EmpleadoController extends Controller
                 $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
                 ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
                 ->where("cf.fkEmpleado", "=", $idEmpleado)->get()->toArray();
-                $contratoActivo = DB::table('contrato')->where("fkEmpleado","=",$idEmpleado)->whereIn("fkEstado",array("1","4"))->get()->toArray();
+               
+              
+                $contratoActivo = DB::table('contrato')
+                ->where("fkEmpleado","=",$idEmpleado)
+                ->whereIn("fkEstado",array("1","4"))
+                ->get()
+                ->toArray();
     
                 $conceptos = DB::table("conceptofijo")->whereNotIn("fkEmpleado", $idEmpleado)->get()->toArray();
                 $benefTributario =  DB::table("beneficiotributario")->where("fkEmpleado", $idEmpleado)->get()->toArray();
@@ -5201,7 +5342,14 @@ class EmpleadoController extends Controller
         $cargos = DB::table("cargo")->get();
         $entidadesFinancieras = DB::table("tercero")->where("fk_actividad_economica", "=", "4")->get();
         
-        $afiliaciones = DB::table("afiliacion")->where('fkEmpleado', "=", $idEmpleado)->get();
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$idEmpleado)
+        ->orderBy("idPeriodo", "desc")
+        ->first();
+
+        $afiliaciones = DB::table("afiliacion")->where('fkEmpleado', "=", $idEmpleado)
+        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
+        ->get();
 
         $tipoafilicaciones = DB::table('tipoafilicacion')->get();
         $entidadesAfiliacion = array();
@@ -5234,6 +5382,7 @@ class EmpleadoController extends Controller
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
         ->where("cf.fkEmpleado", "=", $idEmpleado)->get();
+
         $contratoActivo = DB::table('contrato')->where("fkEmpleado","=",$idEmpleado)->whereIn("fkEstado",array("1","4"))->first();
 
         $conceptos = DB::table("concepto")->whereNotIn("idconcepto", [1,2])->orderBy("nombre")->get();
@@ -5430,6 +5579,30 @@ class EmpleadoController extends Controller
             "titulo" => $titulo
         ]);
     }
+
+    public function verPeriodos($idEmpleado){
+        $periodos = DB::table("periodo")
+        ->where("fkEmpleado", "=", $idEmpleado)
+        ->where("fkEstado","=","2")
+        ->get();
+        /*$periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=", $idEmpleado)
+        ->where("fkEstado","=","1")
+        ->first();*/
+
+        $empleado = DB::table("empleado", "e")->where("e.idempleado","=",$idEmpleado)->first();
+        
+        $conceptoFijo = DB::table("conceptofijo")->where("fkEmpleado", "=",$idEmpleado)->whereIn("fkConcepto",[1,2])->first();
+
+
+        return view("/empleado/ajax/verPeriodos",[
+            "periodos" => $periodos,
+            "empleado" => $empleado,
+            "conceptoFijo" => $conceptoFijo
+        ]);
+
+    }
+
     public function days_360($fecha1,$fecha2,$europeo=true) {
         //try switch dates: min to max
         if( $fecha1 > $fecha2 ) {

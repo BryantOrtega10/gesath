@@ -1611,3 +1611,8 @@ ul.permisos_lv1 ul:after {
 .add_user .cont_permisos.activo {
     display: block;
 }
+
+td.provCont a {
+    display: inline-block;
+    width: 24%;
+}

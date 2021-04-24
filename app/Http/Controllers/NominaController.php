@@ -1882,7 +1882,19 @@ class NominaController extends Controller
 
         $boucher = DB::table("boucherpago","bp")->where("bp.idBoucherPago","=",$idBoucherPago)->first();
 
+
+        $liquidacion = DB::table("liquidacionnomina","ln")
+        ->select("ln.fechaLiquida","bp.fkPeriodoActivo")
+        ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")
+        ->where("bp.idBoucherPago","=",$idBoucherPago)
+        ->first();
         
+
+        $provisiones = DB::table("provision","p")
+        ->where("p.mes","=",date("m",strtotime($liquidacion->fechaLiquida)))
+        ->where("p.anio","=",date("Y",strtotime($liquidacion->fechaLiquida)))
+        ->where("p.fkPeriodoActivo","=",$liquidacion->fkPeriodoActivo)
+        ->get();
         
         return view('nomina.solicitudes.verItemBoucher', [
             'novedadesRetiro' => $novedadesRetiro, 
@@ -1890,7 +1902,8 @@ class NominaController extends Controller
             "centrosCosto" => $centrosCosto, 
             "empleado" => $empleado, 
             'conceptoSalario' => $conceptoSalario,
-            "boucher" => $boucher
+            "boucher" => $boucher,
+            "provisiones" => $provisiones
             ]);
     }
     
@@ -5078,7 +5091,14 @@ class NominaController extends Controller
                             foreach($grupoConceptoCalculoVac as $grupoConcepto){
                                 if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
                                     $salarialVac = $salarialVac + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                                    array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma el valor de para base salarial $".number_format($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor'],0,",", "."));
                                 }
+                                if(isset($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
+                                    $salarialVac = $salarialVac + floatval($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor']);
+                                    array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma el valor de para base salarial $".number_format($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor'],0,",", "."));
+                                }
+                                
+                                
                             }
                             array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Calculó valor suma liquidacion mes actual $".number_format($salarialVac,0,",", "."));
 
@@ -5283,10 +5303,8 @@ class NominaController extends Controller
                                 "tipoGen" => "novedad"
                             );
                         }
-                        else{
-                           
-                            $salarialVac = 0;
-                            
+                        else{                           
+                            $salarialVac = 0;                            
                             $fechaInicioMes = date("Y-m-01", strtotime($fechaInicio));
                             $grupoConceptoCalculoVac = DB::table("grupoconcepto_concepto","gcc")
                                 ->where("gcc.fkGrupoConcepto", "=", "13")//Salarial para provisiones
@@ -5294,12 +5312,14 @@ class NominaController extends Controller
                             foreach($grupoConceptoCalculoVac as $grupoConcepto){
                                 if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
                                     $salarialVac = $salarialVac + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                                    array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma el valor de para base salarial $".number_format($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor'],0,",", "."));
                                 }
-                            }
+                                if(isset($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
+                                    $salarialVac = $salarialVac + floatval($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor']);
+                                    array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma el valor de para base salarial $".number_format($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor'],0,",", "."));
+                                }                                
+                            }                            
                             array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Calculó valor suma liquidacion mes actual $".number_format($salarialVac,0,",", "."));
-
-                           
-
 
                             $itemsBoucherSalarialMesAnteriorVac = DB::table("item_boucher_pago", "ibp")
                             ->selectRaw("Sum(ibp.valor) as suma")
@@ -5312,6 +5332,7 @@ class NominaController extends Controller
                             ->where("ln.idLiquidacionNomina","<>",$idLiquidacionNomina)
                             ->where("gcc.fkGrupoConcepto","=","13") //13 - Salarial vacaciones
                             ->first();
+
                             if(isset($itemsBoucherSalarialMesAnteriorVac)){
                                 $salarialVac = $salarialVac + $itemsBoucherSalarialMesAnteriorVac->suma;
                                 array_push($arrComoCalcula[$novedadyconcepto->idconcepto], 
@@ -7693,7 +7714,16 @@ class NominaController extends Controller
                 ->whereIn("ibp.fkConcepto",["58"]) //58 - PRIMA
                 ->first();
 
+                $arrComoCalculaProv[58] = ($arrComoCalcula[58] ?? array());
+
+                array_push($arrComoCalculaProv[58], "Se suma a la liquidación anterior junto con la suma de pagos anteriores : $".number_format(( $pagoPrimaItems->suma ?? 0),0,",","."));
+                array_push($arrComoCalculaProv[58], "Se resta el historico de provisiones por un valor de : $".number_format(( $historicoProvisionPrima->sumaValor ?? 0),0,",","."));
+            
+                
                 $provisionPrimaValor = $liquidacionPrima + ($pagoPrimaItems->suma ?? 0) - (isset($historicoProvisionPrima->sumaValor) ? $historicoProvisionPrima->sumaValor : 0);
+
+                array_push($arrComoCalculaProv[58], "Finalmente se tiene una provision de : $".number_format(( $provisionPrimaValor ?? 0),0,",","."));
+
             }
             else if($mesActual >= 7 && $mesActual <= 12){
                 $historicoProvisionPrima = DB::table("provision","p")
@@ -7721,7 +7751,13 @@ class NominaController extends Controller
                 ->whereIn("ibp.fkConcepto",["58"]) //58 - PRIMA
                 ->first();
 
+                $arrComoCalculaProv[58] = ($arrComoCalcula[58] ?? array());
+                array_push($arrComoCalculaProv[58], "Se suma a la liquidación anterior junto con la suma de pagos anteriores : $".number_format(( $pagoPrimaItems->suma ?? 0),0,",","."));
+                array_push($arrComoCalculaProv[58], "Se resta el historico de provisiones por un valor de : $".number_format(( $historicoProvisionPrima->sumaValor ?? 0),0,",","."));
                 $provisionPrimaValor = $liquidacionPrima + ($pagoPrimaItems->suma ?? 0) - (isset($historicoProvisionPrima->sumaValor) ? $historicoProvisionPrima->sumaValor : 0);
+                array_push($arrComoCalculaProv[58], "Finalmente se tiene una provision de : $".number_format(( $provisionPrimaValor ?? 0),0,",","."));
+
+
             }
             $provisionPrima = DB::table("provision","p")
             ->where("p.fkEmpleado","=",$empleado->idempleado)
@@ -7743,7 +7779,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => round($provisionPrimaValor)                 
+                "valor" => round($provisionPrimaValor),
+                "comoCalculo" => implode("<br>",$arrComoCalculaProv[58])
             );
 
             if(sizeof($provisionPrima)>0){
@@ -8174,9 +8211,14 @@ class NominaController extends Controller
             ->whereIn("ibp.fkConcepto",["66"]) //66 - CESANTIAS
             ->first();
 
+            $arrComoCalculaProv[66] = ($arrComoCalcula[66] ?? array());
+
+            array_push($arrComoCalculaProv[66], "Se suma a la liquidación anterior junto con la suma de pagos anteriores : $".number_format(( $pagoCesantiasItems->suma ?? 0),0,",","."));
+            array_push($arrComoCalculaProv[66], "Se resta el historico de provisiones por un valor de : $".number_format(( $historicoProvisionCesantias->sumaValor ?? 0),0,",","."));
+            
 
             $provisionCesantiasValor = $liquidacionCesantias + ( $pagoCesantiasItems->suma ?? 0) - $historicoProvisionCesantias->sumaValor;            
-
+            array_push($arrComoCalculaProv[66], "Finalmente se tiene una provision de : $".number_format(( $provisionCesantiasValor ?? 0),0,",","."));
 
 
             $provisionCesantias = DB::table("provision","p")
@@ -8199,7 +8241,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => round($provisionCesantiasValor)                 
+                "valor" => round($provisionCesantiasValor),
+                "comoCalculo" => implode("<br>",$arrComoCalculaProv[66])
             );
             if(sizeof($provisionCesantias)>0){
                 DB::table("provision")
@@ -8304,9 +8347,17 @@ class NominaController extends Controller
             ->first();
 
 
+                
+            $arrComoCalculaProv[69] = ($arrComoCalcula[69] ?? array());
 
-
+            array_push($arrComoCalculaProv[69], "Se suma a la liquidación anterior junto con el pago de cesantias anteriores : $".number_format(( $pagoInteresesItems->suma ?? 0),0,",","."));
+            array_push($arrComoCalculaProv[69], "Se resta el historico de provisiones por un valor de : $".number_format(( $historicoProvisionIntCesantias->sumaValor ?? 0),0,",","."));
+            array_push($arrComoCalculaProv[69], "Se resta el saldo por un valor de : $".number_format((isset($saldoIntCesantias->valor) ? $saldoIntCesantias->valor : 0),0,",","."));
             $provisionIntCesantiasValor = $liquidacionIntCesantias + ($pagoInteresesItems->suma ?? 0)  - $historicoProvisionIntCesantias->sumaValor - (isset($saldoIntCesantias->valor) ? $saldoIntCesantias->valor : 0);
+            array_push($arrComoCalculaProv[69], "Finalmente se tiene una provision de : $".number_format(( $provisionIntCesantiasValor ?? 0),0,",","."));
+
+
+            
             
             $provisionIntCesantias = DB::table("provision","p")
                 ->where("p.fkEmpleado","=",$empleado->idempleado)
@@ -8328,7 +8379,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => round($provisionIntCesantiasValor)                 
+                "valor" => round($provisionIntCesantiasValor),
+                "comoCalculo" => implode("<br>",$arrComoCalculaProv[69])
             );
             if(sizeof($provisionIntCesantias)>0){
                 DB::table("provision")
@@ -8589,23 +8641,27 @@ class NominaController extends Controller
             ->whereIn("ibp.fkConcepto",["28","29","30"]) //VACACIONES
             ->first();
            
+
+            $arrComoCalculaProv[30] = ($arrComoCalcula[30] ?? array());
+            array_push($arrComoCalculaProv[30], "Se suma a la liquidación anterior junto con el pago de vacaciones anteriores : $".number_format(( $pagoVacacionesItems->suma ?? 0),0,",","."));
+            array_push($arrComoCalculaProv[30], "Se resta el historico de provisiones por un valor de : $".number_format(( $historicoProvisionVac->sumaValor ?? 0),0,",","."));
+            array_push($arrComoCalculaProv[30], "Se resta el saldo por un valor de : $".number_format((isset($saldoVacaciones->valor) ? $saldoVacaciones->valor : 0),0,",","."));
+
             $provAnteriores = $historicoProvisionVac->sumaValor + (isset($saldoVacaciones) ? $saldoVacaciones->valor : 0) - ($pagoVacacionesItems->suma ?? 0);
             
             if(isset($arrValorxConcepto[28])){
                 $provAnteriores = $provAnteriores - $arrValorxConcepto[28]["valor"];
+                array_push($arrComoCalculaProv[30], "Se suma pago de vacaciones en el mes actual por un valor de : $".number_format($arrValorxConcepto[28]["valor"],0,",","."));
             }
 
             if(isset($arrValorxConcepto[29])){
                 $provAnteriores = $provAnteriores - $arrValorxConcepto[29]["valor"];
+                array_push($arrComoCalculaProv[30], "Se suma pago de vacaciones en el mes actual por un valor de : $".number_format($arrValorxConcepto[29]["valor"],0,",","."));
             }
 
             
-
-            
-
-
             $provisionVacValor = $liquidacionVac - $provAnteriores;
-            
+            array_push($arrComoCalculaProv[30], "Finalmente se tiene una provision de : $".number_format(( $provisionVacValor ?? 0),0,",","."));
 
             $provisionVacaciones = DB::table("provision","p")
                 ->where("p.fkEmpleado","=",$empleado->idempleado)
@@ -8627,7 +8683,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => round($provisionVacValor)                 
+                "valor" => round($provisionVacValor),
+                "comoCalculo" => implode("<br>",$arrComoCalculaProv[30])
             );
             if(sizeof($provisionVacaciones)>0){
                 DB::table("provision")
@@ -9528,8 +9585,31 @@ class NominaController extends Controller
             ->whereIn("ibp.fkConcepto",["28","29","30"]) //VACACIONES
             ->first();
 
-            $provisionVacValor = $liquidacionVac + ($pagoVacacionesItems->suma ?? 0) - $historicoProvisionVac->sumaValor;
-    
+            
+
+            $arrComoCalculaProv[30] = ($arrComoCalcula[30] ?? array());
+            array_push($arrComoCalculaProv[30], "Se suma a la liquidación anterior junto con el pago de vacaciones anteriores : $".number_format(( $pagoVacacionesItems->suma ?? 0),0,",","."));
+            array_push($arrComoCalculaProv[30], "Se resta el historico de provisiones por un valor de : $".number_format(( $historicoProvisionVac->sumaValor ?? 0),0,",","."));
+            array_push($arrComoCalculaProv[30], "Se resta el saldo por un valor de : $".number_format((isset($saldoVacaciones->valor) ? $saldoVacaciones->valor : 0),0,",","."));
+
+            $provAnteriores = $historicoProvisionVac->sumaValor + (isset($saldoVacaciones) ? $saldoVacaciones->valor : 0) - ($pagoVacacionesItems->suma ?? 0);
+            
+            if(isset($arrValorxConcepto[28])){
+                $provAnteriores = $provAnteriores - $arrValorxConcepto[28]["valor"];
+                array_push($arrComoCalculaProv[30], "Se suma pago de vacaciones en el mes actual por un valor de : $".number_format($arrValorxConcepto[28]["valor"],0,",","."));
+            }
+
+            if(isset($arrValorxConcepto[29])){
+                $provAnteriores = $provAnteriores - $arrValorxConcepto[29]["valor"];
+                array_push($arrComoCalculaProv[30], "Se suma pago de vacaciones en el mes actual por un valor de : $".number_format($arrValorxConcepto[29]["valor"],0,",","."));
+            }
+
+            
+            $provisionVacValor = $liquidacionVac - $provAnteriores;
+            array_push($arrComoCalculaProv[30], "Finalmente se tiene una provision de : $".number_format(( $provisionVacValor ?? 0),0,",","."));
+           
+            //Anterior
+            //$provisionVacValor = $liquidacionVac + ($pagoVacacionesItems->suma ?? 0) - $historicoProvisionVac->sumaValor;
 
         
             $provisionVacaciones = DB::table("provision","p")
@@ -9552,7 +9632,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => round($provisionVacValor)                 
+                "valor" => round($provisionVacValor),
+                "comoCalculo" => implode("<br>",$arrComoCalculaProv[30])
             );
             if(sizeof($provisionVacaciones)>0){
                 DB::table("provision")
@@ -9586,7 +9667,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => intval(0)                 
+                "valor" => intval(0),
+                "comoCalculo" => "0 para salario integral"
             );
             if(sizeof($provisionPrima)>0){
                 
@@ -9623,7 +9705,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => intval(0)                 
+                "valor" => intval(0),
+                "comoCalculo" => "0 para salario integral"
             );
             if(sizeof($provisionCesantias)>0){
                 DB::table("provision")
@@ -9657,7 +9740,8 @@ class NominaController extends Controller
                 "fkEmpleado"=> $empleado->idempleado,
                 "mes" => date("m",strtotime($fechaInicio)),
                 "anio"  => date("Y",strtotime($fechaInicio)),
-                "valor" => intval(0)                 
+                "valor" => intval(0),
+                "comoCalculo" => "0 para salario integral"
             );
             if(sizeof($provisionIntCesantias)>0){
                 DB::table("provision")
@@ -11572,7 +11656,7 @@ class NominaController extends Controller
             $salarioMes = ($arrValorxConcepto[1]["valor"] ?? 0);           
         }
         
-       //dd($arrComoCalcula);
+        
 
         $periodoPago = $periodoPagoSinVac;
         
@@ -12738,6 +12822,26 @@ class NominaController extends Controller
         $csv->output('Informe_ss_'.$idLiquidacion.'.csv');
 
     }
+    public function verDetalleProvision($idBoucherPago, $fkConcepto){
+        $liquidacion = DB::table("liquidacionnomina","ln")
+        ->select("ln.fechaLiquida","bp.fkPeriodoActivo")
+        ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")
+        ->where("bp.idBoucherPago","=",$idBoucherPago)
+        ->first();
+        
+
+        $provisiones = DB::table("provision","p")
+        ->where("p.mes","=",date("m",strtotime($liquidacion->fechaLiquida)))
+        ->where("p.anio","=",date("Y",strtotime($liquidacion->fechaLiquida)))
+        ->where("p.fkPeriodoActivo","=",$liquidacion->fkPeriodoActivo)
+        ->where("p.fkConcepto","=",$fkConcepto)->first();
+
+        return view('/nomina.solicitudes.verDetalleProvision', [
+            "provision" => $provisiones           
+        ]);  
+        
+
+    }
     public function verDetalleVacacion($idItemBoucherPago){
 
         $itemBoucherPago = DB::table("item_boucher_pago","ibp")
@@ -13646,6 +13750,7 @@ class NominaController extends Controller
         ->where("fkConcepto","=", "73")
         ->where("fkEstado","=","7")
         ->first();
+        
         
         return [
             "liquidacionPrima" => $liquidacionPrima,

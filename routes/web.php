@@ -159,7 +159,7 @@ Route::group([
 
 
 	Route::get('/agregarUsuariosaEmpleados', 'EmpleadoController@agregarUsuariosaEmpleados');
-	
+	Route::get('/verPeriodos/{id}', 'EmpleadoController@verPeriodos');
 	
 });
 
@@ -193,7 +193,8 @@ Route::group([
 	
 	
 	Route::get('recalcularNomina/{id}','NominaController@recalcularNomina');
-
+	
+	
 	
 	Route::get('reversar/{id}','NominaController@reversar');
 	Route::get('cierre','NominaController@indexCierre');
@@ -205,7 +206,7 @@ Route::group([
 	Route::post('subirCambioConceptoFijo','NominaController@subirCambioConceptoFijo');
 	
 	
-
+	Route::get('verDetalleProvision/{idBoucher}/{fkConcepto}','NominaController@verDetalleProvision');
 	
 	Route::group(['prefix' => 'envioCorreos'], function(){
 

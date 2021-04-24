@@ -297,12 +297,13 @@ class ReportesNominaController extends Controller
 
         
         $nominas = DB::table("item_boucher_pago", "ibp")
-        ->select("c.idconcepto","c.nombre","ln.fechaLiquida","e.idempleado", "e.fechaIngreso", 
+        ->select("c.idconcepto","c.nombre","ln.fechaLiquida","e.idempleado",
         "dp.primerNombre","dp.segundoNombre", 
         "dp.primerApellido","dp.segundoApellido","ti.nombre as tipoidentificacion", 
-        "dp.numeroIdentificacion", "bp.diasTrabajados", "ibp.valor", "bp.idBoucherPago", "cargo.nombreCargo", "ibp.cantidad", "ibp.tipoUnidad")
+        "dp.numeroIdentificacion", "bp.diasTrabajados", "ibp.valor", "bp.idBoucherPago","bp.fkPeriodoActivo","p.fechaInicio as fechaIngreso", "cargo.nombreCargo", "ibp.cantidad", "ibp.tipoUnidad")
         ->join("concepto as c","c.idconcepto", "=","ibp.fkConcepto")
         ->join("boucherpago as bp","bp.idBoucherPago","=", "ibp.fkBoucherPago")
+        ->join("periodo as p", "p.idPeriodo","=","bp.fkPeriodoActivo")
         ->join("liquidacionnomina as ln", "ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
         ->join("empleado as e","e.idempleado", "=", "bp.fkEmpleado")
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
@@ -330,33 +331,35 @@ class ReportesNominaController extends Controller
             if($req->tipoReporte=="Mensual"){
 
                 $nomina->fechaLiquida = date("Y-m",strtotime( $nomina->fechaLiquida));
-                if(isset($matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto])){
-                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] = $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] + $nomina->valor;
-                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] + $nomina->cantidad;
-                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
+                if(isset($matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida][$nomina->idconcepto])){
+
+
+                    $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida][$nomina->idconcepto] = $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] + $nomina->valor;
+                    $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] + $nomina->cantidad;
+                    $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
                 }
                 else{
-                    $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idconcepto] = $nomina->tipoidentificacion;
-                    $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
-                    $matrizReporte[$nomina->idempleado]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
-                    $matrizReporte[$nomina->idempleado]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
-                    $matrizReporte[$nomina->idempleado]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
-                    $matrizReporte[$nomina->idempleado]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
-                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
-                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
-                    $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
+                    $matrizReporte[$nomina->fkPeriodoActivo]["Tipo Documento"][$nomina->idconcepto] = $nomina->tipoidentificacion;
+                    $matrizReporte[$nomina->fkPeriodoActivo]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
+                    $matrizReporte[$nomina->fkPeriodoActivo]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
+                    $matrizReporte[$nomina->fkPeriodoActivo]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
+                    $matrizReporte[$nomina->fkPeriodoActivo]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
+                    $matrizReporte[$nomina->fkPeriodoActivo]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
+                    $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
+                    $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
+                    $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
                 }
             }
             else{
-                $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idconcepto] = $nomina->tipoidentificacion;
-                $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
-                $matrizReporte[$nomina->idempleado]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
-                $matrizReporte[$nomina->idempleado]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
-                $matrizReporte[$nomina->idempleado]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
-                $matrizReporte[$nomina->idempleado]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
-                $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
-                $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
-                $matrizReporte[$nomina->idempleado][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
+                $matrizReporte[$nomina->fkPeriodoActivo]["Tipo Documento"][$nomina->idconcepto] = $nomina->tipoidentificacion;
+                $matrizReporte[$nomina->fkPeriodoActivo]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
+                $matrizReporte[$nomina->fkPeriodoActivo]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
+                $matrizReporte[$nomina->fkPeriodoActivo]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
+                $matrizReporte[$nomina->fkPeriodoActivo]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
+                $matrizReporte[$nomina->fkPeriodoActivo]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
+                $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
+                $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
+                $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." TIPO UNIDAD"][$nomina->idconcepto] = $nomina->tipoUnidad;
             }
 
             
@@ -449,7 +452,7 @@ class ReportesNominaController extends Controller
         dp.primerNombre,dp.segundoNombre,
         dp.primerApellido,dp.segundoApellido,ti.nombre as tipoidentificacion, 
         dp.numeroIdentificacion, bp.diasTrabajados, ibp.valor, ibp.cantidad, 
-        bp.idBoucherPago, ccfijo.valor as valorSalario,c.fkNaturaleza,
+        bp.idBoucherPago, bp.fkPeriodoActivo, ccfijo.valor as valorSalario,c.fkNaturaleza,
         emp.razonSocial as nom_empresa,nom.nombre as nom_nomina, cargo.nombreCargo,
         (SELECT centrocosto.nombre from centrocosto where idcentroCosto in
         (Select empleado_centrocosto.fkCentroCosto from empleado_centrocosto where empleado_centrocosto.fkEmpleado = e.idempleado) 
@@ -472,44 +475,34 @@ class ReportesNominaController extends Controller
         ->orderBy("e.idempleado")
         ->orderBy("c.idconcepto")
         ->get();
-        //dd($nominas);
-
-        
-
-
         $matrizReporte = array();
-        
         foreach($nominas as $nomina){
-
-            
-            
-            $matrizReporte[$nomina->idempleado]["Fecha Liquidacion"][$nomina->idBoucherPago] = $nomina->fechaLiquida;
-            $matrizReporte[$nomina->idempleado]["Empresa"][$nomina->idBoucherPago] = $nomina->nom_empresa;     
-            $matrizReporte[$nomina->idempleado]["Nomina"][$nomina->idBoucherPago] = $nomina->nom_nomina;     
-            $matrizReporte[$nomina->idempleado]["Centro costo"][$nomina->idBoucherPago] = $nomina->centroCosto;   
-            $matrizReporte[$nomina->idempleado]["Cargo"][$nomina->idBoucherPago] = $nomina->nombreCargo;   
-            $matrizReporte[$nomina->idempleado]["Tipo Documento"][$nomina->idBoucherPago] = $nomina->tipoidentificacion;
-            $matrizReporte[$nomina->idempleado]["Documento"][$nomina->idBoucherPago] = $nomina->numeroIdentificacion;     
-            $matrizReporte[$nomina->idempleado]["Nombre"][$nomina->idBoucherPago] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
-            
-              
-            
+            $matrizReporte[$nomina->fkPeriodoActivo]["Id Periodo"][$nomina->idBoucherPago] = $nomina->fkPeriodoActivo;
+            $matrizReporte[$nomina->fkPeriodoActivo]["Fecha Liquidacion"][$nomina->idBoucherPago] = $nomina->fechaLiquida;
+            $matrizReporte[$nomina->fkPeriodoActivo]["Empresa"][$nomina->idBoucherPago] = $nomina->nom_empresa;     
+            $matrizReporte[$nomina->fkPeriodoActivo]["Nomina"][$nomina->idBoucherPago] = $nomina->nom_nomina;     
+            $matrizReporte[$nomina->fkPeriodoActivo]["Centro costo"][$nomina->idBoucherPago] = $nomina->centroCosto;   
+            $matrizReporte[$nomina->fkPeriodoActivo]["Cargo"][$nomina->idBoucherPago] = $nomina->nombreCargo;   
+            $matrizReporte[$nomina->fkPeriodoActivo]["Tipo Documento"][$nomina->idBoucherPago] = $nomina->tipoidentificacion;
+            $matrizReporte[$nomina->fkPeriodoActivo]["Documento"][$nomina->idBoucherPago] = $nomina->numeroIdentificacion;     
+            $matrizReporte[$nomina->fkPeriodoActivo]["Nombre"][$nomina->idBoucherPago] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
             
             if($nomina->idconcepto == "1" || $nomina->idconcepto == "2" || $nomina->idconcepto == "53" || $nomina->idconcepto == "54" ){
-                $matrizReporte[$nomina->idempleado]["Dias"][$nomina->idBoucherPago] = intval($nomina->cantidad);
+                $matrizReporte[$nomina->fkPeriodoActivo]["Dias"][$nomina->idBoucherPago] = intval($nomina->cantidad);
             }
-            $matrizReporte[$nomina->idempleado]["Sueldo"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
-            
 
-            
-            $matrizReporte[$nomina->idempleado][$nomina->nombre][$nomina->idBoucherPago]["valor"] = $nomina->valor;
-            $matrizReporte[$nomina->idempleado][$nomina->nombre][$nomina->idBoucherPago]["naturaleza"] = $nomina->fkNaturaleza;
+            $matrizReporte[$nomina->fkPeriodoActivo]["Sueldo"][$nomina->idBoucherPago] = intval($nomina->valorSalario);
+            $matrizReporte[$nomina->fkPeriodoActivo][$nomina->nombre][$nomina->idBoucherPago]["valor"] = $nomina->valor;
+            $matrizReporte[$nomina->fkPeriodoActivo][$nomina->nombre][$nomina->idBoucherPago]["naturaleza"] = $nomina->fkNaturaleza;
         }
         
 
         
 
+        //Agregar titulos a arrDefLinea1
 
+
+        //Agregar titulos de campos que no son arrays como fechas de liquidacion, empresa, etc.
         $arrDefLinea1 = array();
         $arrDef = array();
         foreach($matrizReporte as $matriz){ 
@@ -524,6 +517,8 @@ class ReportesNominaController extends Controller
             }
         
         }
+
+        //Agregar titulos al los conceptos de pago
         foreach($matrizReporte as $matriz){ 
             foreach($matriz as $row => $dato){
                 foreach($dato as $rowInt => $datoInt){
@@ -539,6 +534,7 @@ class ReportesNominaController extends Controller
         }
         array_push($arrDefLinea1, "TOTAL PAGOS");
 
+        //Agregar titulos a conceptos de descuento
         foreach($matrizReporte as $matriz){ 
             foreach($matriz as $row => $dato){
                 foreach($dato as $rowInt => $datoInt){
@@ -558,33 +554,33 @@ class ReportesNominaController extends Controller
         $idDefDesc = array_search("TOTAL DESCUENTO", $arrDefLinea1);
         $idDefTotal = array_search("NETO PAGAR", $arrDefLinea1);
         
-        foreach($matrizReporte as $matriz){ 
-            $arrFila = array();
-            
-            foreach($matriz as $row => $dato){
-            
 
-                foreach($dato as $rowInt => $datoInt){
-                    $idDef = array_search($row, $arrDefLinea1);
+
         
+        foreach($matrizReporte as $idPeriodo => $matriz){ 
+            $arrFila = array();
+            foreach($matriz as $rowTitulo => $dato){
+                foreach($dato as $rowInt => $datoInt){                             
+                    //Buscar el id de la columna en arrDefLinea1
+                    $idDef = array_search($rowTitulo, $arrDefLinea1);
 
-                    if(is_array($datoInt) && $row != "Dias" && $row != "Sueldo"){
+                    //Sumar los conceptos y totales
+                    if(is_array($datoInt) && $rowTitulo != "Dias" && $rowTitulo != "Sueldo"){
                         $arrFila[$idDefTotal][$rowInt] = (isset($arrFila[$idDefTotal][$rowInt]) ? $arrFila[$idDefTotal][$rowInt] + $datoInt['valor'] : $datoInt['valor']);    
                     }  
                     if(is_array($datoInt) && $datoInt['naturaleza'] == "3"){
                         $arrFila[$idDefDesc][$rowInt] = (isset($arrFila[$idDefDesc][$rowInt]) ? $arrFila[$idDefDesc][$rowInt]  + ($datoInt['valor']*-1) : ($datoInt['valor']*-1)); 
                         $arrFila[$idDef][$rowInt] = $datoInt['valor']*-1;    
                     }
-                    else if(is_array($datoInt) && $datoInt['naturaleza'] == "1" && $row != "Dias" && $row != "Sueldo"){
+                    else if(is_array($datoInt) && $datoInt['naturaleza'] == "1" && $rowTitulo != "Dias" && $rowTitulo != "Sueldo"){
                         $arrFila[$idDefPagos][$rowInt] = (isset($arrFila[$idDefPagos][$rowInt]) ? $arrFila[$idDefPagos][$rowInt] + $datoInt['valor'] : $datoInt['valor']);
                         $arrFila[$idDef][$rowInt] = $datoInt['valor'];    
                     }
                     else{
-                        $arrFila[$idDef][$rowInt] = $datoInt;    
+                        $arrFila[$idDef][$rowInt] = $datoInt;
                     }
-                    
-                    
-                    
+                    //Rowint = idboucher
+                    //idDef = id columna en el archivo final
                 }
                 
 
@@ -594,10 +590,8 @@ class ReportesNominaController extends Controller
             }
         }
 
-
-
         
-
+   
         $reporteFinal = array();
         $reporteFinal[0] = $arrDefLinea1;
         
@@ -631,6 +625,7 @@ class ReportesNominaController extends Controller
                     ksort($arrEntrega);
                 }           
             }
+          
             foreach($arrEntrega as $porfin){
                 array_push($reporteFinal, $porfin);
             }
@@ -638,15 +633,18 @@ class ReportesNominaController extends Controller
 
         $reporteDatosJuntos = array($reporteFinal[0]);
         $empleadoActual = 0;
+
+        //Indice del periodo activo = 0
+        
         for($i = 1; $i<sizeof($reporteFinal) ;$i++){
 
-            if($empleadoActual != $reporteFinal[$i][6]){
-                $empleadoActual = $reporteFinal[$i][6];
+            if($empleadoActual != $reporteFinal[$i][0]){
+                $empleadoActual = $reporteFinal[$i][0];
             }
     
             $existeEmp = -1;
             foreach($reporteDatosJuntos as $row => $reporteTemp){
-                if($reporteTemp[6] == $empleadoActual){
+                if($reporteTemp[0] == $empleadoActual){
                     //Existe el empleado en el reporte conjunto
                     $existeEmp = $row;
                 }
@@ -658,7 +656,7 @@ class ReportesNominaController extends Controller
             }
             else{
                 foreach($reporteFinal[$i] as $row => $columna){
-                    if(is_numeric($columna) && $row!=6 && $row!=9 && is_numeric($reporteDatosJuntos[$existeEmp][$row])){
+                    if(is_numeric($columna) && $row!=7 && $row!=10 && is_numeric($reporteDatosJuntos[$existeEmp][$row])){
                         try{
                             $reporteDatosJuntos[$existeEmp][$row] = $reporteDatosJuntos[$existeEmp][$row] + $columna;
                         }
@@ -762,6 +760,7 @@ class ReportesNominaController extends Controller
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
         ->where("a.fkTipoAfilicacion","=","4") //4-Pensión Obligatoria 
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
         ->first();
 
         $salud = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
@@ -770,6 +769,7 @@ class ReportesNominaController extends Controller
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
         ->where("a.fkTipoAfilicacion","=","3") //3-Salud
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
         ->first();
 
         $cesantiasEmp = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
@@ -778,6 +778,7 @@ class ReportesNominaController extends Controller
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
         ->where("a.fkTipoAfilicacion","=","1") //2-CCF
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
         ->first();
 
         $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
@@ -817,6 +818,7 @@ class ReportesNominaController extends Controller
         $periodoPasadoReintegro = DB::table("periodo")
         ->where("fkEstado","=","2")
         ->where("fkEmpleado", "=", $empleado->idempleado)
+        ->where("fechaInicio","<=",$empresayLiquidacion->fechaInicio)
         ->where("fechaFin",">=",$empresayLiquidacion->fechaInicio)
         ->where("fkNomina","=",$empresayLiquidacion->fkNomina)
         ->first();
@@ -1982,14 +1984,19 @@ class ReportesNominaController extends Controller
         ->join("cargo","cargo.idCargo","=","e.fkCargo")
         ->where("bp.idBoucherPago","=",$idBoucherPago)
         ->first();
+
+        
         $nomina = DB::table("nomina","n")
         ->where("n.idNomina","=",$empleado->fkNomina)->first();
+
+
         $pension = DB::table("tercero", "t")->
         select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero", "ti.nombre as tipoidentificacion", "t.digitoVer"])
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
         ->where("a.fkTipoAfilicacion","=","4") //4-Pensión Obligatoria 
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
         ->first();
 
         $salud = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
@@ -1998,6 +2005,7 @@ class ReportesNominaController extends Controller
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
         ->where("a.fkTipoAfilicacion","=","3") //3-Salud
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
         ->first();
 
         $cesantiasEmp = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
@@ -2006,6 +2014,7 @@ class ReportesNominaController extends Controller
         ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
         ->where("a.fkEmpleado","=",$empleado->idempleado)
         ->where("a.fkTipoAfilicacion","=","1") //2-CCF
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
         ->first();
 
         $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
@@ -2048,6 +2057,7 @@ class ReportesNominaController extends Controller
         $periodoPasadoReintegro = DB::table("periodo")
         ->where("fkEstado","=","2")
         ->where("fkEmpleado", "=", $empleado->idempleado)
+        ->where("fechaInicio","<=",$empresayLiquidacion->fechaInicio)
         ->where("fechaFin",">=",$empresayLiquidacion->fechaInicio)
         ->where("fkNomina","=",$empresayLiquidacion->fkNomina)
         ->first();
@@ -6139,6 +6149,7 @@ class ReportesNominaController extends Controller
         }
         $datosProv = $datosProv->where("n.fkEmpresa","=",$req->empresa)
         ->orderBy("p.fkEmpleado")
+        ->orderBy("p.fkPeriodoActivo")
         ->get();
         
         $arrMeses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
@@ -6193,26 +6204,16 @@ class ReportesNominaController extends Controller
                 }
             }
         }
-        $idEmpleado = 0;
+        $idPeriodo = 0;
         $row = 0;
 
 
 
 
         foreach($datosProv as $datoProv){
-            $periodoActivoReintegro = DB::table("periodo")
-            ->where("fkEstado","=","1")
-            ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
-            if(!isset($periodoActivoReintegro->idPeriodo)){
-                        
-                $periodoActivoReintegro = DB::table("periodo")
-                ->where("fkEstado","=","2")
-                ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
-            }
-
-            if($idEmpleado != $datoProv->fkEmpleado){
+            if($idPeriodo != $datoProv->fkPeriodoActivo){
                 
-                if($idEmpleado != 0){                
+                if($idPeriodo != 0){                
                     array_push($arrDatos, $arrInt);
                     $arrInt = array();
                     if($req->provision!="Consolidado"){
@@ -6236,7 +6237,7 @@ class ReportesNominaController extends Controller
                 $arrInt[3]= $datoProv->primerNombre;
                 $arrInt[4]= $datoProv->segundoNombre;
             
-                $idEmpleado = $datoProv->fkEmpleado;
+                $idPeriodo = $datoProv->fkPeriodoActivo;
 
 
                 
@@ -6259,15 +6260,8 @@ class ReportesNominaController extends Controller
                 
 
                     $periodoActivoReintegro = DB::table("periodo")
-                    ->where("fkEstado","=","1")
-                    ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
-                    if(!isset($periodoActivoReintegro->idPeriodo)){
-                        
-                        $periodoActivoReintegro = DB::table("periodo")
-                        ->where("fkEstado","=","2")
-                        ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
-                    }
-                 
+                    ->where("idPeriodo", "=", $datoProv->fkPeriodoActivo)->first();
+                                  
                     
                     if(isset($periodoActivoReintegro)){
                         $saldo = DB::table("saldo","s")
@@ -6293,14 +6287,7 @@ class ReportesNominaController extends Controller
                     $arrBusquedaIntCes = [68,72];
                                    
                     $periodoActivoReintegro = DB::table("periodo")
-                    ->where("fkEstado","=","1")
-                    ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
-                    if(!isset($periodoActivoReintegro->idPeriodo)){
-                        
-                        $periodoActivoReintegro = DB::table("periodo")
-                        ->where("fkEstado","=","2")
-                        ->where("fkEmpleado", "=", $datoProv->fkEmpleado)->first();
-                    }
+                    ->where("idPeriodo", "=", $datoProv->fkPeriodoActivo)->first();
                     
 
                     if(isset($periodoActivoReintegro)){
@@ -6557,11 +6544,6 @@ class ReportesNominaController extends Controller
                 $row =  $row + 4;
             }
             
-
-
-        
-            
-
             /*$datosProvResta = DB::table('provision','p')
                 ->selectRaw("sum(p.valor) as suma")
                 ->where("p.anio","=",$datoProv->anio)
@@ -6588,7 +6570,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("bp.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
                 ->where("ibp.fkConcepto","=","58") //58 - PRIMA DE SERVICIOS	
                 ->first();
@@ -6603,7 +6585,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("bp.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                 ->whereRaw("MONTH(ln.fechaLiquida) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
                 ->whereIn("ibp.fkConcepto",["66","67"]) //66 - CES . 67 - CES AÑO ANTERIOR
                 ->first();
@@ -6616,7 +6598,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("bp.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                 ->whereRaw("MONTH(ln.fechaLiquida) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
                 ->whereIn("ibp.fkConcepto",["84"]) // 84 - CESANTIAS TRASLADO
                 ->first();
@@ -6634,7 +6616,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("bp.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."'")
                 ->whereIn("ibp.fkConcepto",["69","68"]) //69 - INT . 68 - INT AÑO ANTERIOR
                 ->first();
@@ -6661,7 +6643,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("bp.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."' ")
                 ->where("ibp.fkConcepto","=","30") //30 - RETIRO
                 ->first();
@@ -6678,7 +6660,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("bp.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."' ")
                 ->where("ibp.fkConcepto","=","28") //28 - compensadas
                 ->first();
@@ -6691,7 +6673,7 @@ class ReportesNominaController extends Controller
                 ->join("boucherpago as bp","bp.idBoucherPago","=","ibp.fkBoucherPago")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                 ->where("bp.fkEmpleado","=",$datoProv->fkEmpleado)
-                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                ->where("bp.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                 ->whereRaw("MONTH(ln.fechaFin) = '".$datoProv->mes."' and YEAR(ln.fechaLiquida) = '".$datoProv->anio."' ")
                 ->where("ibp.fkConcepto","=","29") //28 - compensadas
                 ->first();
@@ -6817,10 +6799,7 @@ class ReportesNominaController extends Controller
                     ->selectRaw("sum(p.valor) as suma")
                     ->where("p.anio","=",$datoProv->anio)
                     ->where("p.mes","<=",$datoProv->mes)
-                    ->where("p.fkEmpleado","=",$datoProv->fkEmpleado)
-                    ->whereRaw("p.fkPeriodoActivo in(
-                        SELECT per.idPeriodo from periodo as per where per.fkEmpleado = '".$datoProv->fkEmpleado."'
-                     )")
+                    ->where("p.fkPeriodoActivo","=",$datoProv->fkPeriodoActivo)
                     ->where("p.fkConcepto","=",$datoProv->fkConcepto)
                     ->first();
                     
@@ -6836,7 +6815,7 @@ class ReportesNominaController extends Controller
         
         }
         
-        if($idEmpleado != 0){
+        if($idPeriodo != 0){
             array_push($arrDatos, $arrInt);
         }
         

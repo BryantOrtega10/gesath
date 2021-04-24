@@ -114,4 +114,23 @@
             <th scope="row"></td>
             <th scope="row"></td>
         </tr>
+        <tr>
+            <td colspan="5" class="provCont">
+                @foreach ($provisiones as $provision)
+                    @if ($provision->fkConcepto == 73)
+                        <a href="/nomina/verDetalleProvision/{{$infoBouche->fkBoucherPago}}/73" class="verComoCalculo">Provisión prima $ {{number_format($provision->valor, 0, ",", ".")}}</a>        
+                    @endif
+                    @if ($provision->fkConcepto == 71)
+                        <a href="/nomina/verDetalleProvision/{{$infoBouche->fkBoucherPago}}/71" class="verComoCalculo">Provisión cesantias $ {{number_format($provision->valor, 0, ",", ".")}}</a>        
+                    @endif
+                    @if ($provision->fkConcepto == 72)
+                        <a href="/nomina/verDetalleProvision/{{$infoBouche->fkBoucherPago}}/72" class="verComoCalculo">Provisión intereses $ {{number_format($provision->valor, 0, ",", ".")}}</a>        
+                    @endif
+                    @if ($provision->fkConcepto == 74)
+                        <a href="/nomina/verDetalleProvision/{{$infoBouche->fkBoucherPago}}/74" class="verComoCalculo">Provisión vacaciones $ {{number_format($provision->valor, 0, ",", ".")}}</a>        
+                    @endif
+                @endforeach
+                
+            </td>
+        </tr>
     </table>
