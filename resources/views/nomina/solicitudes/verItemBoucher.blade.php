@@ -1,5 +1,5 @@
 <div class="row">
-    <div class="col-3"><b>Fecha ingreso:</b> <br> <span>{{$empleado->fechaIngreso}}</span></div>
+    <div class="col-3"><b>Fecha ingreso:</b> <br> <span>{{$periodo_activo->fechaInicio}}</span></div>
     <div class="col-3"><b>Salario:</b> <br>  <span>$ {{number_format($conceptoSalario->valor,0,",",".")}}</span></div>
     <div class="col-3"><b>Empresa:</b> <br> <span>{{$empleado->razonSocial}}</span></div>
     <div class="col-3"><b>Centro(s) de costo:</b> <br>
@@ -10,7 +10,7 @@
         </span>
     </div>
 </div>
-@if ($empleado->fkTipoCotizante == 51 && isset($boucher->horasPeriodo))
+@if ($empleado->fkTipoCotizante == 51)
     
     <form method="GET" class="formGeneral" autocomplete="off"> 
         <input type="hidden" name="idBoucherPago" value="" />
@@ -77,8 +77,8 @@
                         Valor fijo novedad
                     @else
                         @if ($infoBouche->fkConcepto =="36")
-                            <a href="/nomina/verDetalleRetencion/{{$infoBouche->fkBoucherPago}}/NORMAL" class="verComoCalculo">Ver detalle retención</a>
-                        
+                            <a href="/nomina/verDetalleRetencion/{{$infoBouche->fkBoucherPago}}/NORMAL" class="verComoCalculo">Ver detalle retención</a><br>
+                            <a href="/nomina/comoCalculo/{{$infoBouche->idItemBoucherPago}}" class="verComoCalculo">Como se calcula</a>                                
                         @else
                             @if($infoBouche->fkConcepto =="76")
                                 <a href="/nomina/verDetalleRetencion/{{$infoBouche->fkBoucherPago}}/INDEMNIZACION" class="verComoCalculo">Ver detalle retención</a>

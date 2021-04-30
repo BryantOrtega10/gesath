@@ -1,43 +1,48 @@
-function cargando(){
-	if(typeof $("#cargando")[0] !== 'undefined'){
-		$("#cargando").css("display", "flex");
-	}
-	else{
-		$("body").append('<div id="cargando" style="display: flex;">Cargando...</div>');
-	}
+function cargando() {
+    if (typeof $("#cargando")[0] !== 'undefined') {
+        $("#cargando").css("display", "flex");
+    } else {
+        $("body").append('<div id="cargando" style="display: flex;">Cargando...</div>');
+    }
 }
-$(document).ready(function(){
-    function cargarAjax(){
-        if(parseInt($("#realizarConsulta").val()) == 1){
+$(document).ready(function() {
+    function cargarAjax() {
+        if (parseInt($("#realizarConsulta").val()) == 1) {
             cargando();
             const idCarga = $("#idCarga").val();
             $.ajax({
-                type:'GET',
+                type: 'GET',
                 url: "/catalogo-contable/subirDatosCuenta/" + idCarga,
-                success:function(data){
+                success: function(data) {
                     $("#cargando").css("display", "none");
-                    if(data.success){
-                        if(data.seguirSubiendo){
+                    if (data.success) {
+                        if (data.seguirSubiendo) {
                             $("#realizarConsulta").val("1");
                             setTimeout(() => {
                                 cargarAjax();
                             }, 500);
-                        }
-                        else{
+                        } else {
                             $("#realizarConsulta").val("0");
                             window.location.reload();
                         }
-                        $(".progress-bar").css("width",data.porcentaje);
+                        $(".progress-bar").css("width", data.porcentaje);
                         $(".progress-bar").html(data.porcentaje);
                         $("#datosCargados").html(data.mensaje);
                     }
-                    
+
                 },
-                error: function(data){
+                error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
-            });		
+            });
         }
     }
     cargarAjax();

@@ -1868,20 +1868,19 @@ class NominaController extends Controller
         $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
         ->whereIn("fkConcepto",[1,2,53,54])->first();
         
-
+        $boucher = DB::table("boucherpago","bp")->where("bp.idBoucherPago","=",$idBoucherPago)->first();
+        
         $novedadesRetiro = DB::table("novedad","n")
         ->select("r.fecha")
         ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
         ->where("n.fkEmpleado", "=", $empleado->idempleado)
-        ->where("n.fkEstado","=","7")
-        ->whereRaw("n.fkPeriodoActivo in(
-                SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
-            )")
+        ->whereIn("n.fkEstado",["7", "8"])
+        ->where("n.fkPeriodoActivo","=",$boucher->fkPeriodoActivo)
         ->whereNotNull("n.fkRetiro")
         ->first();
 
-        $boucher = DB::table("boucherpago","bp")->where("bp.idBoucherPago","=",$idBoucherPago)->first();
-
+        
+        $periodo = DB::table("periodo")->where("idPeriodo","=",$boucher->fkPeriodoActivo)->first();
 
         $liquidacion = DB::table("liquidacionnomina","ln")
         ->select("ln.fechaLiquida","bp.fkPeriodoActivo")
@@ -1903,7 +1902,8 @@ class NominaController extends Controller
             "empleado" => $empleado, 
             'conceptoSalario' => $conceptoSalario,
             "boucher" => $boucher,
-            "provisiones" => $provisiones
+            "provisiones" => $provisiones,
+            "periodo_activo" => $periodo
             ]);
     }
     
@@ -3501,7 +3501,7 @@ class NominaController extends Controller
 
                             array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se multiplica ".number_format($valorFormula,0,",", ".")." por ".$incapacidadPTotal->numDias." días");
                             array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma el valor(es) con anterior(es) ".number_format($arrValorxConcepto[$novedadyconcepto->idconcepto]["valor"],0,",", ".")." + ".number_format($valorUnit,0,",", "."));
-                            array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma la cantidad(es) con anterior(es) ".$arrValorxConcepto[$novedadyconcepto->idconcepto]["cantidad"]." + ". $incapacidadPTotal->cantidadHoras);                           
+                            array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma la cantidad(es) con anterior(es) ".$arrValorxConcepto[$novedadyconcepto->idconcepto]["cantidad"]." + ". $incapacidadPTotal->numDias);                           
                             
                             $valorInt = $arrValorxConcepto[$novedadyconcepto->idconcepto]["valor"] + $valorUnit;
                             $cantidadInt = $arrValorxConcepto[$novedadyconcepto->idconcepto]["cantidad"] + floatval($incapacidadPTotal->numDias);
@@ -5310,9 +5310,12 @@ class NominaController extends Controller
                                 ->where("gcc.fkGrupoConcepto", "=", "13")//Salarial para provisiones
                                 ->get();
                             foreach($grupoConceptoCalculoVac as $grupoConcepto){
+
+                                $arrComoCalcula[$novedadyconcepto->idconcepto] = ($arrComoCalcula[$novedadyconcepto->idconcepto] ?? array());
                                 if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
                                     $salarialVac = $salarialVac + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
-                                    array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma el valor de para base salarial $".number_format($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor'],0,",", "."));
+                                   
+                                    array_push($arrComoCalcula[$novedadyconcepto->idconcepto], "Se suma el valor de para base salarial $".number_format($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor'],0,",", "."));
                                 }
                                 if(isset($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
                                     $salarialVac = $salarialVac + floatval($arrValorxConceptoOtros[$grupoConcepto->fkConcepto]['valor']);
@@ -6470,10 +6473,12 @@ class NominaController extends Controller
         }
         else{
             $valorEpsEmpleado = $arrBoucherPago["ibc_eps"] * $varParafiscales[49];                
+            
             array_push($arrComoCalcula[18], "Base: ".number_format($arrBoucherPago["ibc_eps"], 0,",",".")." por ".($varParafiscales[49]*100)."%");
         }
         
-        $valorEpsEmpleado = round($valorEpsEmpleado);        
+        $valorEpsEmpleado = round($valorEpsEmpleado);    
+        
         if(isset($arrValorxConcepto[18])){
 
             array_push($arrComoCalcula[18], "Se suma con el acumulado de : ".($arrValorxConcepto[18]["valor"]*-1)."");
@@ -6767,6 +6772,7 @@ class NominaController extends Controller
         //Calculo AFP
         $valorAfpEmpleador = 0;
         $valorAfpEmpleado = 0;
+        
         if($empleado->esPensionado == 0 && ($empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19")){
 
             $valorAfpEmpleado = $arrBoucherPago["ibc_afp"] * $varParafiscales[51];            
@@ -6835,12 +6841,14 @@ class NominaController extends Controller
         else{
             $arrBoucherPago["ibc_afp"] = 0;
         }
+        
+
         if($empleado->fkTipoCotizante == "12" || $empleado->fkTipoCotizante == "19"){
             $arrBoucherPago["ibc_afp"] = 0;
         }
         
         $arrParafiscales["afp"] = $valorAfpEmpleador;
-
+      
         //Calculo ARL
         $arl = DB::table('nivel_arl', 'na')
         ->join("empleado as e", "e.fkNivelArl", "=","na.idnivel_arl")
@@ -7148,27 +7156,36 @@ class NominaController extends Controller
 
         $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
         ->where("gcc.fkGrupoConcepto", "=", "4")->get();
+        $arrComoCalcula[36] = ($arrComoCalcula[36]?? array());
+        array_push($arrComoCalcula[36],"Se comienza a buscar los conceptos del grupo de concepto 4 - Salarial");
         foreach($grupoConceptoCalculo as $grupoConcepto){
             if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
                 if($empleado->tipoRegimen == "Salario Integral" && $arrValorxConcepto[$grupoConcepto->fkConcepto]["naturaleza"]=="1"){
                     $arrValorxConcepto[$grupoConcepto->fkConcepto]["valor"] =  ($arrValorxConcepto[$grupoConcepto->fkConcepto]["valor"] * 100)/70;
+                    array_push($arrComoCalcula[36],"Concepto #".$grupoConcepto->fkConcepto." encontrado, es un salario integral tomo el 70% = $".number_format($arrValorxConcepto[$grupoConcepto->fkConcepto]["valor"], 0,",","."));
                 }
             }
         }
-  
+        
+
+
         $ingreso = 0;
         $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
             ->where("gcc.fkGrupoConcepto", "=", "9")
             ->get();        
+        array_push($arrComoCalcula[36],"Se comienza a buscar los conceptos del grupo de concepto 9 - INGRESO PARA RETENCION");
         foreach($grupoConceptoCalculo as $grupoConcepto){
             if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto!=36){
                 $ingreso = $ingreso + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                array_push($arrComoCalcula[36],"Concepto #".$grupoConcepto->fkConcepto." encontrado se suman = $".number_format($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor'], 0,",","."));
             }
         }
+        array_push($arrComoCalcula[36],"Ingreso para retención = $".number_format($ingreso, 0,",","."));
 
         $validoPeriocidad=false;
         if(!$empresa->fkPeriocidadRetencion){
             $validoPeriocidad =true;
+            array_push($arrComoCalcula[36],"Periocidad no configurada se toma para todas las liquidaciones");
         }
         else{
             if($periodo == 15){
@@ -7177,10 +7194,12 @@ class NominaController extends Controller
                 }
                 else{
                     $validoPeriocidad =true;
+                    array_push($arrComoCalcula[36],"Periocidad configurada para la segunda quincena");
                 }
             }
             else{
                 $validoPeriocidad =true;
+                array_push($arrComoCalcula[36],"Periocidad configurada se toma para todas las liquidaciones");
             }
         }
 
@@ -7202,7 +7221,7 @@ class NominaController extends Controller
                     $valorSalario = $valorSalario + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
                 }
             }
-        
+            
             if($periodo == 15){
                 if(substr($liquidacionNomina->fechaInicio,8,2) == "16"){
                     $fechaPrimeraQuincena = substr($liquidacionNomina->fechaInicio,0,8)."01";
@@ -7222,6 +7241,8 @@ class NominaController extends Controller
                     }
                 }
             }
+            array_push($arrComoCalcula[36],"Se toma el valor del salario para el periodo actual segun el grupo de concepto 3 -> Salario = $".number_format($valorSalario, 0,",","."));
+
             $variablesRetencion = DB::table("variable")
             ->where("idVariable",">=","16")
             ->where("idVariable","<=","48")
@@ -7233,36 +7254,48 @@ class NominaController extends Controller
             }
 
             $valorSalarioParaFuera = $valorSalario;
-            if($empleado->tipoRegimen == "Salario Integral"){
+            /*if($empleado->tipoRegimen == "Salario Integral"){
                 $valorSalarioParaFuera = $valorSalario*0.7;
                 
-            }
+            }*/
             
             
             if($valorSalarioParaFuera > ($uvtActual * $varRetencion[66])){//TOPE_MAXIMO_SALARIO_UVTS_FUERA_DE_NOMINA (Nota: lo del salario integral se cambia mas arriba)
                 $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
                     ->where("gcc.fkGrupoConcepto", "=", "43")
                     ->get();
+                
+                array_push($arrComoCalcula[36],"Salario ($ ".number_format($valorSalarioParaFuera, 0,",",".").") supera las ".$varRetencion[66]." UVTS configuradas en TOPE_MAXIMO_SALARIO_UVTS_FUERA_DE_NOMINA");
+                array_push($arrComoCalcula[36],"Se comienza a buscar los conceptos del grupo de concepto 43 - INGRESO FUERA DE NOMINA PARA RETENCION");
                 foreach($grupoConceptoCalculo as $grupoConcepto){
                     if(isset($arrValorxConceptoFueraNomina[$grupoConcepto->fkConcepto])){
                         $ingreso = $ingreso + floatval($arrValorxConceptoFueraNomina[$grupoConcepto->fkConcepto]['valor']);
+                        array_push($arrComoCalcula[36],"Concepto #".$grupoConcepto->fkConcepto." encontrado se suman al ingreso $".number_format($arrValorxConceptoFueraNomina[$grupoConcepto->fkConcepto]['valor'], 0,",","."));
                     }
                 }
+                array_push($arrComoCalcula[36],"Ingreso actual en $".number_format($ingreso, 0,",","."));
+                
+
             }
             else{
                 $fueraSalario = 0;
                 $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
                     ->where("gcc.fkGrupoConcepto", "=", "43")
                     ->get();
+                array_push($arrComoCalcula[36],"Se comienza a buscar los conceptos del grupo de concepto 43 - INGRESO FUERA DE NOMINA PARA RETENCION");
                 foreach($grupoConceptoCalculo as $grupoConcepto){
                     if(isset($arrValorxConceptoFueraNomina[$grupoConcepto->fkConcepto])){
                         $fueraSalario = $fueraSalario + floatval($arrValorxConceptoFueraNomina[$grupoConcepto->fkConcepto]['valor']);
+                        array_push($arrComoCalcula[36],"Concepto #".$grupoConcepto->fkConcepto." encontrado se suman en fuera de salario $".number_format($arrValorxConceptoFueraNomina[$grupoConcepto->fkConcepto]['valor'], 0,",","."));
                     }
                 }
 
                 if($fueraSalario > ($uvtActual * $varRetencion[67])){//TOPE_MAXIMO_UVTS_FUERA_DE_NOMINA
+                    array_push($arrComoCalcula[36],"La suma de fuera de salario($".number_format($fueraSalario, 0,",",".").") supera el TOPE_MAXIMO_UVTS_FUERA_DE_NOMINA (".$varRetencion[67].")");
                     $excendete = $fueraSalario - ($uvtActual * $varRetencion[67]);
+                    array_push($arrComoCalcula[36],"Se agrega el excente ($".number_format($excendete, 0,",",".").") al ingreso");
                     $ingreso = $ingreso + $excendete;
+                    array_push($arrComoCalcula[36],"Ingreso actual en ($".number_format($ingreso, 0,",",".").")");
                 }
 
             }
@@ -7272,7 +7305,7 @@ class NominaController extends Controller
             $EPS = (isset($arrValorxConcepto[18]) ? $arrValorxConcepto[18]['valor'] : 0);
             $AFP = (isset($arrValorxConcepto[19]) ? $arrValorxConcepto[19]['valor'] : 0);
             $SS = ($FPS + $EPS + $AFP) * -1;
-
+            
 
             if($periodo == 15){
                 if(substr($liquidacionNomina->fechaInicio,8,2) == "16"){
@@ -7317,6 +7350,8 @@ class NominaController extends Controller
             }
             
             $rentaLiquida = $ingreso - $SS;
+            array_push($arrComoCalcula[36],"Se calcula la renta liquida como Ingreso($".number_format($ingreso, 0,",",".").") menos Seguridad Social ($".number_format($SS, 0,",",".").")");
+            array_push($arrComoCalcula[36],"Renta liquida = ($".number_format($rentaLiquida, 0,",",".").")");
             $interesesVivienda = 0;
             $beneficiosTributarioIntVivienda = DB::table("beneficiotributario", "bt")
                 ->selectRaw("sum(bt.valorMensual) as suma")
@@ -7326,8 +7361,12 @@ class NominaController extends Controller
                 ->get();
             
             $interesesVivienda = intval($beneficiosTributarioIntVivienda[0]->suma);
+            array_push($arrComoCalcula[36],"Intereses de vivienda = ($".number_format($interesesVivienda, 0,",",".").")");
             if($interesesVivienda > round($uvtActual * $varRetencion[16], -3)){
+                
                 $interesesVivienda = round($uvtActual * $varRetencion[16], -3);
+                array_push($arrComoCalcula[36],"Intereses de vivienda superan el TOPE_MAXIMO_INTERESES_VIVIENDA_UVTS_RETENCION(".$varRetencion[16].")");
+                array_push($arrComoCalcula[36],"Nuevos intereses de vivienda = ($".number_format($interesesVivienda, 0,",",".").")");
             }            
             $medicinaPrepagada = 0;
             $beneficiosTributarioMedicinaPrepagada = DB::table("beneficiotributario", "bt")
@@ -7338,9 +7377,11 @@ class NominaController extends Controller
                 ->get();
             
             $medicinaPrepagada = intval($beneficiosTributarioMedicinaPrepagada[0]->suma);
-            
+            array_push($arrComoCalcula[36],"Medicina Prepagada = ($".number_format($medicinaPrepagada, 0,",",".").")");
             if($medicinaPrepagada > round($uvtActual * $varRetencion[17], -3)){
                 $medicinaPrepagada = round($uvtActual * $varRetencion[17], -3);
+                array_push($arrComoCalcula[36],"Medicina Prepagada superan el TOPE_MAXIMO_MEDICINA_PREPAGADA_UVTS_RETENCION(".$varRetencion[17].")");
+                array_push($arrComoCalcula[36],"Nuevo valor medicina prepagada = ($".number_format($medicinaPrepagada, 0,",",".").")");
             }
 
             //Calcular cuanto cuesta este dependiente
@@ -7354,75 +7395,96 @@ class NominaController extends Controller
             
             if(sizeof($beneficiosTributarioDependiente)> 0){
                 $dependiente = ($ingreso * $varRetencion[18]);
+                array_push($arrComoCalcula[36],"Dependiente = ($".number_format($dependiente, 0,",",".").")");
             }
                         
             //Tope maximo dependencia
             if($dependiente > round($uvtActual * $varRetencion[19], -3)){
                 $dependiente = round($uvtActual * $varRetencion[19], -3);
+                array_push($arrComoCalcula[36],"Dependiente supera el TOPE_MAXIMO_DEPENDIENTE_UVTS_RETENCION(".$varRetencion[19].")");
+                array_push($arrComoCalcula[36],"Nuevo valor dependiente = ($".number_format($dependiente, 0,",",".").")");
             }
 
             $aporteVoluntario = 0;
             $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
                 ->where("gcc.fkGrupoConcepto", "=", "6")
                 ->get();
+            array_push($arrComoCalcula[36],"Comienza a buscar aporte voluntario segun el grupo de concepto 6");
             foreach($grupoConceptoCalculo as $grupoConcepto){
                 if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
+                    array_push($arrComoCalcula[36],"Concepto #".$grupoConcepto->fkConcepto." encontrado se suman en aporte voluntario $".number_format($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor'], 0,",","."));
                     $aporteVoluntario = $aporteVoluntario + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
                 }
             }
             $aporteVoluntario = $aporteVoluntario * -1;
+            array_push($arrComoCalcula[36],"Aporte voluntario = ($".number_format($aporteVoluntario, 0,",",".").")");
             if($aporteVoluntario > round($rentaLiquida * $varRetencion[20], -3)){
                 $aporteVoluntario = round($rentaLiquida * $varRetencion[20], -3);
+                array_push($arrComoCalcula[36],"Aporte voluntario supera el TOPE_MAXIMO_PORCENTAJE_APORTE_VOLUNTARIO_RETENCION(".$varRetencion[20].")");
+                array_push($arrComoCalcula[36],"Nuevo valor aporte voluntario = ($".number_format($aporteVoluntario, 0,",",".").")");
             }
             
             $AFC = 0;
             $grupoConceptoCalculo = DB::table("grupoconcepto_concepto","gcc")
                 ->where("gcc.fkGrupoConcepto", "=", "8")
                 ->get();
+            array_push($arrComoCalcula[36],"Comienza a buscar AFC segun el grupo de concepto 8");
             foreach($grupoConceptoCalculo as $grupoConcepto){
                 if(isset($arrValorxConcepto[$grupoConcepto->fkConcepto]) && $grupoConcepto->fkConcepto != 36){
                     $AFC = $AFC + floatval($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor']);
+                    array_push($arrComoCalcula[36],"Concepto #".$grupoConcepto->fkConcepto." encontrado se suman en AFC $".number_format($arrValorxConcepto[$grupoConcepto->fkConcepto]['valor'], 0,",","."));
                 }
             }
             
             $AFC = $AFC * -1;
-
+            array_push($arrComoCalcula[36],"AFC = ($".number_format($AFC, 0,",",".").")");
             if($AFC > round($rentaLiquida * $varRetencion[21], -3)){
                 $AFC = round($rentaLiquida * $varRetencion[21], -3);
+                array_push($arrComoCalcula[36],"AFC supera el TOPE_MAXIMO_PORCENTAJE_AFC_RETENCION(".$varRetencion[21].")");
+                array_push($arrComoCalcula[36],"Nuevo valor AFC = ($".number_format($AFC, 0,",",".").")");
             }
-
-
-
-
+            
             $deducciones = $interesesVivienda + $medicinaPrepagada + $dependiente + $aporteVoluntario + $AFC;
+
+            array_push($arrComoCalcula[36],"Deducciones = ($".number_format($deducciones, 0,",",".").") la suma de intereses vivienda, medicina prepagada, dependiente, aporte voluntario y AFC");
             $deduccionesSinAportes = $interesesVivienda + $medicinaPrepagada + $dependiente;
 
             $baseNeta = $rentaLiquida - $deducciones;
+            array_push($arrComoCalcula[36],"Base neta = ($".number_format($baseNeta, 0,",",".").") => renta liquida menos deducciones ");
             $baseNetaSinAportes = $rentaLiquida - $deduccionesSinAportes;
 
             $exenta = $baseNeta * $varRetencion[22];
+            array_push($arrComoCalcula[36],"Parte exenta = ($".number_format($exenta, 0,",",".").") => base Neta * (".$varRetencion[22].") PORCENTAJE_PARTE_EXENTA_RETENCION");
             $exentaSinAportes = $baseNetaSinAportes * $varRetencion[22];
 
     
             if($exenta > round($uvtActual * $varRetencion[23],-3)){
                 $exenta = round($uvtActual * $varRetencion[23], -3);
+                array_push($arrComoCalcula[36],"Parte excenta supera el TOPE_MAXIMO_PARTE_EXENTA_UVTS_RETENCION(".$varRetencion[23].")");
+                array_push($arrComoCalcula[36],"Nuevo valor Parte excenta = ($".number_format($exenta, 0,",",".").")");
             }
             if($exentaSinAportes > round($uvtActual * $varRetencion[23],-3)){
                 $exentaSinAportes = round($uvtActual * $varRetencion[23], -3);
             }
 
             $totalBeneficiosTributarios = $exenta + $deducciones;
+            array_push($arrComoCalcula[36],"Total beneficicos tributarios = ($".number_format($totalBeneficiosTributarios, 0,",",".").") => exenta + deducciones");
             $totalBeneficiosTributariosSinAportes = $exentaSinAportes + $deduccionesSinAportes;
             
             $topeBeneficios= $rentaLiquida*$varRetencion[24];
 
             if($totalBeneficiosTributarios > ($rentaLiquida*$varRetencion[24])){
                 $totalBeneficiosTributarios = $rentaLiquida*$varRetencion[24];
+                array_push($arrComoCalcula[36],"Total Beneficios Tributarios supera el TOPE_MAXIMO_BENEFICIOS_RENTA_LIQUIDA_RETENCION(".$varRetencion[24].")");
+                array_push($arrComoCalcula[36],"Nuevo Total Beneficios Tributarios = ($".number_format($totalBeneficiosTributarios, 0,",",".").")");
             }
 
             if($totalBeneficiosTributarios > round($uvtActual*$varRetencion[25],-3)){
+                
                 $totalBeneficiosTributarios = round($uvtActual*$varRetencion[25], -3);
                 $topeBeneficios= $rentaLiquida*round($uvtActual*$varRetencion[25], -3);
+                array_push($arrComoCalcula[36],"Total Beneficios Tributarios supera el TOPE_MAXIMO_BENEFICIOS_UVTS_RETENCION(".$varRetencion[25].")");
+                array_push($arrComoCalcula[36],"Nuevo Total Beneficios Tributarios = ($".number_format($totalBeneficiosTributarios, 0,",",".").")");
             }
 
             if($totalBeneficiosTributariosSinAportes > ($rentaLiquida*$varRetencion[24])){
@@ -7433,9 +7495,12 @@ class NominaController extends Controller
             }
 
             $baseGravable  = $rentaLiquida - $totalBeneficiosTributarios;
+            array_push($arrComoCalcula[36],"Base gravable = ($".number_format($baseGravable, 0,",",".").") => renta liquida - total beneficios tributarios");
+
             $baseGravableSinAportes  = $rentaLiquida - $totalBeneficiosTributariosSinAportes;
             
             $baseGravableUVTS = round($baseGravable / $uvtActual, 2);
+            array_push($arrComoCalcula[36],"Base gravable en uvts = ".$baseGravableUVTS);
             $baseGravableSinAportesUVTS = round($baseGravableSinAportes / $uvtActual, 2);
             
             $impuestoUVT = 0;
@@ -7450,38 +7515,15 @@ class NominaController extends Controller
                 }
 
                 if($baseGravableUVTS > $tablaRet->minimo && $baseGravableUVTS <= $tablaRet->maximo){
+                    array_push($arrComoCalcula[36],$tablaRet->minimo."<".$baseGravableUVTS."<=".$tablaRet->maximo." En uvts");
                     $impuestoUVT = ($baseGravableUVTS - $tablaRet->minimo)*$tablaRet->porcentaje;
+                    
                     $impuestoUVT = $impuestoUVT + $tablaRet->adicion;
+                    array_push($arrComoCalcula[36],"Impuesto en uvt = ".$impuestoUVT);
                     break;
                 }
             }
 
-
-            /*if($baseGravableUVTS > $varRetencion[26] && $baseGravableUVTS <= $varRetencion[27]){
-                $impuestoUVT = ($baseGravableUVTS - $varRetencion[26])*$varRetencion[29];
-                $impuestoUVT = $impuestoUVT + $varRetencion[28];
-            }
-            else if($baseGravableUVTS > $varRetencion[30] && $baseGravableUVTS <= $varRetencion[31]){
-                $impuestoUVT = ($baseGravableUVTS - $varRetencion[30])*$varRetencion[33];
-                $impuestoUVT = $impuestoUVT + $varRetencion[32];
-            }
-            else if($baseGravableUVTS > $varRetencion[34] && $baseGravableUVTS <= $varRetencion[35]){
-                $impuestoUVT = ($baseGravableUVTS - $varRetencion[34])*$varRetencion[37];
-                $impuestoUVT = $impuestoUVT + $varRetencion[36];
-            }
-            else if($baseGravableUVTS > $varRetencion[38] && $baseGravableUVTS <= $varRetencion[39]){
-                $impuestoUVT = ($baseGravableUVTS - $varRetencion[38])*$varRetencion[41];
-                $impuestoUVT = $impuestoUVT + $varRetencion[40];
-            }
-            else if($baseGravableUVTS > $varRetencion[42] && $baseGravableUVTS <= $varRetencion[43]){
-                $impuestoUVT = ($baseGravableUVTS - $varRetencion[42])*$varRetencion[45];
-                $impuestoUVT = $impuestoUVT + $varRetencion[44];
-            }
-            else if($baseGravableUVTS > $varRetencion[46]){
-                $impuestoUVT = ($baseGravableUVTS - $varRetencion[46])*$varRetencion[48];
-                $impuestoUVT = $impuestoUVT + $varRetencion[47];
-            }*/
-            
             $impuestoSinAportesUVT = 0;
             foreach($tablaRete as $tablaRet){
                 if(!isset($tablaRet->minimo)){
@@ -7499,33 +7541,8 @@ class NominaController extends Controller
                 }
             }
 
-            /*
-            if($baseGravableSinAportesUVTS > $varRetencion[26] && $baseGravableSinAportesUVTS <= $varRetencion[27]){
-                $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[26])*$varRetencion[29];
-                $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[28];
-            }
-            else if($baseGravableSinAportesUVTS > $varRetencion[30] && $baseGravableSinAportesUVTS <= $varRetencion[31]){
-                $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[30])*$varRetencion[33];
-                $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[32];
-            }
-            else if($baseGravableSinAportesUVTS > $varRetencion[34] && $baseGravableSinAportesUVTS <= $varRetencion[35]){
-                $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[34])*$varRetencion[37];
-                $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[36];
-            }
-            else if($baseGravableSinAportesUVTS > $varRetencion[38] && $baseGravableSinAportesUVTS <= $varRetencion[39]){
-                $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[38])*$varRetencion[41];
-                $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[40];
-            }
-            else if($baseGravableSinAportesUVTS > $varRetencion[42] && $baseGravableSinAportesUVTS <= $varRetencion[43]){
-                $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[42])*$varRetencion[45];
-                $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[44];
-            }
-            else if($baseGravableSinAportesUVTS > $varRetencion[46]){
-                $impuestoSinAportesUVT = ($baseGravableSinAportesUVTS - $varRetencion[46])*$varRetencion[48];
-                $impuestoSinAportesUVT = $impuestoSinAportesUVT + $varRetencion[47];
-            }*/
-
             $impuestoValor = round($impuestoUVT * $uvtActual, -3);
+            array_push($arrComoCalcula[36],"Se multiplica el impuesto en uvts por valor de uvt actual = ".$impuestoValor);
             $impuestoValorSinAportes = round($impuestoSinAportesUVT * $uvtActual, -3);
             $valorInt = $impuestoValor;
             if($impuestoValor>0){
@@ -10428,55 +10445,91 @@ class NominaController extends Controller
                             $salarioMes = $conceptoFijoEmpl->valor; 
                         }
                     }
-
+                    $arrComoCalcula[27] = ($arrComoCalcula[27] ?? array());
+                    $arrComoCalcula[26] = ($arrComoCalcula[26] ?? array());
+                    
                     $variables = DB::table("variable")->where("idVariable","=","1")->first();
                     $valorSalarioMinimo = $variables->valor;
                     $diasIndemnizacion = 0;
 
                     $codigoIndem = 0;
                     $valorDia = $salarioMes / 30;
+                    
+
+
                     if($salarioMes < (10 * $valorSalarioMinimo)){
                         $diasIndemnizacion = 30;
+                        
+                        array_push($arrComoCalcula[27], "Se calcula el salario de un dia ".number_format($salarioMes,0,",",".")." / 30 = ".number_format($valorDia,0,",","."));
+                        array_push($arrComoCalcula[27], "Salario menor a 10 SLMV");
+                        array_push($arrComoCalcula[27], "Se toman ".$diasIndemnizacion." dias de indemnizacion");
                         $periodoAnios = $periodoAnios - 1;
                         if($periodoAnios > 0){
+                            array_push($arrComoCalcula[27], "Se suman a los dias de indemnizacion (20 * ".round($periodoAnios,2).") dias");
                             $diasIndemnizacion = $diasIndemnizacion + (20 * $periodoAnios);
+                            array_push($arrComoCalcula[27], "Un total de ".round($diasIndemnizacion,2)." dias de indemnizacion");
                         }                        
                         $codigoIndem = 27;
-                        $arrComoCalcula[27] = ($arrComoCalcula[27] ?? array());
-                        array_push($arrComoCalcula[27], "Valor día ".$valorDia." por ".$diasIndemnizacion." dias");
+                        array_push($arrComoCalcula[27], "Se multiplica el Valor día (".number_format($valorDia,0,",",".").") por ".round($diasIndemnizacion,2)." dias");
                     }
                     else{
                         $diasIndemnizacion = 20;
                         $periodoAnios = $periodoAnios - 1;
 
+                        array_push($arrComoCalcula[26], "Se calcula el salario de un dia ".number_format($salarioMes,0,",",".")." / 30 = ".number_format($valorDia,0,",","."));
+                        array_push($arrComoCalcula[26], "Salario mayor a 10 SLMV");
+                        array_push($arrComoCalcula[26], "Se toman ".$diasIndemnizacion." dias de indemnizacion");
+
                         if($periodoAnios > 0){
+                            array_push($arrComoCalcula[26], "Se suman a los dias de indemnizacion (15 * ".$periodoAnios.") dias");
                             $diasIndemnizacion = $diasIndemnizacion + (15 * $periodoAnios);
+                            array_push($arrComoCalcula[26], "Un total de ".$diasIndemnizacion." dias de indemnizacion");
                         }
                         $codigoIndem = 26;
-                        $arrComoCalcula[27] = ($arrComoCalcula[27] ?? array());
-                        array_push($arrComoCalcula[27], "Valor día ".$valorDia." por ".$diasIndemnizacion." dias");
+                        array_push($arrComoCalcula[26], "Se multiplica el Valor día (".number_format($valorDia,0,",",".").") por ".$diasIndemnizacion." dias");
                     }
 
 
                    
                     $indemnizacion = $valorDia * $diasIndemnizacion;
-
+                    array_push($arrComoCalcula[$codigoIndem], "Finalmente se tiene que la indemnizacion es = $".number_format($indemnizacion,0,",",".")."");
                     
 
                     if($indemnizacion > 0){
                         
+                        if(isset($arrValorxConcepto[$codigoIndem] )){
 
-                        $arrValorxConcepto[$codigoIndem] = array(
-                            "naturaleza" => "1",
-                            "unidad" => "DÍA",
-                            "cantidad"=> $diasIndemnizacion,
-                            "arrNovedades"=> array([
+                            $arrNovedades = $arrValorxConcepto[$codigoIndem]['arrNovedades'];
+                            array_push($arrNovedades, [
                                 "idNovedad" => $novedadesRetiro->idNovedad,
                                 "valor" => $indemnizacion
-                            ]),
-                            "valor" => $indemnizacion,
-                            "tipoGen" => "automaticos"
-                        );     
+                            ]);
+                            array_push($arrComoCalcula[$codigoIndem], "Se suma con valores anteriores resultando en $".number_format(($arrValorxConcepto[$codigoIndem]['valor'] + $indemnizacion),0,",",".")."");
+                            $indemnizacion = ($arrValorxConcepto[$codigoIndem]['valor'] + $indemnizacion);
+                            $arrValorxConcepto[$codigoIndem] = array(
+                                "naturaleza" => "1",
+                                "unidad" => "DÍA",
+                                "cantidad"=> $diasIndemnizacion,
+                                "arrNovedades"=> $arrNovedades,
+                                "valor" => $indemnizacion,
+                                "tipoGen" => "automaticos"
+                            );     
+                        }
+                        else{
+                            $arrValorxConcepto[$codigoIndem] = array(
+                                "naturaleza" => "1",
+                                "unidad" => "DÍA",
+                                "cantidad"=> $diasIndemnizacion,
+                                "arrNovedades"=> array([
+                                    "idNovedad" => $novedadesRetiro->idNovedad,
+                                    "valor" => $indemnizacion
+                                ]),
+                                "valor" => $indemnizacion,
+                                "tipoGen" => "automaticos"
+                            );     
+                        }
+                        
+
 
             
                         $variablesRetInd = DB::table("variable")->whereIn("idVariable",["10","62","63","64","65"])->get();
@@ -10488,6 +10541,9 @@ class NominaController extends Controller
                         $uvtActual = $variablesRetInde[10];
                         $salarioUvts = $salarioMes/ $uvtActual;
                         if($salarioUvts > $variablesRetInde[62]){
+                            array_push($arrComoCalcula[76], "Salario en uvts ".$salarioUvts." es mayor al configurado (".$variablesRetInde[62].") por lo tanto aplica retención");
+                            $arrComoCalcula[76] = ($arrComoCalcula[76] ?? array());
+
                             $variablesRetencion = DB::table("variable")
                                 ->where("idVariable",">=","16")
                                 ->where("idVariable","<=","48")
@@ -10497,6 +10553,7 @@ class NominaController extends Controller
                                 $varRetencion[$variablesRetencio->idVariable] = $variablesRetencio->valor;
                             }
                             $ingreso = $indemnizacion; 
+                            array_push($arrComoCalcula[76], "Se toma como ingreso $".number_format(($indemnizacion),0,",",".")."");
                             $FPS = 0;
                             $EPS = 0;
                             $AFP = 0;
@@ -10518,7 +10575,8 @@ class NominaController extends Controller
                             $baseNetaSinAportes = $rentaLiquida - $deduccionesSinAportes;
                 
                             $exenta = $baseNeta * $variablesRetInde[63];
-
+                            array_push($arrComoCalcula[76], "Se toma como base $".number_format(($baseNeta),0,",",".")."");
+                            array_push($arrComoCalcula[76], "Se calcula la parte exenta como base * ".$variablesRetInde[63]." (variable)");
 
                             $exentaSinAportes = $baseNetaSinAportes * $variablesRetInde[63];
                 
@@ -10529,9 +10587,10 @@ class NominaController extends Controller
                             
                 
                             $topeBeneficios= $rentaLiquida*$varRetencion[24];
-                
+                            
                             if($totalBeneficiosTributarios > ($rentaLiquida*$varRetencion[24])){
                                 $totalBeneficiosTributarios = $rentaLiquida*$varRetencion[24];
+                                
                             }
                 
                 
@@ -10557,6 +10616,8 @@ class NominaController extends Controller
                             $baseGravableSinAportesUVTS = round($baseGravableSinAportes / $uvtActual, 2);
                             
                             $impuestoValor = round($baseGravable * $variablesRetInde[65], -3);
+                            array_push($arrComoCalcula[76], "Se calcula el valor del impuesto como Base(".$baseGravable.") * ".$variablesRetInde[65]." (variable - 65)");
+                            array_push($arrComoCalcula[76], "Se obtiene $ ".number_format($impuestoValor, 0,",","."));
                             $impuestoValorSinAportes = round($baseGravableSinAportes * $variablesRetInde[65], -3);
                 
                 
@@ -11106,7 +11167,7 @@ class NominaController extends Controller
                     }                   
                     
                 }
-                //dd($arrValorxConcepto);
+           
                 if($novedadesRetiro->fechaReal == $fechaFin){
                     /*$grupoConceptoIBCOtros = DB::table("grupoconcepto_concepto","gcc")
                     ->where("gcc.fkGrupoConcepto", "=", '46')//19->IBC Otros
@@ -11119,11 +11180,15 @@ class NominaController extends Controller
                 }
                 else{
                     //Retiro de mes anterior
-                    if((isset($arrValorxConcepto[1]["valor"]) && $arrValorxConcepto[1]["valor"]==0) || (isset($arrValorxConcepto[2]["valor"]) && $arrValorxConcepto[2]["valor"]==0)){
-                        $arrValorxConcepto[18]["valor"]=0;
-                        $arrValorxConcepto[19]["valor"]=0;
-                        
+                    $inicioMesActual = date("Y-m-01",strtotime($fechaFin));
+                    if(strtotime($novedadesRetiro->fechaReal) < strtotime($inicioMesActual)){
+                        if((isset($arrValorxConcepto[1]["valor"]) && $arrValorxConcepto[1]["valor"]==0) || (isset($arrValorxConcepto[2]["valor"]) && $arrValorxConcepto[2]["valor"]==0)){
+                            $arrValorxConcepto[18]["valor"]=0;
+                            $arrValorxConcepto[19]["valor"]=0;
+                            
+                        }
                     }
+                    
                 }
                
                 

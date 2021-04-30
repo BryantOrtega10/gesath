@@ -58,7 +58,7 @@
                 <div class="col-2 font-weight-bold">{{$empleado->numeroIdentificacion}}</div>
                 <div class="col-1 font-weight-bold"><a href="#" class="quitarEmpleadoNomina" data-id="{{$empleado->idempleado}}"><i class="fas fa-trash"></i></a></div>
 
-                @if ($empleado->fkTipoCotizante=="51" && $tipoNomina!=3 && $tipoNomina!=7 && $tipoNomina!=10 && $tipoNomina!=11)
+                @if ($empleado->fkTipoCotizante=="51" && $tipoNomina!=7 && $tipoNomina!=10 && $tipoNomina!=11)
                     <div class="col-7"></div>    
                     <div class="col-2">
                         <div class="form-group">

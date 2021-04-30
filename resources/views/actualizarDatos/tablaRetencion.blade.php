@@ -80,6 +80,13 @@
                     $('#reteModal').modal('show');
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -114,6 +121,13 @@
                         }
                     },
                     error: function(data) {
+                        $("#cargando").css("display", "none");
+                        retornarAlerta(
+                            data.responseJSON.exception,
+                            data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                            'error',
+                            'Aceptar'
+                        );
                         console.log("error");
                         console.log(data);
                     }
@@ -134,6 +148,13 @@
                     $('#reteModal').modal('show');
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -176,7 +197,15 @@
                     if (error.error_code === 'VALIDATION_ERROR') {
                         mostrarErrores(error.errors);
                     } else {
+                        $("#cargando").css("display", "none");
+                        retornarAlerta(
+                            data.responseJSON.exception,
+                            data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                            'error',
+                            'Aceptar'
+                        );
                         console.log("error");
+                        console.log(data);
                     }
                 }
             });

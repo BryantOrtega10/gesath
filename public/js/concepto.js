@@ -36,6 +36,13 @@ $(document).ready(function() {
                 $('#conceptoModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -61,6 +68,13 @@ $(document).ready(function() {
                     $('#formulaConceptoModal').modal('show');
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -84,6 +98,13 @@ $(document).ready(function() {
                     $('#formulaConceptoModal').modal('show');
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -104,6 +125,13 @@ $(document).ready(function() {
                 $('#formulaConceptoModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -163,6 +191,13 @@ $(document).ready(function() {
                 $('.respMasOperaciones').append(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -182,6 +217,13 @@ $(document).ready(function() {
                 $('#conceptoModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -214,6 +256,13 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -243,6 +292,13 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }

@@ -90,6 +90,11 @@
         </div>
         @endif
     </div>  
+    <div class="row">
+        <div class="col-3 text-center"><br>
+            <a href="/nomina/unirSSyContabilidad/{{$liquidaciones->idLiquidacionNomina}}" class="btnSubmitGen btnAzulGen unir">Unir contabilidad y SS</a><br>
+        </div>
+    </div>
     <br>
     <form autocomplete="off" action="{{ Request::url() }}" method="GET" id="filtrarEmpleado" class="formGeneral">
         <div class="row">

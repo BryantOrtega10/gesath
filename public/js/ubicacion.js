@@ -32,6 +32,12 @@ $(document).ready(function() {
                     $("#ciudad").html(data.opciones);
                 },
                 error: function(data) {
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -51,6 +57,12 @@ $(document).ready(function() {
                     $("#depto").html(data.opciones);
                 },
                 error: function(data) {
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -70,6 +82,12 @@ $(document).ready(function() {
                     $(".resTipoUbicacion").html(data.html);
                 },
                 error: function(data) {
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -94,6 +112,13 @@ $(document).ready(function() {
                 $('#ubicacionModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -115,6 +140,13 @@ $(document).ready(function() {
                 $('#ubicacionModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -145,6 +177,13 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }

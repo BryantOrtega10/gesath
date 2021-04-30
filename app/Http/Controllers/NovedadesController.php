@@ -2437,7 +2437,7 @@ class NovedadesController extends Controller
         ->join("tiponovedad as tn", "tn.idtipoNovedad", "=", "n.fkTipoNovedad")
         ->join("empleado as e", "e.idempleado", "=", "n.fkEmpleado")
         ->join("datospersonales as dp", "dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-        ->join("concepto as c","c.idconcepto", "=", "n.fkConcepto")
+        ->join("concepto as c","c.idconcepto", "=", "n.fkConcepto","left")
         ->where("idNovedad","=", $idNovedad)->first();
         
         
@@ -2445,10 +2445,14 @@ class NovedadesController extends Controller
 
         $conceptos = DB::table("concepto", "c")
         ->select(["c.*"])
-        ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto")
-        ->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad)->get();
+        ->join("tiponovconceptotipoent AS tnc", "tnc.fkConcepto", "=", "c.idconcepto");
+        if(isset( $novedad->fkTipoNovedad)){
+            $conceptos =  $conceptos->where("tnc.fkTipoNovedad", "=", $novedad->fkTipoNovedad);
+        }
+        $conceptos =  $conceptos->get();
+        
 
-
+        
         $dataUsu = UsuarioController::dataAdminLogueado();
         if(isset($novedad->fkAusencia)){
             $ausencia = DB::table('ausencia')->where("idAusencia","=", $novedad->fkAusencia)->first();
@@ -2510,6 +2514,7 @@ class NovedadesController extends Controller
         else if(isset($novedad->fkRetiro)){
             $retiro = DB::table('retiro')->where("idRetiro","=", $novedad->fkRetiro)->first();
             $motivosRetiro = DB::table("motivo_retiro", "m")->orderBy("nombre")->get();
+            
             return view('/novedades.ver.retiro',[
                 'novedad' => $novedad,
                 'retiro' => $retiro,

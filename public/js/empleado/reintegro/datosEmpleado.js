@@ -154,6 +154,13 @@ $(document).ready(function() {
                     }
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -212,6 +219,13 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -235,6 +249,13 @@ $(document).ready(function() {
                     $("#deptoExpedicion").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -258,6 +279,13 @@ $(document).ready(function() {
                     $("#lugarExpedicion").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -282,6 +310,13 @@ $(document).ready(function() {
                     $("#deptoNacimiento").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -305,6 +340,13 @@ $(document).ready(function() {
                     $("#lugarNacimiento").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -328,6 +370,13 @@ $(document).ready(function() {
                     $("#deptoResidencia").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -351,6 +400,13 @@ $(document).ready(function() {
                     $("#lugarResidencia").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -376,6 +432,13 @@ $(document).ready(function() {
                     $(".deptoEmergencia[data-id='" + dataid + "']").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -400,6 +463,13 @@ $(document).ready(function() {
                     $(".lugarEmergencia[data-id='" + dataid + "']").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -426,6 +496,13 @@ $(document).ready(function() {
                     $(".deptoUpc[data-id='" + dataid + "']").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -450,6 +527,13 @@ $(document).ready(function() {
                     $(".lugarUpc[data-id='" + dataid + "']").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -470,6 +554,13 @@ $(document).ready(function() {
                 $(".upcAdicionalCont").append(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -490,6 +581,13 @@ $(document).ready(function() {
                 $(".personaViveCont").append(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -518,6 +616,13 @@ $(document).ready(function() {
                 $(".emergenciaCont").append(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }

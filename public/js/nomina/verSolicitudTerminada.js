@@ -11,7 +11,35 @@ $(document).ready(function() {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
-
+    $("body").on("click", ".unir", function(e) {
+        e.preventDefault();
+        cargando();
+        $.ajax({
+            type: 'GET',
+            url: $(this).attr("href"),
+            cache: false,
+            success: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    "Hecho!",
+                    "",
+                    'success',
+                    'Aceptar'
+                );
+            },
+            error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
+                console.log("error");
+                console.log(data);
+            }
+        });
+    });
     $("body").on("click", ".verDetalle", function(e) {
         e.preventDefault();
         cargando();
@@ -29,6 +57,13 @@ $(document).ready(function() {
                 $(".verDetalle[data-id=" + dataid + "]").removeClass("verDetalle");
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -56,6 +91,13 @@ $(document).ready(function() {
                 $('#comoCalculoModal').modal('show');
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -89,6 +131,13 @@ $(document).ready(function() {
 
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -127,6 +176,13 @@ $(document).ready(function() {
 
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -157,6 +213,13 @@ $(document).ready(function() {
 
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -195,6 +258,13 @@ $(document).ready(function() {
                     }
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -226,6 +296,13 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -255,6 +332,13 @@ $(document).ready(function() {
 
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }

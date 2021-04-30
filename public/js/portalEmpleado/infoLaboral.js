@@ -110,6 +110,13 @@ $(document).ready(() => {
                 $(".respForm[data-para='portalEmple']").html(data);
                 $('#portalEmpleModal').modal('show');
             }, (err) => {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    err.responseJSON.exception,
+                    err.responseJSON.message + ", en la linea: " + err.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(err);
             }
@@ -143,7 +150,15 @@ $(document).ready(() => {
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
                 } else {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        err.responseJSON.exception,
+                        err.responseJSON.message + ", en la linea: " + err.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
+                    console.log(err);
                 }
             }
         );

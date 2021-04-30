@@ -349,9 +349,18 @@ class CatalogoContableController extends Controller
 
 
         $cuentas = DB::table("catalgocontable")
-        ->where("fkEmpresa","=",$fkEmpresa)
-        ->where("fkCentroCosto","=",$fkCentroCosto)
-        ->get();
+        ->where("fkEmpresa","=",$fkEmpresa);
+        if(isset($fkCentroCosto)){
+            $cuentas = $cuentas->where(function($query) use($fkCentroCosto){
+                $query->where("fkCentroCosto","=",$fkCentroCosto)
+                ->orWhereNull("fkCentroCosto");
+            });
+        }
+        else{
+            $cuentas = $cuentas->whereNull("fkCentroCosto");
+        }
+        
+        $cuentas = $cuentas->get();
 
         $html="";
         foreach($cuentas as $cuenta){

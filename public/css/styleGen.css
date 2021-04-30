@@ -1616,3 +1616,7 @@ td.provCont a {
     display: inline-block;
     width: 24%;
 }
+
+a.version {
+    color: #FFF;
+}

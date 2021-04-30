@@ -33,7 +33,14 @@ $("body").on("submit", "#iniciarSesion", function(e) {
             if (error.error_code === 'VALIDATION_ERROR') {
                 mostrarErrores(error.errors);
             } else {
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
+                console.log(data);
             }
         }
     });

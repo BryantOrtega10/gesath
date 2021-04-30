@@ -16,41 +16,6 @@
 			<option value="">Todos</option>
 		</select>
 	</div>
-
-    <div class="form-group">
-		<label for="cuentaCred" class="control-label">Cuenta Credito *</label>
-		<select class="form-control" id="cuentaCred" name="cuentaCred">
-			<option value="nueva">Nueva</option>
-		</select>
-	</div>
-	<div class="cuentaCreditoNueva activo">
-		<div class="form-group">
-			<label for="cuentaCred2" class="control-label">Cuenta credito *</label>
-			<input type="text" class="form-control" id="cuentaCred2" name="cuentaCred2" />
-		</div>	
-		<div class="form-group">
-			<label for="descripcionCred" class="control-label">Descripcion cuenta credito *</label>
-			<input type="text" class="form-control" id="descripcionCred" name="descripcionCred" />
-		</div>	
-		<div class="form-group">
-			<label for="fkTipoTerceroCred" class="control-label">Tipo tercero credito*</label>
-			<select class="form-control" id="fkTipoTerceroCred"  name="fkTipoTerceroCred">
-				<option value="">Seleccione uno</option>
-				@foreach($tipoTerceroCuenta as $tipoCuenta)
-					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}">{{$tipoCuenta->nombre}}</option>
-				@endforeach
-			</select>
-		</div>
-		<div class="form-group elementoTerceroCred">
-			<label for="fkTerceroCred" class="control-label">Tercero credito*</label>
-			<select class="form-control" id="fkTerceroCred" name="fkTerceroCred">
-				<option value="">Seleccione uno</option>
-				@foreach($terceros as $tercero)
-					<option value="{{$tercero->idTercero}}">{{$tercero->razonSocial}}</option>
-				@endforeach
-			</select>
-		</div>		
-	</div>
 	<div class="form-group">
 		<label for="cuentaDeb" class="control-label">Cuenta Debito *</label>
 		<select class="form-control" id="cuentaDeb" name="cuentaDeb">
@@ -78,6 +43,40 @@
 		<div class="form-group elementoTerceroDeb">
 			<label for="fkTerceroDeb" class="control-label">Tercero debito*</label>
 			<select class="form-control" id="fkTerceroDeb" name="fkTerceroDeb">
+				<option value="">Seleccione uno</option>
+				@foreach($terceros as $tercero)
+					<option value="{{$tercero->idTercero}}">{{$tercero->razonSocial}}</option>
+				@endforeach
+			</select>
+		</div>		
+	</div>
+	<div class="form-group">
+		<label for="cuentaCred" class="control-label">Cuenta Credito *</label>
+		<select class="form-control" id="cuentaCred" name="cuentaCred">
+			<option value="nueva">Nueva</option>
+		</select>
+	</div>
+	<div class="cuentaCreditoNueva activo">
+		<div class="form-group">
+			<label for="cuentaCred2" class="control-label">Cuenta credito *</label>
+			<input type="text" class="form-control" id="cuentaCred2" name="cuentaCred2" />
+		</div>	
+		<div class="form-group">
+			<label for="descripcionCred" class="control-label">Descripcion cuenta credito *</label>
+			<input type="text" class="form-control" id="descripcionCred" name="descripcionCred" />
+		</div>	
+		<div class="form-group">
+			<label for="fkTipoTerceroCred" class="control-label">Tipo tercero credito*</label>
+			<select class="form-control" id="fkTipoTerceroCred"  name="fkTipoTerceroCred">
+				<option value="">Seleccione uno</option>
+				@foreach($tipoTerceroCuenta as $tipoCuenta)
+					<option value="{{$tipoCuenta->idTipoTerceroCuenta}}">{{$tipoCuenta->nombre}}</option>
+				@endforeach
+			</select>
+		</div>
+		<div class="form-group elementoTerceroCred">
+			<label for="fkTerceroCred" class="control-label">Tercero credito*</label>
+			<select class="form-control" id="fkTerceroCred" name="fkTerceroCred">
 				<option value="">Seleccione uno</option>
 				@foreach($terceros as $tercero)
 					<option value="{{$tercero->idTercero}}">{{$tercero->razonSocial}}</option>

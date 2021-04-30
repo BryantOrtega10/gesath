@@ -56,6 +56,12 @@ $(document).ready(() => {
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
                 } else {
+                    retornarAlerta(
+                        err.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + err.responseJSON.line,
+                        'err',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(err);
                 }

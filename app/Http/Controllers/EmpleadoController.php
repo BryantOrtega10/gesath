@@ -536,7 +536,6 @@ class EmpleadoController extends Controller
 
         $contratoActivo = DB::table('contrato')
         ->where("fkEmpleado","=",$idEmpleado)
-        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
         ->whereIn("fkEstado",array("1","4"))
         ->first();
 
@@ -882,7 +881,6 @@ class EmpleadoController extends Controller
 
         $contratoActivo = DB::table('contrato')
         ->where("fkEmpleado","=",$idEmpleado)
-        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
         ->whereIn("fkEstado",array("1","4"))
         ->first();
 
@@ -1271,7 +1269,10 @@ class EmpleadoController extends Controller
             "fechaInicio" => $req->infoFechaIngreso,
             "fkNomina" => $req->infoNomina
         ]);
-
+        
+        $periodoAct = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
         $affected = DB::table('empleado')
               ->where('idempleado', $req->idEmpleado)
               ->update($updateEmpleado);
@@ -1280,6 +1281,7 @@ class EmpleadoController extends Controller
             "fechaFin" => $req->infoFechaFin, 
             "fkEstado" => "4", 
             "fkTipoContrato" => $req->infoTipoContrato, 
+            "fkPeriodoActivo" => $periodoAct->idPeriodo, 
             "tipoDuracionContrato" => $req->infoTipoDuracionContrato, 
             "fkEmpleado" => $req->idEmpleado
         );

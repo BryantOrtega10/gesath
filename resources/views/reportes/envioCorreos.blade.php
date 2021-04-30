@@ -136,6 +136,13 @@ $(document).ready(function(){
                     $("#centroCosto").html(data.opcionesCentroCosto);
                 },
                 error: function(data){
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -154,6 +161,13 @@ $(document).ready(function(){
 				$('#busquedaEmpleadoModal').modal('show');
             },
             error: function(data){
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -173,6 +187,13 @@ $(document).ready(function(){
 				$('#busquedaEmpleadoModal').modal('show');
             },
             error: function(data){
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -192,6 +213,13 @@ $(document).ready(function(){
 				$(".resFormBusEmpleado").html(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -209,6 +237,13 @@ $(document).ready(function(){
 				$(".resFormBusEmpleado").html(data);
             },
             error: function(data){
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }

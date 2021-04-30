@@ -10,7 +10,7 @@ $(document).ready(function() {
 
 
     var camposOpciones = {
-        opcionales: ["infoOtroDocumento", "password","infoOtroTIdentificacion"],
+        opcionales: ["infoOtroDocumento", "password", "infoOtroTIdentificacion"],
         opcionalesAVeces: [{
                 camposQueSonOb: ["infoTipoContratoN", "infoTipoDuracionContratoN", "infoDuracionContratoN", "infoFechaFinN"],
                 camposCambia: [{ campo: "infoTipoContratoN", valorCambia: [""] }],
@@ -181,6 +181,13 @@ $(document).ready(function() {
                     });
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -219,6 +226,13 @@ $(document).ready(function() {
 
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }
@@ -277,6 +291,13 @@ $(document).ready(function() {
 
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -302,6 +323,13 @@ $(document).ready(function() {
                     $("#infoDeptoLabora").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -325,6 +353,13 @@ $(document).ready(function() {
                     $("#infoLugarLabora").html(data.opciones);
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
                     console.log("error");
                     console.log(data);
                 }
@@ -467,6 +502,13 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
                 console.log("error");
                 console.log(data);
             }

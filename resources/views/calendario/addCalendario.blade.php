@@ -76,7 +76,15 @@
 					if (error.error_code === 'VALIDATION_ERROR') {
 						mostrarErrores(error.errors);
 					} else {
-						console.log("error");
+						$("#cargando").css("display", "none");
+                        retornarAlerta(
+                            data.responseJSON.exception,
+                            data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                            'error',
+                            'Aceptar'
+                        );
+                        console.log("error");
+                        console.log(data);
 					}
 				}
 			});
