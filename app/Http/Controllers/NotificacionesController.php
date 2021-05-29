@@ -39,9 +39,15 @@ class NotificacionesController extends Controller
         if($filtroVisto){
             $notificaciones = $notificaciones->where("n.visto","=","0");
         }
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){
+            $notificaciones = $notificaciones->whereIn("e.fkEmpresa", $dataUsu->empresaUsuario);
+        }
         
         $notificaciones = $notificaciones->orderBy("n.fecha","desc")->paginate();
-        $dataUsu = UsuarioController::dataAdminLogueado();
+        
+
+
         return view('notificacion.index', [
             "notificaciones" => $notificaciones,
             "req" => $req,

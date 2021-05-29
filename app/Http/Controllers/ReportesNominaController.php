@@ -18,8 +18,8 @@ use Exception;
 
 class ReportesNominaController extends Controller
 {
-    private $rutaBaseImagenes = "/home/mercando/public_html/gesathWeb/public/"; 
-    //private $rutaBaseImagenes = "G:/Trabajo/Gesath/web/gesathWeb/public/"; 
+    //private $rutaBaseImagenes = "/home/soft2/public_html/"; 
+    private $rutaBaseImagenes = "G:/Trabajo/Gesath/Mayo/20/app/public_html/"; 
     
 
     public function reporteNominaHorizontalIndex(){
@@ -8632,21 +8632,25 @@ class ReportesNominaController extends Controller
             ->join('etnia','etnia.idEtnia', '=', 'dp.fkEtnia',"left")
             ->leftJoin('afiliacion as afPension', function ($join) {
                 $join->on('afPension.fkEmpleado', '=', 'e.idempleado')
+                    ->on('afPension.fkPeriodoActivo', '=', 'ultimo_p.max_id')
                     ->where('afPension.fkTipoAfilicacion', '=', 4);
             })
             ->join('tercero AS terceroPension','terceroPension.idTercero', '=', 'afPension.fkTercero',"left")
             ->leftJoin('afiliacion as afSalud', function ($join) {
                 $join->on('afSalud.fkEmpleado', '=', 'e.idempleado')
+                    ->on('afSalud.fkPeriodoActivo', '=', 'ultimo_p.max_id')
                     ->where('afSalud.fkTipoAfilicacion', '=', 3);
             })
             ->join('tercero AS terceroSalud','terceroSalud.idTercero', '=', 'afSalud.fkTercero',"left")
             ->leftJoin('afiliacion as afCCF', function ($join) {
                 $join->on('afCCF.fkEmpleado', '=', 'e.idempleado')
+                    ->on('afCCF.fkPeriodoActivo', '=', 'ultimo_p.max_id')
                     ->where('afCCF.fkTipoAfilicacion', '=', 2);
             })
             ->join('tercero AS terceroCCF','terceroCCF.idTercero', '=', 'afCCF.fkTercero',"left")
             ->leftJoin('afiliacion as afCes', function ($join) {
                 $join->on('afCes.fkEmpleado', '=', 'e.idempleado')
+                    ->on('afCes.fkPeriodoActivo', '=', 'ultimo_p.max_id')
                     ->where('afCes.fkTipoAfilicacion', '=', 1);
             })
             ->join('tercero AS terceroCes','terceroCes.idTercero', '=', 'afCes.fkTercero',"left")
@@ -8670,7 +8674,7 @@ class ReportesNominaController extends Controller
             ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro","left");
             $dataUsu = UsuarioController::dataAdminLogueado();
 
-            if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            if(isset($dataUsu) && $dataUsu->fkRol == 2){
                 $consulta = $consulta->whereIn("e.fkEmpresa", $dataUsu->empresaUsuario);
             }
 

@@ -18,6 +18,7 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/vnd.microsoft.icon" href="{{URL::asset('img/favicon.ico')}}">
 </head>
 <body>
     <div id="app">

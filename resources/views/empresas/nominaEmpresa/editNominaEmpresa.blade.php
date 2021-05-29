@@ -10,7 +10,14 @@
     </div>
     <div class="form-group">
         <label for="periodo">Periodo</label>
-        <input value = "{{ $nominaEmpresa->periodo }}" type="text" class="form-control" id="periodo" name = "periodo">
+        <input value = "{{ $nominaEmpresa->periodo }}" type="text" class="form-control" id="periodo" name = "periodo" readonly>
+    </div>
+    <div class="form-group">
+        <label for="dias_cesantias">Dias cesantias</label>
+        <select class="form-control" id="dias_cesantias" name = "dias_cesantias">
+            <option value="30" @if ($nominaEmpresa->diasCesantias == "30") selected @endif>30 </option>
+            <option value="36" @if ($nominaEmpresa->diasCesantias == "36") selected @endif>36 </option>
+        </select>        
     </div>
     <div class="form-group">
         <label for="id_uni_nomina">ID Único Nómina</label>

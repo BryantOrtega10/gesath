@@ -32,6 +32,7 @@ class NominaEmpresaController extends Controller
         $nominaEmpresa->tipoPeriodo = $request->tipoPeriodo;
         $nominaEmpresa->periodo = $request->periodo;
         $nominaEmpresa->fkEmpresa = $request->fkEmpresa;
+        $nominaEmpresa->diasCesantias = $request->dias_cesantias;
         $nominaEmpresa->id_uni_nomina = $request->id_uni_nomina;
         $save = $nominaEmpresa->save();
         if ($save) {
@@ -76,6 +77,7 @@ class NominaEmpresaController extends Controller
             $nominaEmpresa->nombre = $request->nombre;
             $nominaEmpresa->tipoPeriodo = $request->tipoPeriodo;
             $nominaEmpresa->periodo = $request->periodo;
+            $nominaEmpresa->diasCesantias = $request->dias_cesantias;
             $nominaEmpresa->fkEmpresa = $request->fkEmpresa;
             $nominaEmpresa->id_uni_nomina = $request->id_uni_nomina;
             $save = $nominaEmpresa->save();

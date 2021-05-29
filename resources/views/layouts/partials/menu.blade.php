@@ -64,21 +64,6 @@
                 </li>
             @endif
         @endforeach
-        @if(isset($dataUsu) && $dataUsu->fkRol == 3)
-            <li class="{{ Request::is('usuarios') ? 'active' : '' }}">
-                <a href="/usuarios" >
-                    <img src="{{ URL::asset('img/menu/usuarios.png') }}" />
-                    <span class="textoMenu">Usuarios</span>
-                </a>
-                <ul class="subMenu">
-                    <li>
-                        <a href="/usuarios" >
-                            <span class="textoMenu">Lista usuarios</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        @endif
         <li class="cerrar_sesion">
             <a href="/logout" >
                 <i class="fas fa-sign-out-alt"></i>

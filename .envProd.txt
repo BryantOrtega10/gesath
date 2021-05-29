@@ -1,7 +1,7 @@
 APP_NAME=Laravel
 APP_ENV=local
 APP_KEY=base64:qJB2GOPbU/acZVx42cZCNMVOuURhTjW7G7KGnVd+rY0=
-APP_DEBUG=true
+APP_DEBUG=false
 APP_URL=http://localhost
 
 LOG_CHANNEL=stack
@@ -9,16 +9,9 @@ LOG_CHANNEL=stack
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=xtspamqf_gesath
-DB_USERNAME=xtspamqf_gesath
-DB_PASSWORD=5zE,JW1*,Os@
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=mercando_gesath
-DB_USERNAME=mercando_gesath
-DB_PASSWORD=5zE,JW1*,Os@
+DB_DATABASE=nomina_gesath
+DB_USERNAME=nomina_gesath
+DB_PASSWORD=y3Kmi3A6nm
 
 BROADCAST_DRIVER=log
 CACHE_DRIVER=file

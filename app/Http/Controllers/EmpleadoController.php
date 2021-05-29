@@ -91,6 +91,7 @@ class EmpleadoController extends Controller
         }
         if(isset($req->estado)){
             $empleados->where("empleado.fkEstado", "=", $req->estado);
+            $arrConsulta["estado"] = $req->estado;
         }
         else{
             $empleados->whereIn("empleado.fkEstado", ["1","3"]);
@@ -120,6 +121,7 @@ class EmpleadoController extends Controller
         $ciudades = DB::table("ubicacion")->where("fkTipoUbicacion","=","3")->orderBy("nombre")->get();
         $estados = DB::table("estado","e")->whereIn('e.idestado',[1,2,3])->get();
         
+
 
         return view('/empleado.verEmpleados',['empleados'=> $empleados, 
         'ciudades' => $ciudades,
@@ -715,7 +717,7 @@ class EmpleadoController extends Controller
     public function formVer($idEmpleado, Request $req){
         
         
-        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.usuario as usuarioTxt',
+        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.username as usuarioTxt',
                                                     'ubi_dep_exp.idubicacion AS ubi_depto_exp', 'ubi_pa_exp.idubicacion AS ubi_pais_exp',
                                                     'ubi_dep_nac.idubicacion AS ubi_depto_nac', 'ubi_pa_nac.idubicacion AS ubi_pais_nac',
                                                     'ubi_dep_res.idubicacion AS ubi_depto_res', 'ubi_pa_res.idubicacion AS ubi_pais_res',
@@ -737,8 +739,7 @@ class EmpleadoController extends Controller
                                         ->join("ubicacion AS ubi_dep_tra", 'ubi_ciud_tra.fkUbicacion', '=', 'ubi_dep_tra.idubicacion',"left")
                                         ->join("ubicacion AS ubi_pa_tra", 'ubi_dep_tra.fkUbicacion', '=', 'ubi_pa_tra.idubicacion',"left")
 
-                                        ->join("usuario AS u", 'u.idusuario','=','empleado.fkUsuario',"left")
-
+                                        ->join("users AS u", 'u.fkEmpleado','=','empleado.idempleado',"left")
                                         ->where('idempleado', $idEmpleado)
                                         ->first();
         
@@ -877,10 +878,9 @@ class EmpleadoController extends Controller
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
         ->where("cf.fkEmpleado", "=", $idEmpleado)->get();
 
-       
-
         $contratoActivo = DB::table('contrato')
         ->where("fkEmpleado","=",$idEmpleado)
+        ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
         ->whereIn("fkEstado",array("1","4"))
         ->first();
 
@@ -978,6 +978,7 @@ class EmpleadoController extends Controller
         $usu = UsuarioController::dataAdminLogueado();
 
         return view('/empleado.verEmpleado', [
+
             'paises'=>$paises,
             'dataUsu' => $usu,
             'usuExiste' => $existe,
@@ -1269,24 +1270,25 @@ class EmpleadoController extends Controller
             "fechaInicio" => $req->infoFechaIngreso,
             "fkNomina" => $req->infoNomina
         ]);
-        
-        $periodoAct = DB::table("periodo")
-        ->where("fkEmpleado","=",$req->idEmpleado)
-        ->where("fkEstado","=","1")->first();
+
         $affected = DB::table('empleado')
               ->where('idempleado', $req->idEmpleado)
               ->update($updateEmpleado);
 
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado","=",$req->idEmpleado)
+        ->where("fkEstado","=","1")->first();
+        
         $modContrato = array(            
             "fechaFin" => $req->infoFechaFin, 
             "fkEstado" => "4", 
             "fkTipoContrato" => $req->infoTipoContrato, 
-            "fkPeriodoActivo" => $periodoAct->idPeriodo, 
             "tipoDuracionContrato" => $req->infoTipoDuracionContrato, 
-            "fkEmpleado" => $req->idEmpleado
+            "fkEmpleado" => $req->idEmpleado,
+            "fkPeriodoActivo" => $periodoActivo->idPeriodo
         );
         
-        if($req->fechaInicioActivoAnt == $req->fechaIngresoAnt){
+        if(($req->fechaInicioActivoAnt == $req->fechaIngresoAnt) || !isset($req->fechaInicioActivoAnt) || empty($req->fechaInicioActivoAnt)){
             $modContrato["fechaInicio"] = $req->infoFechaIngreso;
         }
 
@@ -1537,6 +1539,7 @@ class EmpleadoController extends Controller
         $periodoActivo = DB::table("periodo")
         ->where("fkEmpleado","=",$req->idEmpleado)
         ->where("fkEstado","=","1")->first();
+        
         if(isset($periodoActivo)){
             DB::table("periodo")
             ->where("fkEmpleado","=",$req->idEmpleado)
@@ -1572,7 +1575,7 @@ class EmpleadoController extends Controller
             "fkPeriodoActivo" => $periodoActivo->idPeriodo
         );
         
-        if($req->fechaInicioActivoAnt == $req->fechaIngresoAnt){
+        if(($req->fechaInicioActivoAnt == $req->fechaIngresoAnt) || !isset($req->fechaInicioActivoAnt) || empty($req->fechaInicioActivoAnt)){
             $modContrato["fechaInicio"] = $req->infoFechaIngreso;
         }
 
@@ -1593,12 +1596,6 @@ class EmpleadoController extends Controller
         $affected = DB::table('contrato')
               ->where('idcontrato', $req->idContratoActivo)
               ->update($modContrato);
-        
-        
-
-       
-
-        
         
         
         DB::table('empleado_centrocosto')->where("fkEmpleado","=",$req->idEmpleado)->delete();
@@ -1738,8 +1735,6 @@ class EmpleadoController extends Controller
                                             "fkPeriodoActivo" => $periodoActivo->idPeriodo);
                 
                 if($req->idAfiliacion[$key] == "-1"){
-
-
                     DB::table('afiliacion')->insert($insertAfiliacion);
                 }
                 else{
@@ -2840,7 +2835,8 @@ class EmpleadoController extends Controller
     }
     public function validarEstadoEmpleado($idEmpleado){
         //Consultar que tenga todos los datos basicos
-        DB::table("empleado","e")->where("e.idempleado","=",$idEmpleado)->update(["fkEstado" => "3"]);
+        
+        DB::table("empleado")->where("idempleado","=",$idEmpleado)->where("fkEstado","<>","2")->update(["fkEstado" => "3"]);
 
         $camposOpcionalesDatPer = array(
             "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia","correo", "celular"],
@@ -2988,7 +2984,9 @@ class EmpleadoController extends Controller
         ->where("fkEmpleado","=",$idEmpleado)
         ->where("fkEstado","=","1")->first();
 
-      
+        if(!isset($periodoActivo)){
+            return false;
+        }
 
         $afiliaciones = DB::table("afiliacion")
         ->where('fkEmpleado', $idEmpleado)
@@ -3535,6 +3533,7 @@ class EmpleadoController extends Controller
                     if(sizeof($datosEmpleadoConsulta) > 0){
                         $empleado = DB::table("empleado", "e")
                         ->where("e.fkDatosPersonales", "=",$datosEmpleadoConsulta[0]->idDatosPersonales)
+                        ->where("e.fkEstado","=","1")
                         ->first();
                         if(isset($empleado)){
                             DB::table('carga_empleado_empleado')
@@ -3930,75 +3929,159 @@ class EmpleadoController extends Controller
                         continue;
                     }
                     
- 
-                    $insertEmpleado = array(
-                        "tEmpleado" => $row[1],
-                        "fkDatosPersonales" => $idDatosPersonales,
-                        "fkEmpresa" => $row[2],
-                        "fkNomina" => $row[3],
-                        "fechaIngreso" => $row[4],
-                        "tipoRegimen" => $regimen,
-                        "tipoRegimenPensional" => $row[6],
-                        "fkUbicacionLabora" => $row[7],
-                        "fkCargo" => $row[8],
-                        "sabadoLaborable" => $row[9],
-                        "fkUsuario" => NULL,
-                        "formaPago" => $row[10],
-                        "fkEntidad" => $row[11],
-                        "numeroCuenta" => $row[12],
-                        "tipoCuenta" => strtoupper($row[13]),
-                        "otraFormaPago" => $row[14],
-                        "fkTipoOtroDocumento" => $row[15],
-                        "otroDocumento" => $row[16],
-                        "fkNivelArl" => ((isset($row[17]) && !empty($row[17])) ? $row[17] : NULL),
-                        "fkCentroTrabajo" => ((isset($row[18]) && !empty($row[18])) ? $row[18] : NULL),
-                        "fkTipoCotizante" => $row[19],
-                        "esPensionado" => $row[20],
-                        "aplicaSubsidio" => (isset($row[21]) && !empty($row[21]) ? $row[21] : 0),
-                        "procedimientoRetencion" => "TABLA",
-                        "fkEstado" => 3                        
-                    );
-                   
-                    
-                    $fechaIngreso = $row[4];
+    
+                    $empleado = DB::table("empleado", "e")
+                    ->where("e.fkDatosPersonales", "=",$idDatosPersonales)
+                    ->where("e.fkEstado","=","2")
+                    ->first();              
 
-                    
-                    try{
-                        $empresa = DB::table('empresa')->where("idempresa", "=", $idEmpresa)->first();
-                        if(strpos($empresa->dominio,"@")===false){
-                            $empresa->dominio = "@".$empresa->dominio;
-                        }
-
-                        $infoUsuario = $datosPersonales->numeroIdentificacion.$empresa->dominio;
-                        $idempleado = DB::table('empleado')->insertGetId($insertEmpleado, "idempleado");
-                        $usuarioNuevo = new User;
-                        $usuarioNuevo->email = $infoUsuario;
-                        $usuarioNuevo->username = $infoUsuario;
-                        $usuarioNuevo->password = ($datosPersonales->numeroIdentificacion."#".substr($datosPersonales->fechaNacimiento,0,4));
-                        $usuarioNuevo->fkRol = 1;
-                        $usuarioNuevo->estado = 1;
-                        $usuarioNuevo->fkEmpleado = $idempleado;
-                        $usuarioNuevo->save();
-
+                    if(isset($empleado)){
+                        $fechaIngreso = $row[4];
+                        $idempleado = $empleado->idempleado;
+                        $updateEmpleado = array(
+                            "tEmpleado" => $row[1],
+                            "fkDatosPersonales" => $idDatosPersonales,
+                            "fkEmpresa" => $row[2],
+                            "fkNomina" => $row[3],
+                            "fechaIngreso" => $row[4],
+                            "tipoRegimen" => $regimen,
+                            "tipoRegimenPensional" => $row[6],
+                            "fkUbicacionLabora" => $row[7],
+                            "fkCargo" => $row[8],
+                            "sabadoLaborable" => $row[9],
+                            "fkUsuario" => NULL,
+                            "formaPago" => $row[10],
+                            "fkEntidad" => $row[11],
+                            "numeroCuenta" => $row[12],
+                            "tipoCuenta" => strtoupper($row[13]),
+                            "otraFormaPago" => $row[14],
+                            "fkTipoOtroDocumento" => $row[15],
+                            "otroDocumento" => $row[16],
+                            "fkNivelArl" => ((isset($row[17]) && !empty($row[17])) ? $row[17] : NULL),
+                            "fkCentroTrabajo" => ((isset($row[18]) && !empty($row[18])) ? $row[18] : NULL),
+                            "fkTipoCotizante" => $row[19],
+                            "esPensionado" => $row[20],
+                            "aplicaSubsidio" => (isset($row[21]) && !empty($row[21]) ? $row[21] : 0),
+                            "procedimientoRetencion" => "TABLA",
+                            "fkEstado" => 3
+                        );
+                        DB::table('empleado')->where("idempleado","=",$idempleado)->update($updateEmpleado);
+                 
                         DB::table("periodo")->insert([
                             "fkEmpleado" => $idempleado,
                             "fkNomina" => $row[3],
                             "fechaInicio" => $row[4]
                         ]);
                     }
-                    catch(QueryException $e){
-                        DB::table('carga_empleado_empleado')
-                        ->insert([
-                            "fkEstado" => "36",
-                            "linea" => $i,
-                            "fkCargaEmpleado" => $idCargaEmpleado,
-                            "adicional" => $e->getMessage()
-                            ]
+                    else{
+                        $insertEmpleado = array(
+                            "tEmpleado" => $row[1],
+                            "fkDatosPersonales" => $idDatosPersonales,
+                            "fkEmpresa" => $row[2],
+                            "fkNomina" => $row[3],
+                            "fechaIngreso" => $row[4],
+                            "tipoRegimen" => $regimen,
+                            "tipoRegimenPensional" => $row[6],
+                            "fkUbicacionLabora" => $row[7],
+                            "fkCargo" => $row[8],
+                            "sabadoLaborable" => $row[9],
+                            "fkUsuario" => NULL,
+                            "formaPago" => $row[10],
+                            "fkEntidad" => $row[11],
+                            "numeroCuenta" => $row[12],
+                            "tipoCuenta" => strtoupper($row[13]),
+                            "otraFormaPago" => $row[14],
+                            "fkTipoOtroDocumento" => $row[15],
+                            "otroDocumento" => $row[16],
+                            "fkNivelArl" => ((isset($row[17]) && !empty($row[17])) ? $row[17] : NULL),
+                            "fkCentroTrabajo" => ((isset($row[18]) && !empty($row[18])) ? $row[18] : NULL),
+                            "fkTipoCotizante" => $row[19],
+                            "esPensionado" => $row[20],
+                            "aplicaSubsidio" => (isset($row[21]) && !empty($row[21]) ? $row[21] : 0),
+                            "procedimientoRetencion" => "TABLA",
+                            "fkEstado" => 3                        
                         );
-                        $idempleado = 0;
-                        $idDatosPersonales = 0;
-                        continue;
+                        $fechaIngreso = $row[4];
+                        $idempleado = DB::table('empleado')->insertGetId($insertEmpleado, "idempleado");
+                        try{
+                            $empresa = DB::table('empresa')->where("idempresa", "=", $idEmpresa)->first();
+                            if(strpos($empresa->dominio,"@")===false){
+                                $empresa->dominio = "@".$empresa->dominio;
+                            }
+    
+                            $infoUsuario = $datosPersonales->numeroIdentificacion.$empresa->dominio;
+                            
+    
+                            $usuarioNuevo = new User;
+                            $usuarioNuevo->email = $infoUsuario;
+                            $usuarioNuevo->username = $infoUsuario;
+                            $usuarioNuevo->password = ($datosPersonales->numeroIdentificacion."#".substr($datosPersonales->fechaNacimiento,0,4));
+                            $usuarioNuevo->fkRol = 1;
+                            $usuarioNuevo->estado = 1;
+                            $usuarioNuevo->fkEmpleado = $idempleado;
+                            $usuarioNuevo->save();
+    
+                            DB::table("periodo")->insert([
+                                "fkEmpleado" => $idempleado,
+                                "fkNomina" => $row[3],
+                                "fechaInicio" => $row[4]
+                            ]);
+                        }
+                        catch(QueryException $e){
+                            DB::table('carga_empleado_empleado')
+                            ->insert([
+                                "fkEstado" => "36",
+                                "linea" => $i,
+                                "fkCargaEmpleado" => $idCargaEmpleado,
+                                "adicional" => $e->getMessage()
+                                ]
+                            );
+                            $idempleado = 0;
+                            $idDatosPersonales = 0;
+                            continue;
+                        }
                     }
+                    //Buscar si existe el campo de fecha de retiro, si existe inactivar el periodo activo y 
+                    if(isset($row[22]) && !empty($row[22]) && $idempleado!=0){
+                        
+                        $periodoActivo = DB::table("periodo")
+                        ->where("fkEmpleado","=",$idempleado)
+                        ->where("fkEstado","=","1")->first();
+
+                        DB::table("periodo")->where("idPeriodo","=",$periodoActivo->idPeriodo)
+                        ->update([
+                            "fkEstado" => "2",
+                            "fechaFin" => $row[22]
+                        ]);
+                        DB::table('empleado')->where("idempleado","=",$idempleado)->update([
+                            "fkEstado" => "2"
+                        ]);
+                        
+                        if(!isset($row[23]) || empty($row[23])){
+                            $row[23] = "17";
+                        }
+
+                        $idRetiro = DB::table("retiro")->insertGetId([
+                            "fecha" => $row[22],
+                            "fechaReal" => $row[22],
+                            "fkMotivoRetiro" => $row[23],
+                            "indemnizacion" => "0"
+                        ], "idRetiro");
+
+                        $insertNovedad = [
+                            "fkTipoNovedad" => "5",
+                            "fkNomina" => $row[3],
+                            "fkEmpleado" => $idempleado,
+                            "fkPeriodoActivo" => $periodoActivo->idPeriodo,
+                            "fkEstado" => 8,
+                            "fechaRegistro" => $row[22],
+                            "fkRetiro" => $idRetiro
+                        ];
+
+                        DB::table("novedad")->insert($insertNovedad);
+                    }
+                    
+                    
 
 
                 }
@@ -4025,7 +4108,7 @@ class EmpleadoController extends Controller
                     
                     $periodoActivo = DB::table("periodo")
                     ->where("fkEmpleado","=",$idempleado)
-                    ->where("fkEstado","=","1")->first();
+                    ->orderBy("idPeriodo","desc")->first();
 
                     $insertContrato = array(
                         "fechaInicio" => $fechaIngreso,
@@ -4045,7 +4128,8 @@ class EmpleadoController extends Controller
                             "fkEstado" => "4",
                             "fkTipoContrato" => $row[1],
                             "tipoDuracionContrato" => "MES",
-                            "fkEmpleado" => $idempleado
+                            "fkEmpleado" => $idempleado,
+                            "fkPeriodoActivo" => $periodoActivo->idPeriodo
                         );
                         $meses = $row[2];
                         $dias = $row[2]*30;
@@ -4070,6 +4154,7 @@ class EmpleadoController extends Controller
                     $centrocosto = DB::table("centrocosto")
                     ->where("idcentroCosto", "=", $row[1])
                     ->first();
+
                     if(!isset($centrocosto)){
                         DB::table('carga_empleado_empleado')
                         ->insert([
@@ -4081,7 +4166,7 @@ class EmpleadoController extends Controller
                         );
                         continue;
                     }
-
+                    DB::table('empleado_centrocosto')->where("fkEmpleado","=",$idempleado)->delete();
                     $insertCentroCosto = array(  "fkEmpleado" => $idempleado, 
                                                 "fkCentroCosto" => $row[1],
                                                 "porcentajeTiempoTrabajado" => $porcentaje);
@@ -4115,7 +4200,7 @@ class EmpleadoController extends Controller
                         }
                         $periodoActivo = DB::table("periodo")
                         ->where("fkEmpleado","=",$idempleado)
-                        ->where("fkEstado","=","1")->first();
+                        ->orderBy("idPeriodo","desc")->first();
                         $insertAfiliacion1 = array(
                             "fkTipoAfilicacion" => "1",
                             "fkTercero" => $row[1],
@@ -4145,7 +4230,7 @@ class EmpleadoController extends Controller
                         }
                         $periodoActivo = DB::table("periodo")
                         ->where("fkEmpleado","=",$idempleado)
-                        ->where("fkEstado","=","1")->first();
+                        ->orderBy("idPeriodo","desc")->first();
 
                         $insertAfiliacion2 = array(
                             "fkTipoAfilicacion" => "2",
@@ -4178,7 +4263,7 @@ class EmpleadoController extends Controller
 
                         $periodoActivo = DB::table("periodo")
                         ->where("fkEmpleado","=",$idempleado)
-                        ->where("fkEstado","=","1")->first();
+                        ->orderBy("idPeriodo","desc")->first();
 
                         $insertAfiliacion3 = array(
                             "fkTipoAfilicacion" => "3",
@@ -4209,7 +4294,7 @@ class EmpleadoController extends Controller
                         }
                         $periodoActivo = DB::table("periodo")
                         ->where("fkEmpleado","=",$idempleado)
-                        ->where("fkEstado","=","1")->first();
+                        ->orderBy("idPeriodo","desc")->first();
 
                         $insertAfiliacion4 = array(
                             "fkTipoAfilicacion" => "4",
@@ -4246,6 +4331,7 @@ class EmpleadoController extends Controller
                         );
                         continue;
                     }
+                    DB::table('conceptofijo')->where("fkEmpleado","=",$idempleado)->delete();
                     $insertConceptoFijo = array(
                         "unidad" => $row[1],
                         "valor" => $row[2],
@@ -4333,12 +4419,14 @@ class EmpleadoController extends Controller
                             "fkEscolaridad" => $row[10],
                             "fkDatosEmpleado" => $idDatosPersonales
                         ];
-    
+
+                        DB::table('nucleofamiliar')->where("fkDatosEmpleado","=",$idDatosPersonales)->delete();
+
                         $idNucleo = DB::table('nucleofamiliar')
                         ->insertGetId($arrNucleoFamiliar,"idNucleoFamiliar");
                         $insertBeneficioTributario["fkNucleoFamiliar"] = $idNucleo;
                     }
-
+                    DB::table('beneficiotributario')->where("fkEmpleado","=",$idempleado)->delete();
                     DB::table('beneficiotributario')->insert($insertBeneficioTributario);
                 }
                 else if($row[0]=="8" && $idempleado!=0){//AgregarContactoEmer
@@ -4367,6 +4455,7 @@ class EmpleadoController extends Controller
                         "fkUbicacion" => $row[4],
                         "fkDatosEmpleado" => $idDatosPersonales
                     );
+                    DB::table('contactoemergencia')->where("fkDatosEmpleado","=",$idDatosPersonales)->delete();
                     DB::table('contactoemergencia')->insert($insertContactoEm);    
                 }
                 

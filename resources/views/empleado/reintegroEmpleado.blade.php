@@ -1930,6 +1930,7 @@
                         @endfor
                     @else
                         <div class="afiliacion" data-id="1">
+                            <input type="hidden" name="idAfiliacion[]" id="idAfiliacion2" value="-1" />
                             <div class="row">
                                 <div class="col-3">
                                     <div class="form-group hasText">
@@ -1984,6 +1985,7 @@
                             </div>
                         </div>
                         <div class="afiliacion" data-id="2">
+                            <input type="hidden" name="idAfiliacion[]" id="idAfiliacion2" value="-1" />
                             <div class="row">
                                 <div class="col-3">
                                     <div class="form-group hasText">
@@ -2038,6 +2040,7 @@
                             </div>
                         </div>
                         <div class="afiliacion" data-id="3">
+                            <input type="hidden" name="idAfiliacion[]" id="idAfiliacion2" value="-1" />
                             <div class="row">
                                 <div class="col-3">
                                     <div class="form-group hasText">
@@ -2096,6 +2099,7 @@
                         </div>
                         @if ($empleado->esPensionado == 0)
                             <div class="afiliacion" data-id="4">
+                                <input type="hidden" name="idAfiliacion[]" id="idAfiliacion2" value="-1" />
                                 <div class="row">
                                     <div class="col-3">
                                         <div class="form-group hasText">

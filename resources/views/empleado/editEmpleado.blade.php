@@ -1810,6 +1810,7 @@
                 </div>
                 <div class="afiliacionesCont">
                     <input type="hidden" name="idsAfiliacionEliminar" id="idsAfiliacionEliminar" value="" />
+                    
                     @if (sizeof($afiliaciones)>0)
                         @for ($num = 1; $num <= sizeof($afiliaciones); $num++)          
                             
@@ -1918,6 +1919,7 @@
                         @endfor
                     @else
                         <div class="afiliacion" data-id="1">
+                            <input type="hidden" name="idAfiliacion[]" id="idAfiliacion1" value="-1" />
                             <div class="row">
                                 <div class="col-3">
                                     <div class="form-group hasText">
@@ -1972,6 +1974,7 @@
                             </div>
                         </div>
                         <div class="afiliacion" data-id="2">
+                            <input type="hidden" name="idAfiliacion[]" id="idAfiliacion2" value="-1" />
                             <div class="row">
                                 <div class="col-3">
                                     <div class="form-group hasText">
@@ -2026,6 +2029,7 @@
                             </div>
                         </div>
                         <div class="afiliacion" data-id="3">
+                            <input type="hidden" name="idAfiliacion[]" id="idAfiliacion3" value="-1" />
                             <div class="row">
                                 <div class="col-3">
                                     <div class="form-group hasText">
@@ -2084,6 +2088,7 @@
                         </div>
                         @if ($empleado->esPensionado == 0)
                             <div class="afiliacion" data-id="4">
+                                <input type="hidden" name="idAfiliacion[]" id="idAfiliacion4" value="-1" />
                                 <div class="row">
                                     <div class="col-3">
                                         <div class="form-group hasText">

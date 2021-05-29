@@ -206,18 +206,22 @@
         </div>
     </div>
     <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="exento">
+        <input type="checkbox" class="form-check-input" value="1" id="exento">
         <label class="form-check-label" for="exento">¿Exento de parafiscales?</label>
     </div><br>
     
-    
     <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="vacacionesNegativas">
+        <input type="checkbox" class="form-check-input" value="1" id="LRN_cesantias">
+        <label class="form-check-label" for="LRN_cesantias">¿LRN para cesantias?</label>
+    </div><br>
+
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" value="1" id="vacacionesNegativas">
         <label class="form-check-label" for="vacacionesNegativas">¿Vacaciones negativas?</label>
     </div><br>
 
     <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="pagoParafiscales">
+        <input type="checkbox" class="form-check-input" value="1" id="pagoParafiscales">
         <label class="form-check-label" for="pagoParafiscales">Pago paraficales (sobre el 100% del salario integral)?</label>
     </div><br>
     

@@ -127,8 +127,9 @@
                             <td>{{ $empleado->nombreNomina }}</td>
                             <td>{{ $empleado->centroCosto }}</td>
                             <td>
-                                @if ($empleado->reintegros > 0)
-                                    <div class="estdoEmp reintegro"><a href="/empleado/verPeriodos/{{ $empleado->idempleado }}" class="ver_reintegro">REINTEGRO ({{$empleado->reintegros}})</a></div>
+                                @if ($empleado->reintegros > 0 && $empleado->fkEstado != '2')
+                                    <div class="estdoEmp{{ $empleado->claseEstado }}">{{ $empleado->estado }}</div>
+                                    <div class="estdoEmp reintegro"><a href="/empleado/verPeriodos/{{ $empleado->idempleado }}" class="ver_reintegro">REINTEGRO ({{$empleado->reintegros}})</a></div>                                    
                                 @else
                                     <div class="estdoEmp{{ $empleado->claseEstado }}">{{ $empleado->estado }}</div>
                                 @endif

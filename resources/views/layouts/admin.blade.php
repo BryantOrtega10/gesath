@@ -6,6 +6,7 @@
         @include('layouts.partials.head')
 		<link rel="stylesheet" href="{{ URL::asset('css/styleGen.css') }}">
         <title>@yield('title','Bienvenido') | Proyecto nomina</title>
+        <link rel="icon" type="image/vnd.microsoft.icon" href="{{URL::asset('img/favicon.ico')}}">
     </head>
     <body>
         

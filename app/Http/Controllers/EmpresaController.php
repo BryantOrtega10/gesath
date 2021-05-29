@@ -177,9 +177,10 @@ class EmpresaController extends Controller
         $empresas->documento = $request->documento;
         $empresas->digitoVerificacion = $request->digitoVerificacion;
         $empresas->fkTercero_ARL = $request->fkTercero_ARL;
-        $empresas->exento = $request->exento;
-        $empresas->vacacionesNegativas = $request->vacacionesNegativas;
-        $empresas->pagoParafiscales = $request->pagoParafiscales;
+        $empresas->exento = ($request->exento ?? 0);
+        $empresas->vacacionesNegativas = ($request->vacacionesNegativas ?? 0);
+        $empresas->LRN_cesantias = ($request->LRN_cesantias ?? 0);        
+        $empresas->pagoParafiscales = ($request->pagoParafiscales ?? 0);
         $empresas->fkPeriocidadRetencion = $request->fkPeriocidadRetencion;
         
 
@@ -352,9 +353,10 @@ class EmpresaController extends Controller
             $empresas->documento = $request->documento;
             $empresas->digitoVerificacion = $request->digitoVerificacion;
             $empresas->fkTercero_ARL = $request->fkTercero_ARL;
-            $empresas->exento = $request->exento;
-            $empresas->vacacionesNegativas = $request->vacacionesNegativas;
-            $empresas->pagoParafiscales = $request->pagoParafiscales;
+            $empresas->exento = ($request->exento ?? 0);
+            $empresas->vacacionesNegativas = ($request->vacacionesNegativas ?? 0);
+            $empresas->LRN_cesantias = ($request->LRN_cesantias ?? 0);
+            $empresas->pagoParafiscales = ($request->pagoParafiscales ?? 0);
             $empresas->fkPeriocidadRetencion = $request->fkPeriocidadRetencion;
             $actualizar = $empresas->save();
             

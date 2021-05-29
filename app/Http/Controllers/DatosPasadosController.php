@@ -393,6 +393,7 @@ class DatosPasadosController extends Controller
             
            
             if($mes != date("m",strtotime($datoPasado->fecha)) || $anio != date("Y",strtotime($datoPasado->fecha)) || $nomina != $datoPasado->fkNomina){
+                
                 $mes = date("m",strtotime($datoPasado->fecha));
                 $anio = date("Y",strtotime($datoPasado->fecha));
                 $nomina = $datoPasado->fkNomina;

@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         @include('layouts.partials.head')
 		<link rel="stylesheet" href="{{ URL::asset('css/styleGen.css') }}">
+        <link rel="icon" type="image/vnd.microsoft.icon" href="{{URL::asset('img/favicon.ico')}}">
         <title>Bienvenido | Proyecto nomina</title>
     </head>
     <body class="blanco">        
@@ -24,7 +25,7 @@
                 <input type="submit" value="Ingresar" class="enfasis-background" />
                 <div class="contTerminos">
                     <input type="checkbox" value="aceptoTermino" id="aceptoTermino">
-                    <label for="aceptoTermino">Aceptar T&eacute;rminos y Condiciones</label>
+                    <label for="aceptoTermino">Acepto la <a href="https://gesath.com/nosotros/politica-de-tratamiento-y-proteccion-de-datos-personales/" target="_blank">pol&iacute;tica de tratamiento y protección de datos personales</a></label>
                 </div>
                 <div class="olvidePass">
                     Olvidaste tu contrase&ntilde;a? <a href="/recuperar_pass">Recordar contraseña</a>

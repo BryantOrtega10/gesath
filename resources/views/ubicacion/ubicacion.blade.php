@@ -41,7 +41,7 @@
                     <td>{{ $ubicacion->u2_nombre }}</td>
                     <td>{{ $ubicacion->nombre }}</td>
                     @if (in_array("97",$dataUsu->permisosUsuario))
-                    <td><a href="/ubicacion/getForm/edit/{{ $ubicacion->idubicacion }}" class="editar"><i class="fas fa-edit"></i></a></td>
+                    <td><!--<a href="/ubicacion/getForm/edit/{{ $ubicacion->idubicacion }}" class="editar"><i class="fas fa-edit"></i></a>--></td>
                     @endif
                 </tr>
                 @endforeach

@@ -65,7 +65,7 @@
         <p style = "text-align: justify;">
             La información de la presente certificación contiene una firma digitalizada válida para todos sus efectos de
             conformidad con lo dispuesto en la Ley 527 de 1999 y debe ser confirmada telefónicamente al número +57 (1) 309
-            94 63 Ext. 112; para más información visité www. gestionth.com
+            94 63 Ext. 112; para más información visité www.gestionth.com
         </p>
         <p><b>#AvanzandoJuntos,</b></p>
         <p>

@@ -36,7 +36,11 @@ class CatalogoContableController extends Controller
         }
 
         if(isset($req->idcentroCosto)){
-            $datoscuenta = $datoscuenta->where("cen.idcentroCosto","=",$req->idcentroCosto);
+            
+            $datoscuenta = $datoscuenta->where("cen.idcentroCosto","=",$req->idcentroCosto);   
+            /*$datoscuenta = $datoscuenta->where(function($query) use($req){
+                $query->where("cen.idcentroCosto","=",$req->idcentroCosto)->orWhereNull("cen.idcentroCosto");
+            });*/
         }else{
             $datoscuenta = $datoscuenta->whereNull("cen.idcentroCosto");   
         }
@@ -455,7 +459,7 @@ class CatalogoContableController extends Controller
             ];
             $idCuentaCredito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
         }
-
+        
 
         $idCuentaDebito = $req->cuentaDeb;
         if($req->cuentaDeb == "nueva"){
@@ -470,7 +474,7 @@ class CatalogoContableController extends Controller
             ];
             $idCuentaDebito = DB::table("catalgocontable")->insertGetId($arrCatalogo,"idCatalgoContable");
         }
-        
+     
         foreach($req->tablaConsulta as $row => $tablaConsulta){
 
             if($tablaConsulta == 1){
@@ -479,14 +483,16 @@ class CatalogoContableController extends Controller
                     "fkCuenta" => $idCuentaCredito,
                     "fkGrupoConcepto" => $req->fkGrupoConcepto[$row],
                     "tipoCuenta" => "CREDITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
                 DB::table("datoscuenta")->insert([
                     "tablaConsulta" => $tablaConsulta,
                     "fkCuenta" => $idCuentaDebito,
                     "fkGrupoConcepto" => $req->fkGrupoConcepto[$row],
                     "tipoCuenta" => "DEBITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
             }
             else if($tablaConsulta == 2){
@@ -495,14 +501,16 @@ class CatalogoContableController extends Controller
                     "fkCuenta" => $idCuentaCredito,
                     "subTipoConsulta" => $req->subTipoProvision[$row],
                     "tipoCuenta" => "CREDITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
                 DB::table("datoscuenta")->insert([
                     "tablaConsulta" => $tablaConsulta,
                     "fkCuenta" => $idCuentaDebito,
                     "subTipoConsulta" => $req->subTipoProvision[$row],
                     "tipoCuenta" => "DEBITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
                 
                 
@@ -513,14 +521,16 @@ class CatalogoContableController extends Controller
                     "fkCuenta" => $idCuentaCredito,
                     "subTipoConsulta" => $req->subTipoAporteEmpleador[$row],
                     "tipoCuenta" => "CREDITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
                 DB::table("datoscuenta")->insert([
                     "tablaConsulta" => $tablaConsulta,
                     "fkCuenta" => $idCuentaDebito,
                     "subTipoConsulta" => $req->subTipoAporteEmpleador[$row],
                     "tipoCuenta" => "DEBITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
             }
             else if($tablaConsulta == 4){
@@ -529,14 +539,16 @@ class CatalogoContableController extends Controller
                     "fkCuenta" => $idCuentaCredito,
                     "fkConcepto" => $req->fkConcepto[$row],
                     "tipoCuenta" => "CREDITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
                 DB::table("datoscuenta")->insert([
                     "tablaConsulta" => $tablaConsulta,
                     "fkCuenta" => $idCuentaDebito,
                     "fkConcepto" => $req->fkConcepto[$row],
                     "tipoCuenta" => "DEBITO",
-                    "transaccion" => $req->transaccion
+                    "transaccion" => $req->transaccion,
+                    "fkCentroCosto" => $req->fkCentroCosto
                 ]);
             }
 
@@ -1660,7 +1672,7 @@ class CatalogoContableController extends Controller
                     }
                 }
                
-
+                
                 if($existenCuentasConEseCentroCosto){
                     //Consular por tipo la cuenta
                     $datosCuentaTipo4 = DB::table("datoscuenta", "dc")
@@ -1670,6 +1682,7 @@ class CatalogoContableController extends Controller
                     ->where("dc.fkCentroCosto", "=", $arrCentroCosto["centroCosto"])
                     ->orderBy("dc.fkCentroCosto")
                     ->get();
+                    //dd($existenCuentasConEseCentroCosto,$arrCentroCosto["centroCosto"]);
                 }else{                    
                     $datosCuentaTipo4 = DB::table("datoscuenta", "dc")
                     ->join("catalgocontable as cc", "cc.idCatalgoContable", "=","dc.fkCuenta")
