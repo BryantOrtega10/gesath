@@ -18,8 +18,8 @@ use Exception;
 
 class ReportesNominaController extends Controller
 {
-    //private $rutaBaseImagenes = "/home/soft2/public_html/"; 
-    private $rutaBaseImagenes = "G:/Trabajo/Gesath/Mayo/20/app/public_html/"; 
+    private $rutaBaseImagenes = "/home/soft2/public_html/"; 
+    //private $rutaBaseImagenes = "G:/Trabajo/Gesath/Mayo/20/app/public_html/"; 
     
 
     public function reporteNominaHorizontalIndex(){
@@ -49,7 +49,8 @@ class ReportesNominaController extends Controller
         ->select("c.idconcepto","c.nombre","ln.fechaLiquida","e.idempleado", 
         "dp.primerNombre","dp.segundoNombre", 
         "dp.primerApellido","dp.segundoApellido","ti.nombre as tipoidentificacion", 
-        "dp.numeroIdentificacion", "bp.diasTrabajados", "ibp.valor", "ln.fechaLiquida","ccfijo.valor as valorSalario", "cargo.nombreCargo")
+        "dp.numeroIdentificacion", "bp.diasTrabajados", "ibp.valor", "ln.fechaLiquida",
+        "ccfijo.valor as valorSalario", "cargo.nombreCargo", "n.nombre as nombreNomina", "emp.razonSocial as nombreEmpresa")
         ->join("concepto as c","c.idconcepto", "=","ibp.fkConcepto")
         ->join("boucherpago as bp","bp.idBoucherPago","=", "ibp.fkBoucherPago")
         ->join("liquidacionnomina as ln", "ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
@@ -58,6 +59,8 @@ class ReportesNominaController extends Controller
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
         ->join("conceptofijo as ccfijo","ccfijo.fkEmpleado", "=", "e.idempleado")
         ->join("cargo","cargo.idCargo","=","e.fkCargo")
+        ->join("nomina as n","n.idNomina", "=","e.fkNomina")
+        ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa")
         ->where("ln.idLiquidacionNomina","=",$idLiquidacionNomina)
         ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
         ->orderBy("e.idempleado")
@@ -112,13 +115,18 @@ class ReportesNominaController extends Controller
             ->where("ec.fkEmpleado","=",$nomina->idempleado)->first();
 
             $matrizReporte[$nomina->idempleado]["Fecha Liquidacion"] = $nomina->fechaLiquida;
+            $matrizReporte[$nomina->idempleado]["Empresa"] = $nomina->nombreEmpresa;
+            $matrizReporte[$nomina->idempleado]["Nomina"] = $nomina->nombreNomina;
+            
             $matrizReporte[$nomina->idempleado]["Centro Costo"] = $centroCosto->nombre;
+            $matrizReporte[$nomina->idempleado]["Cargo"] = $nomina->nombreCargo;
             $matrizReporte[$nomina->idempleado]["Tipo Documento"] = $nomina->tipoidentificacion;
             $matrizReporte[$nomina->idempleado]["Documento"] = $nomina->numeroIdentificacion;            
             $matrizReporte[$nomina->idempleado]["Nombre"] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
-            $matrizReporte[$nomina->idempleado]["Sueldo"] = intval($nomina->valorSalario);
-            $matrizReporte[$nomina->idempleado]["Cargo"] = $nomina->nombreCargo;
             $matrizReporte[$nomina->idempleado]["Dias"] = $nomina->diasTrabajados;
+            $matrizReporte[$nomina->idempleado]["Sueldo"] = intval($nomina->valorSalario);
+            
+            
             
             $matrizReporte[$nomina->idempleado][$nomina->nombre] = $nomina->valor;
 
@@ -859,6 +867,9 @@ class ReportesNominaController extends Controller
                     // alternatively specify an URL, if PHP settings allow
             $base64 = base64_encode($imagedata);
         }
+        else{
+            unset($empresayLiquidacion->logoEmpresa);
+        }
         $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
         $mensajeGen = array();
         $mensajeGen[8] = DB::table("mensaje")->where("idMensaje","=","8")->first();
@@ -929,7 +940,7 @@ class ReportesNominaController extends Controller
                     <table class="tituloTable">
                         <tr>
                             <td rowspan="2">
-                            <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                            '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                             </td>
                             <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                         </tr>
@@ -1156,7 +1167,7 @@ class ReportesNominaController extends Controller
                         <table class="tituloTable">
                             <tr>
                                 <td rowspan="2">
-                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                 </td>
                                 <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                             </tr>
@@ -1497,7 +1508,7 @@ class ReportesNominaController extends Controller
                         <table class="tituloTable">
                             <tr>
                                 <td rowspan="2">
-                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                 </td>
                                 <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                             </tr>
@@ -1758,7 +1769,7 @@ class ReportesNominaController extends Controller
                             <table class="tituloTable">
                                 <tr>
                                     <td rowspan="2">
-                                    <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                    '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                     </td>
                                     <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                                 </tr>
@@ -2098,6 +2109,9 @@ class ReportesNominaController extends Controller
                     // alternatively specify an URL, if PHP settings allow
             $base64 = base64_encode($imagedata);
         }
+        else{
+            unset($empresayLiquidacion->logoEmpresa);
+        }
         $mensajeGen = array();
         $mensajeGen[8] = DB::table("mensaje")->where("idMensaje","=","8")->first();
         $mensajeGen[9] = DB::table("mensaje")->where("idMensaje","=","9")->first();
@@ -2167,7 +2181,7 @@ class ReportesNominaController extends Controller
                     <table class="tituloTable">
                         <tr>
                             <td rowspan="2">
-                            <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                            '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                             </td>
                             <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                         </tr>
@@ -2394,7 +2408,7 @@ class ReportesNominaController extends Controller
                         <table class="tituloTable">
                             <tr>
                                 <td rowspan="2">
-                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                 </td>
                                 <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                             </tr>
@@ -2734,7 +2748,7 @@ class ReportesNominaController extends Controller
                         <table class="tituloTable">
                             <tr>
                                 <td rowspan="2">
-                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                 </td>
                                 <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                             </tr>
@@ -2998,7 +3012,7 @@ class ReportesNominaController extends Controller
                             <table class="tituloTable">
                                 <tr>
                                     <td rowspan="2">
-                                    <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                    '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                     </td>
                                     <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                                 </tr>
@@ -3453,6 +3467,7 @@ class ReportesNominaController extends Controller
             ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
             ->orderBy("bp.idBoucherPago","desc")
             ->first();
+            
             if(!isset($ultimoBoucher)){
                 $ultimoBoucher = DB::table("boucherpago", "bp")
                 ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
@@ -3485,9 +3500,7 @@ class ReportesNominaController extends Controller
             $arraySinNada = $arrayFila;
             
             $esRetiroNegativo = 0;
-            if($empleado->numeroIdentificacion == "1032426411"){
-                //dd($periodoTrabajado, $ultimoBoucher);
-            }
+            
             
             if($ultimoBoucher->ibc_afp < 0 || ($ultimoBoucher->ibc_eps == 0 && $empleado->fkTipoCotizante != "12" && $empleado->fkTipoCotizante != "19"  && $empleado->fkTipoCotizante != "51")){
                 $esRetiroNegativo = 1;
@@ -3620,6 +3633,7 @@ class ReportesNominaController extends Controller
 
             //TAE
             $cambioAfiliacionEps2 = DB::table("cambioafiliacion","ca")
+                ->join("tercero as t", "t.idTercero", "=","ca.fkTerceroNuevo")
                 ->where("ca.fkEmpleado", "=", $empleado->idempleado)
                 ->where("ca.fkTipoAfiliacionNueva", "=", "3") //3-Salud
                 ->whereBetween("ca.fechaCambio", [$fechaInicioMesActual, $fechaFinMesActual])
@@ -3926,12 +3940,16 @@ class ReportesNominaController extends Controller
                         
                     }
                     else{
+
+                        
                         $itemBoucherNovedad = DB::table("item_boucher_pago_novedad", "ibpn")
                         ->where("ibpn.fkNovedad", "=",$novedadIncapacidadNoLab->idNovedad)
                         ->first();
                         $restaIbc = 0;
+                        
                         $valorNovedad = ($itemBoucherNovedad->valor > 0 ? $itemBoucherNovedad->valor : $itemBoucherNovedad->valor*-1);
                         $valorNovedad = $diasPagoVac*$valorNovedad/$diasTotales;
+                        
                     
                     }
                 
@@ -3946,7 +3964,7 @@ class ReportesNominaController extends Controller
                 }
 
 
-                if($empleado->esPensionado != "0"){
+                if($empleado->esPensionado != "0" || $empleado->fkTipoCotizante == "19"){
                     $arrayPlace[41] = $this->plantillaTxt(0,9,"0","right");
                     $arrayPlace[45] = $this->plantillaTxt("0.0",7,"0","left");
                 }
@@ -3955,16 +3973,27 @@ class ReportesNominaController extends Controller
                     $ibcAFP = $ibcAFP - $restaIbc;
                 }
                 
-                $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
-                $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
-                $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
-                $arrayPlace[94] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                if($empleado->fkTipoCotizante == "19"){
+                    $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $arrayPlace[44] = $this->plantillaTxt(0,9,"0","right");
+                    $arrayPlace[94] = $this->plantillaTxt(0,9,"0","right");
+                }
+                else{
+                    $arrayPlace[42] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $arrayPlace[43] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $arrayPlace[44] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                    $arrayPlace[94] = $this->plantillaTxt(round($valorNovedad),9,"0","right");
+                }
+               
 
 
                 
                 $arrayFila[62] = $this->plantillaTxt(0,9,"0","right");
 
-
+                /*if($empleado->numeroIdentificacion == "79765038"){
+                    dd($ultimoBoucher, $ibcEPS, $periodoTrabajado, $restaIbc);
+                }*/
                 
                 $ibcEPS = $ibcEPS - $restaIbc;
                 $ibcARL = $ibcARL - $restaIbc;
@@ -4482,6 +4511,11 @@ class ReportesNominaController extends Controller
                 $fechaFinIRL =  date("Y-m-d",strtotime($novedadIncapacidadLab->fechaFinal));
                 $arrayPlace[92] = $this->plantillaTxt($fechaInicioIRL,10," ","left");
                 $arrayPlace[93] = $this->plantillaTxt($fechaFinIRL,10," ","left");
+
+                //Tarifa en 0 para ausentismos
+                $arrayPlace[60] =  $this->plantillaTxt("0.0",9,"0","left");
+                $arrayPlace[62] = $this->plantillaTxt("0",9,"0","right");
+                
                 array_push($arrayNuevoRegistro, $arrayPlace);   
             }
 
@@ -4654,12 +4688,14 @@ class ReportesNominaController extends Controller
             $arrayFila[41] = $this->plantillaTxt(round($ibcAFP),9,"0","right");
 
             //$ibcEPS = ($ultimoBoucher->ibc_eps/30) * $periodoTrabajadoSinNov;
-
+            
             //$ibcEPS = $ultimoBoucher->ibc_eps;
             //$ibcEPS = ($ultimoBoucher->ibc_eps * $periodoTrabajado) / $periodoTrabajadoSinNov;
             if($ibcEPS < $minimosRedondeo->ibc && $ibcEPS > 0){
                 $ibcEPS = $minimosRedondeo->ibc;
             }
+
+            
 
             $arrayFila[42] = $this->plantillaTxt(round($ibcEPS),9,"0","right");
 
@@ -8581,8 +8617,6 @@ class ReportesNominaController extends Controller
 
 
         $reporte = DB::table("reporte", "r")->where("r.idReporte","=",$req->idReporte)->first();
-
-
         if($reporte->fkTipoReporte == "1"){
             $consulta = DB::table("empleado", "e");
             
@@ -8603,11 +8637,12 @@ class ReportesNominaController extends Controller
             $sql = implode(",",$arrSelect);
             $consulta = $consulta->selectRaw($sql);
             $consulta = $consulta
-            ->joinSub("(
+            /*->joinSub("(
                 SELECT    MAX(idPeriodo) max_id, fkEmpleado 
                 FROM      periodo 
                 GROUP BY  fkEmpleado
-            )","ultimo_p","ultimo_p.fkEmpleado", "=","e.idempleado","left")
+            )","ultimo_p","ultimo_p.fkEmpleado", "=","e.idempleado","left")*/
+            ->join("periodo","periodo.fkEmpleado", "=","e.idempleado","left")
             ->join("cargo","cargo.idCargo", "=","e.fkCargo","left")
             ->join("tipoidentificacion as tio","tio.idtipoIdentificacion", "=", "e.fkTipoOtroDocumento","left")
             ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
@@ -8618,7 +8653,7 @@ class ReportesNominaController extends Controller
             ->join("nomina as n","n.idNomina", "=","e.fkNomina","left")
             ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa","left")
             //->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
-            ->join('estado AS est','est.idestado', '=', 'e.fkEstado', "left")
+            ->join('estado AS est','est.idestado', '=', 'periodo.fkEstado', "left")
             ->join('ubicacion AS uLabora','uLabora.idubicacion', '=', 'e.fkUbicacionLabora',"left")
             ->join('ubicacion AS uLaboraLoc','uLaboraLoc.idubicacion', '=', 'e.fkLocalidad',"left")
             ->join('ubicacion AS uExpDoc','uExpDoc.idubicacion', '=', 'dp.fkUbicacionExpedicion',"left")
@@ -8632,25 +8667,25 @@ class ReportesNominaController extends Controller
             ->join('etnia','etnia.idEtnia', '=', 'dp.fkEtnia',"left")
             ->leftJoin('afiliacion as afPension', function ($join) {
                 $join->on('afPension.fkEmpleado', '=', 'e.idempleado')
-                    ->on('afPension.fkPeriodoActivo', '=', 'ultimo_p.max_id')
+                    ->on('afPension.fkPeriodoActivo', '=', 'periodo.idPeriodo')
                     ->where('afPension.fkTipoAfilicacion', '=', 4);
             })
             ->join('tercero AS terceroPension','terceroPension.idTercero', '=', 'afPension.fkTercero',"left")
             ->leftJoin('afiliacion as afSalud', function ($join) {
                 $join->on('afSalud.fkEmpleado', '=', 'e.idempleado')
-                    ->on('afSalud.fkPeriodoActivo', '=', 'ultimo_p.max_id')
+                    ->on('afSalud.fkPeriodoActivo', '=', 'periodo.idPeriodo')
                     ->where('afSalud.fkTipoAfilicacion', '=', 3);
             })
             ->join('tercero AS terceroSalud','terceroSalud.idTercero', '=', 'afSalud.fkTercero',"left")
             ->leftJoin('afiliacion as afCCF', function ($join) {
                 $join->on('afCCF.fkEmpleado', '=', 'e.idempleado')
-                    ->on('afCCF.fkPeriodoActivo', '=', 'ultimo_p.max_id')
+                    ->on('afCCF.fkPeriodoActivo', '=', 'periodo.idPeriodo')
                     ->where('afCCF.fkTipoAfilicacion', '=', 2);
             })
             ->join('tercero AS terceroCCF','terceroCCF.idTercero', '=', 'afCCF.fkTercero',"left")
             ->leftJoin('afiliacion as afCes', function ($join) {
                 $join->on('afCes.fkEmpleado', '=', 'e.idempleado')
-                    ->on('afCes.fkPeriodoActivo', '=', 'ultimo_p.max_id')
+                    ->on('afCes.fkPeriodoActivo', '=', 'periodo.idPeriodo')
                     ->where('afCes.fkTipoAfilicacion', '=', 1);
             })
             ->join('tercero AS terceroCes','terceroCes.idTercero', '=', 'afCes.fkTercero',"left")
@@ -8659,7 +8694,7 @@ class ReportesNominaController extends Controller
                     ->whereIn('cf.fkConcepto', ["1","2","53","54"]);
             })
             ->leftJoin('novedad AS nRet', function ($join) {
-                $join->on('nRet.fkPeriodoActivo', '=', 'ultimo_p.max_id')
+                $join->on('nRet.fkPeriodoActivo', '=', 'periodo.idPeriodo')
                     ->on('nRet.fkEmpleado', '=', 'e.idempleado')
                     ->whereNotNull('nRet.fkRetiro')
                     ->where('nRet.fkEstado',"=","8");
@@ -8673,14 +8708,15 @@ class ReportesNominaController extends Controller
             ->join('retiro AS r','r.idRetiro', '=', 'nRet.fkRetiro',"left")
             ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro","left");
             $dataUsu = UsuarioController::dataAdminLogueado();
-
+ 
             if(isset($dataUsu) && $dataUsu->fkRol == 2){
                 $consulta = $consulta->whereIn("e.fkEmpresa", $dataUsu->empresaUsuario);
             }
 
             $existeFiltroEstado = false;
             if(isset($req->filtro)){
-                
+                //Filtros con and
+                $cuentaFiltros = 0;
                 foreach($req->filtro as $row => $filtro){
                     if($req->campoId[$row] == "41"){
                         $existeFiltroEstado = true; 
@@ -8689,31 +8725,51 @@ class ReportesNominaController extends Controller
                     if($req->operador[$row] == "LIKE"){
                         $filtro = "%".$filtro."%";
                     }
-
                     $item_tipo_reportes = DB::table("item_tipo_reporte")->where("IdItemTipoReporte","=",$req->campoId[$row])->first();
-
-                    
-                    if(isset( $req->concector[$row - 1]) && $req->concector[$row-1]=="OR")
+                    if(!isset( $req->concector[$row - 1]))
                     {
-                        $consulta = $consulta->orWhereRaw($item_tipo_reportes->campo." ".$req->operador[$row]." '".$filtro."'");
-                    }
-                    else if(isset( $req->concector[$row - 1]) && $req->concector[$row-1]=="AND"){
                         $consulta = $consulta->whereRaw($item_tipo_reportes->campo." ".$req->operador[$row]." '".$filtro."'");
-                    }                    
-                    else if($req->concector[$row]=="AND"){
+                        $cuentaFiltros++;
+                    }
+                    else if(isset($req->concector[$row - 1]) && $req->concector[$row-1]=="AND" && $req->concector[$row]!="OR")
+                    {
                         $consulta = $consulta->whereRaw($item_tipo_reportes->campo." ".$req->operador[$row]." '".$filtro."'");
+                        $cuentaFiltros++;
                     }
-                    else if($req->concector[$row]=="OR"){
-                        $consulta = $consulta->orWhereRaw($item_tipo_reportes->campo." ".$req->operador[$row]." '".$filtro."'");
-                    }
+                    
+                }
+                //Filtros or
+                if($cuentaFiltros!=sizeof($req->filtro)){
+                    $consulta = $consulta->where(function($query) use($req) {
+                        foreach($req->filtro as $row => $filtro){
+                            if($req->operador[$row] == "LIKE"){
+                                $filtro = "%".$filtro."%";
+                            }                    
+                            $item_tipo_reportes = DB::table("item_tipo_reporte")->where("IdItemTipoReporte","=",$req->campoId[$row])->first();
 
+                            if(isset( $req->concector[$row - 1]) && $req->concector[$row-1]=="OR")
+                            {
+                                $query->orWhereRaw($item_tipo_reportes->campo." ".$req->operador[$row]." '".$filtro."'");
+                            }
+                            else if($req->concector[$row]=="OR"){
+                                $query->orWhereRaw($item_tipo_reportes->campo." ".$req->operador[$row]." '".$filtro."'");
+                            }
+                        }
+                    });
+                }               
+                foreach($req->filtro as $row => $filtro){
+                    if($req->campoId[$row] == "41"){
+                        $existeFiltroEstado = true; 
+                    }
                 }
             }
+
             if(!$existeFiltroEstado){
                 $consulta = $consulta->where("e.fkEstado","=","1");
             }
+            $consulta = $consulta->orderBy("e.idempleado", "desc");
             $consulta = $consulta->get();
-            
+
             $arrDef = array();
             $arrTitulos = array();
             if(sizeof($consulta) > 0){
@@ -8914,6 +8970,9 @@ class ReportesNominaController extends Controller
                     // alternatively specify an URL, if PHP settings allow
             $base64 = base64_encode($imagedata);
         }
+        else{
+            unset($empresayLiquidacion->logoEmpresa);
+        }
         
 
         $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -9093,7 +9152,7 @@ class ReportesNominaController extends Controller
                     <table class="tituloTable">
                         <tr>
                             <td rowspan="2">
-                            <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                            '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                             </td>
                             <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                         </tr>
@@ -9352,7 +9411,7 @@ class ReportesNominaController extends Controller
                         <table class="tituloTable">
                             <tr>
                                 <td rowspan="2">
-                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                 </td>
                                 <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                             </tr>
@@ -9700,7 +9759,7 @@ class ReportesNominaController extends Controller
                         <table class="tituloTable">
                             <tr>
                                 <td rowspan="2">
-                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                 </td>
                                 <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                             </tr>
@@ -9956,7 +10015,7 @@ class ReportesNominaController extends Controller
                             <table class="tituloTable">
                                 <tr>
                                     <td rowspan="2">
-                                    <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="'.(isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : '').'" class="logoEmpresa" />
+                                    '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
                                     </td>
                                     <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
                                 </tr>
@@ -10146,6 +10205,9 @@ class ReportesNominaController extends Controller
                     // alternatively specify an URL, if PHP settings allow
             $base64 = base64_encode($imagedata);
         }
+        else{
+            unset($empresayLiquidacion->logoEmpresa);
+        }
         $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
         $dataUsu = Auth::user();
@@ -10252,7 +10314,7 @@ class ReportesNominaController extends Controller
                         <table class="tablaHeader">
                             <tr>
                                 <td rowspan="4">
-                                <img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="<?php echo (isset($empresayLiquidacion->logoEmpresa) ? "data:image/png;base64,'.$base64.'" : ''); ?>" class="logoEmpresa" />
+                                <?php echo (isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : ''); ?>
                                 </td>
                                 <th>LISTADO DE NOMINA</th>
                                 <th>Fecha</th>

@@ -21,8 +21,15 @@ class AdminCorreosController extends Controller
         "segundoApellido" => "__segundoApellido__",
         "numeroIdentificacion" => "__numeroIdentificacion__",
         "tipoidentificacion" => "__tipoIdentificacion__",
-        "nombreEmpresa" => "__empresa__",            
-        "periodoNomina" => "__periodoNomina__"
+        "nombreEmpresa" => "__empresa__",
+        "periodoNomina" => "__periodoNomina__",
+        "nombreCargo" => "__nombreCargo__",
+        "tipoContrato" => "__tipoContrato__",
+        "fechaIngreso" => "__fechaIngreso__",
+        "fechaRetiro" => "__fechaRetiro__",
+        "salario" => "__salario__",
+        "ciudadEmpresa" => "__ciudadEmpresa__",
+        "fechaActual" => "__fechaActual__"
     ];
     public function indexEnviarCorreosxLiquidacion($idLiquidacionNomina){
         $enviosxLiquidacion = DB::table("envio_correo_liquidacion")
@@ -335,12 +342,15 @@ class AdminCorreosController extends Controller
 
         $empleado = DB::table("empleado", "e")
         ->selectRaw('dp.*,e.*,ti.nombre as tipoidentificacion, emp.razonSocial as nombreEmpresa,
-                    CONCAT_WS(" ",dp.primerApellido, dp.segundoApellido, dp.primerNombre, dp.segundoNombre) as nombreCompleto')
+                    CONCAT_WS(" ",dp.primerApellido, dp.segundoApellido, dp.primerNombre, dp.segundoNombre) as nombreCompleto, 
+                    c.nombreCargo, u.nombre as ciudadEmpresa')
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
         ->join("nomina as n","n.idNomina", "=","e.fkNomina","left")
         ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa","left")
+        ->join("ubicacion as u","u.idubicacion", "=","emp.fkUbicacion","left")
         ->join("boucherpago as bp","bp.fkEmpleado", "=","e.idempleado")
+        ->join("cargo as c","c.idCargo", "=","e.fkCargo","left")
         ->where("bp.idBoucherPago","=",$idBoucherPago)
         ->first();
         
@@ -406,10 +416,75 @@ class AdminCorreosController extends Controller
         Mail::setSwiftMailer($customSwiftMailer);
 
 
+        $periodo = DB::table("periodo")
+        ->select("periodo.*","cargo.nombreCargo","tipocontrato.nombre as nombreTipoContrato","n.nombre as nombreNomina", 
+                "u.nombre as ciudadEmpresa")
+        ->leftJoin("cargo","cargo.idCargo","=","periodo.fkCargo")
+        ->leftJoin("tipocontrato","tipocontrato.idtipoContrato","=","periodo.fkTipoContrato")
+        ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
+        ->leftJoin("empresa as emp","emp.idempresa", "=","n.fkEmpresa")
+        ->join("ubicacion as u","u.idubicacion", "=","emp.fkUbicacion","left")
+        ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
+        ->where("idPeriodo","=",$empresayLiquidacion->fkPeriodoActivo)
+        ->orderBy("idPeriodo","desc")
+        ->first();
+
+        
+
+        $contrato = DB::table("contrato","con")
+        ->select("tc.nombre as tipoContrato")        
+        ->join("tipocontrato as tc","tc.idtipoContrato","=","con.fkTipoContrato")
+        ->where("con.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)        
+        ->first();
+
 
         $arrDatos =  (array) $empleado;
-       
+        
+        
         $arrDatos["periodoNomina"] = $empresayLiquidacion->fechaLiquida;
+
+
+        if(isset($periodo->ciudadEmpresa)){
+            $arrDatos["ciudadEmpresa"] = $periodo->ciudadEmpresa;
+        }
+        
+
+        if(isset($periodo->nombreNomina)){
+            $arrDatos["nombreEmpresa"] = $periodo->nombreNomina;
+        }
+        if(isset($periodo->nombreCargo)){
+            $arrDatos["nombreCargo"] = $periodo->nombreCargo;
+        }
+
+        if(isset($periodo->nombreTipoContrato)){
+            $arrDatos["tipoContrato"] = $periodo->nombreTipoContrato;
+        }
+        else{
+            $arrDatos["tipoContrato"] = $contrato->tipoContrato;
+        }
+
+        $arrDatos["fechaIngreso"] = $periodo->fechaInicio;
+        
+
+        if(isset($periodo->fechaFin)){
+            $arrDatos["fechaRetiro"] = $periodo->fechaFin;
+        }
+        else{
+            $arrDatos["fechaRetiro"] = "Actual";
+        }
+
+        if(isset($periodo->salario)){
+            $arrDatos["salario"] = $periodo->salario;
+        }
+        else{
+            $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
+            ->whereIn("fkConcepto",[1,2,53,54])->first();
+            $arrDatos["salario"] = $conceptoSalario->valor;
+        }
+        setlocale(LC_ALL, "es_ES", 'Spanish_Spain', 'Spanish');
+        $fechaCarta = ucwords(iconv('ISO-8859-2', 'UTF-8', strftime("%A, %d de %B de %Y", strtotime(date('Y-m-d')))));
+        $arrDatos["fechaActual"] = $fechaCarta;
+        
         
         $mensaje->html = $this->reemplazarCampos($mensaje->html, $arrDatos);
         $mensaje->asunto = $this->reemplazarCampos($mensaje->asunto, $arrDatos);
@@ -469,14 +544,17 @@ class AdminCorreosController extends Controller
 
         $empleado = DB::table("empleado", "e")
         ->selectRaw('dp.*,e.*,ti.nombre as tipoidentificacion, emp.razonSocial as nombreEmpresa,
-                    CONCAT_WS(" ",dp.primerApellido, dp.segundoApellido, dp.primerNombre, dp.segundoNombre) as nombreCompleto')
+                    CONCAT_WS(" ",dp.primerApellido, dp.segundoApellido, dp.primerNombre, dp.segundoNombre) as nombreCompleto,
+                    c.nombreCargo, u.nombre as ciudadEmpresa')
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
         ->join("nomina as n","n.idNomina", "=","e.fkNomina","left")
         ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa","left")
+        ->join("ubicacion as u","u.idubicacion", "=","emp.fkUbicacion","left")
+        ->join("cargo as c","c.idCargo", "=","e.fkCargo","left")
         ->where("e.idempleado","=",$idEmpleado)
         ->first();
-        
+
 
         $smtConfig = DB::table("smtp_config","s")
         ->join("empresa as e","e.fkSmtpConf", "=","s.id_smpt")
@@ -511,9 +589,76 @@ class AdminCorreosController extends Controller
         Mail::setSwiftMailer($customSwiftMailer);
 
 
+    
+
+        $periodo = DB::table("periodo")
+        ->select("periodo.*","cargo.nombreCargo","tipocontrato.nombre as nombreTipoContrato","n.nombre as nombreNomina",
+                 "u.nombre as ciudadEmpresa")
+        ->leftJoin("cargo","cargo.idCargo","=","periodo.fkCargo")
+        ->leftJoin("tipocontrato","tipocontrato.idtipoContrato","=","periodo.fkTipoContrato")
+        ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
+        ->leftJoin("empresa as emp","emp.idempresa", "=","n.fkEmpresa")
+        ->join("ubicacion as u","u.idubicacion", "=","emp.fkUbicacion","left")
+        ->where("periodo.fkEmpleado","=",$idEmpleado)
+        ->orderBy("idPeriodo","desc")
+        ->first();
+
+        
+
+        $contrato = DB::table("contrato","con")
+        ->select("tc.nombre as tipoContrato")        
+        ->join("tipocontrato as tc","tc.idtipoContrato","=","con.fkTipoContrato")
+        ->where("con.fkEmpleado","=",$idEmpleado)      
+        ->orderBy("idcontrato","desc")
+        ->first();
+
 
         $arrDatos =  (array) $empleado;
-       
+        
+        
+        $arrDatos["periodoNomina"] = "";
+
+        if(isset($periodo->ciudadEmpresa)){
+            $arrDatos["ciudadEmpresa"] = $periodo->ciudadEmpresa;
+        }
+
+        
+        if(isset($periodo->nombreNomina)){
+            $arrDatos["nombreEmpresa"] = $periodo->nombreNomina;
+        }
+
+        if(isset($periodo->nombreCargo)){
+            $arrDatos["nombreCargo"] = $periodo->nombreCargo;
+        }
+
+        if(isset($periodo->nombreTipoContrato)){
+            $arrDatos["tipoContrato"] = $periodo->nombreTipoContrato;
+        }
+        else{
+            $arrDatos["tipoContrato"] = $contrato->tipoContrato;
+        }
+
+        $arrDatos["fechaIngreso"] = $periodo->fechaInicio;
+        
+
+        if(isset($periodo->fechaFin)){
+            $arrDatos["fechaRetiro"] = $periodo->fechaFin;
+        }
+        else{
+            $arrDatos["fechaRetiro"] = "Actual";
+        }
+
+        if(isset($periodo->salario)){
+            $arrDatos["salario"] = $periodo->salario;
+        }
+        else{
+            $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
+            ->whereIn("fkConcepto",[1,2,53,54])->first();
+            $arrDatos["salario"] = $conceptoSalario->valor;
+        }
+        setlocale(LC_ALL, "es_ES", 'Spanish_Spain', 'Spanish');
+        $fechaCarta = ucwords(iconv('ISO-8859-2', 'UTF-8', strftime("%A, %d de %B de %Y", strtotime(date('Y-m-d')))));
+        $arrDatos["fechaActual"] = $fechaCarta;
         
         $mensaje->html = $this->reemplazarCampos($mensaje->html, $arrDatos);
         $mensaje->asunto = $this->reemplazarCampos($mensaje->asunto, $arrDatos);

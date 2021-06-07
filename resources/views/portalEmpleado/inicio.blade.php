@@ -64,7 +64,7 @@
             >
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">Certificado de ingreso y retenciones</h5>
-                <p class="card-text mt-auto">Genere su certificado de ingreso y pensiones</p>
+                <p class="card-text mt-auto">Genere su certificado de ingreso y retenciones</p>
             </div>
         </div>
     </div>

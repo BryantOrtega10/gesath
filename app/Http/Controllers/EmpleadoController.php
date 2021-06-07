@@ -33,6 +33,7 @@ class EmpleadoController extends Controller
                                                     'empleado.fkEstado',
                                                     'n.nombre as nombreNomina',
                                                     'u.nombre as ciudad',
+                                                    'emp.razonSocial as nombreEmpresa',
                                                     'dp.*')
                                         ->selectRaw('(select cc2.nombre from centrocosto as cc2 where cc2.idcentroCosto 
                                                         in(Select ecc.fkCentroCosto from empleado_centrocosto as ecc where 
@@ -43,6 +44,7 @@ class EmpleadoController extends Controller
                                                         ')
                                         ->join('datospersonales AS dp','empleado.fkDatosPersonales', '=', 'dp.idDatosPersonales')
                                         ->join('nomina AS n','empleado.fkNomina', '=', 'n.idNomina',"left")
+                                        ->join('empresa AS emp','empleado.fkEmpresa', '=', 'emp.idEmpresa',"left")
                                         ->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
                                         ->join('ubicacion AS u','u.idubicacion', '=', 'empleado.fkUbicacionLabora',"left")
                                         ->join('estado AS est','empleado.fkEstado', '=', 'est.idestado');
@@ -363,7 +365,7 @@ class EmpleadoController extends Controller
 
     }
     public function formModificar($idEmpleado, Request $req){        
-        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.username as usuarioTxt',
+        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.username as usuarioTxt','ti.nombre as nombreTipoDoc',
                                                     'ubi_dep_exp.idubicacion AS ubi_depto_exp', 'ubi_pa_exp.idubicacion AS ubi_pais_exp',
                                                     'ubi_dep_nac.idubicacion AS ubi_depto_nac', 'ubi_pa_nac.idubicacion AS ubi_pais_nac',
                                                     'ubi_dep_res.idubicacion AS ubi_depto_res', 'ubi_pa_res.idubicacion AS ubi_pais_res',
@@ -386,7 +388,7 @@ class EmpleadoController extends Controller
                                         ->join("ubicacion AS ubi_pa_tra", 'ubi_dep_tra.fkUbicacion', '=', 'ubi_pa_tra.idubicacion',"left")
 
                                         ->join("users AS u", 'u.fkEmpleado','=','empleado.idempleado',"left")
-
+                                        ->join("tipoidentificacion AS ti", 'ti.idtipoIdentificacion','=','dp.fkTipoIdentificacion',"left")
                                         ->where('idempleado', $idEmpleado)
                                         ->first();
         
@@ -641,6 +643,11 @@ class EmpleadoController extends Controller
         ->where("ctc.fkEstado","=","7")
         ->get();
 
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado", "=", $idEmpleado)
+        ->orderBy("idPeriodo","desc")
+        ->first();
+
         return view('/empleado.editEmpleado', [
             'cambiosTipoCotizante' => $cambiosTipoCotizante,
             'paises'=>$paises,
@@ -705,7 +712,8 @@ class EmpleadoController extends Controller
             'nivelesEstudios' => $nivelesEstudios,
             'etnias' => $etnias,
             "centrosTrabajo" => $centrosTrabajo,
-            'tiposcotizante' => $tiposcotizante
+            'tiposcotizante' => $tiposcotizante,
+            'periodoActivo' => $periodoActivo
         ]);
 
 
@@ -717,7 +725,7 @@ class EmpleadoController extends Controller
     public function formVer($idEmpleado, Request $req){
         
         
-        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.username as usuarioTxt',
+        $empleado = DB::table("empleado")->select(  'empleado.*', 'dp.*', 'u.username as usuarioTxt', 'ti.nombre as nombreTipoDoc',
                                                     'ubi_dep_exp.idubicacion AS ubi_depto_exp', 'ubi_pa_exp.idubicacion AS ubi_pais_exp',
                                                     'ubi_dep_nac.idubicacion AS ubi_depto_nac', 'ubi_pa_nac.idubicacion AS ubi_pais_nac',
                                                     'ubi_dep_res.idubicacion AS ubi_depto_res', 'ubi_pa_res.idubicacion AS ubi_pais_res',
@@ -740,6 +748,7 @@ class EmpleadoController extends Controller
                                         ->join("ubicacion AS ubi_pa_tra", 'ubi_dep_tra.fkUbicacion', '=', 'ubi_pa_tra.idubicacion',"left")
 
                                         ->join("users AS u", 'u.fkEmpleado','=','empleado.idempleado',"left")
+                                        ->join("tipoidentificacion AS ti", 'ti.idtipoIdentificacion','=','dp.fkTipoIdentificacion',"left")
                                         ->where('idempleado', $idEmpleado)
                                         ->first();
         
@@ -976,7 +985,10 @@ class EmpleadoController extends Controller
         $tiposcotizante = DB::table("tipo_cotizante")->get();
 
         $usu = UsuarioController::dataAdminLogueado();
-
+        $periodoActivo = DB::table("periodo")
+        ->where("fkEmpleado", "=", $idEmpleado)
+        ->orderBy("idPeriodo","desc")
+        ->first();
         return view('/empleado.verEmpleado', [
 
             'paises'=>$paises,
@@ -1040,7 +1052,8 @@ class EmpleadoController extends Controller
             'nivelesEstudios' => $nivelesEstudios,
             'etnias' => $etnias,
             "centrosTrabajo" => $centrosTrabajo,
-            'tiposcotizante' => $tiposcotizante
+            'tiposcotizante' => $tiposcotizante,
+            'periodoActivo' => $periodoActivo
         ]);
 
 
@@ -1594,8 +1607,7 @@ class EmpleadoController extends Controller
         }
 
         $affected = DB::table('contrato')
-              ->where('idcontrato', $req->idContratoActivo)
-              ->update($modContrato);
+        ->insert($modContrato);
         
         
         DB::table('empleado_centrocosto')->where("fkEmpleado","=",$req->idEmpleado)->delete();
@@ -4047,11 +4059,32 @@ class EmpleadoController extends Controller
                         $periodoActivo = DB::table("periodo")
                         ->where("fkEmpleado","=",$idempleado)
                         ->where("fkEstado","=","1")->first();
+                        
+                        $i_adelantada = $i+1;
+                        $fkCargo = $row[8];
+                        $fkTipoContrato = null;
+                        $salario = 0;
+                        for($i_adelantada = $i; $i_adelantada < $cargaEmpleado->numRegistros; $i_adelantada++){
+                            $row_adelantada = $reader->fetchOne($i_adelantada);
+                            if($row_adelantada[0] == "3"){
+                                $fkTipoContrato = $row_adelantada[1];
+                            }
+                            if($row_adelantada[0] == "6" && ($row_adelantada[6] == "1" || $row_adelantada[6] == "2")){
+                                $salario = $row_adelantada[2];
+                            }
+                            if($row_adelantada[0] == "1"){
+                                break;
+                            }
+                        }
+
 
                         DB::table("periodo")->where("idPeriodo","=",$periodoActivo->idPeriodo)
                         ->update([
                             "fkEstado" => "2",
-                            "fechaFin" => $row[22]
+                            "fechaFin" => $row[22],
+                            "fkCargo" => $fkCargo,
+                            "fkTipoContrato" => $fkTipoContrato,
+                            "salario" => $salario,
                         ]);
                         DB::table('empleado')->where("idempleado","=",$idempleado)->update([
                             "fkEstado" => "2"
@@ -5673,15 +5706,33 @@ class EmpleadoController extends Controller
 
     public function verPeriodos($idEmpleado){
         $periodos = DB::table("periodo")
+        ->select("periodo.*","cargo.nombreCargo","tipocontrato.nombre as nombreTipoContrato","n.nombre as nombreNomina")
+        ->leftJoin("cargo","cargo.idCargo","=","periodo.fkCargo")
+        ->leftJoin("tipocontrato","tipocontrato.idtipoContrato","=","periodo.fkTipoContrato")
+        ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
         ->where("fkEmpleado", "=", $idEmpleado)
         ->where("fkEstado","=","2")
+        ->orderBy("idPeriodo","desc")
         ->get();
         /*$periodoActivo = DB::table("periodo")
         ->where("fkEmpleado","=", $idEmpleado)
         ->where("fkEstado","=","1")
         ->first();*/
 
-        $empleado = DB::table("empleado", "e")->where("e.idempleado","=",$idEmpleado)->first();
+        $empleado = DB::table("empleado", "e")
+        ->select("e.*","cargo.nombreCargo","n.nombre as nombreNomina")
+        ->leftJoin("cargo","cargo.idCargo","=","e.fkCargo")
+        ->leftJoin("nomina as n", "n.idNomina","=","e.fkNomina")
+        ->where("e.idempleado","=",$idEmpleado)        
+        ->first();
+        
+        $tipoContrato = DB::table("contrato","con")
+        ->select("con.*","tipocontrato.nombre as nombreTipoContrato")
+        ->leftJoin("tipocontrato","tipocontrato.idtipoContrato","=","con.fkTipoContrato")
+        ->where("con.fkEmpleado","=",$idEmpleado)
+        ->whereIn("con.fkEstado",["1","4"])
+        ->orderBy("con.idcontrato","desc")
+        ->first();
         
         $conceptoFijo = DB::table("conceptofijo")->where("fkEmpleado", "=",$idEmpleado)->whereIn("fkConcepto",[1,2])->first();
 
@@ -5689,7 +5740,8 @@ class EmpleadoController extends Controller
         return view("/empleado/ajax/verPeriodos",[
             "periodos" => $periodos,
             "empleado" => $empleado,
-            "conceptoFijo" => $conceptoFijo
+            "conceptoFijo" => $conceptoFijo,
+            "tipoContrato" => $tipoContrato
         ]);
 
     }

@@ -1,3 +1,17 @@
+:root {
+    --tamanio1: 11px;
+    --tamanio2: 14px;
+    --tamanio3: 13px;
+    --tamanio4: 16px;
+    --tamanio5: 20px;
+    --tamanio6: 24px;
+}
+
+body {
+    margin: 0;
+    font-size: 0.75rem;
+}
+
 .menuLateral {
     min-width: 108px;
     background: #0055C8;
@@ -86,10 +100,14 @@ section.contenido {
 /*Inicio Sesion*/
 
 .inicioSesion {
-    width: 420px;
+    width: 320px;
     margin: auto;
     text-align: left;
-    padding-top: 207px;
+    margin-top: -230px;
+    top: 50%;
+    position: absolute;
+    left: 50%;
+    margin-left: -160px;
 }
 
 .inicioSesion .form-group {
@@ -106,9 +124,9 @@ section.contenido {
     padding: 15px 20px;
     border-radius: 4px;
     border: 1px solid #979797;
-    height: 60px;
+    height: 40px;
     color: #000;
-    font-size: 21px;
+    font-size: 15px;
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 89.64%, rgba(220, 220, 220, 0.04) 100%);
     font-family: 'Roboto';
     font-weight: 900;
@@ -117,10 +135,10 @@ section.contenido {
 .inicioSesion .form-group label {
     position: absolute;
     left: 18px;
-    font-size: 21px;
+    font-size: 14px;
     top: 50%;
     margin: 0;
-    margin-top: -15px;
+    margin-top: -10px;
     color: rgba(0, 0, 0, 0.46);
     font-family: 'Roboto';
     font-weight: 600;
@@ -135,7 +153,7 @@ section.contenido {
 .inicioSesion img {
     margin: auto;
     display: block;
-    width: 220px;
+    width: 160px;
     margin-bottom: 0;
 }
 
@@ -144,8 +162,8 @@ section.contenido {
     border-radius: 6px;
     border: 0;
     width: 100%;
-    height: 61px;
-    font-size: 21px;
+    height: 41px;
+    font-size: 15px;
     font-family: Helvetica;
     font-style: normal;
     font-weight: bold;
@@ -155,7 +173,7 @@ section.contenido {
 }
 
 .contTerminos {
-    font-size: 17px;
+    font-size: var(--tamanio2);
     color: #9F9F9F;
     font-family: 'Roboto';
     font-weight: 500;
@@ -165,7 +183,7 @@ section.contenido {
     color: #9F9F9F;
     text-align: center;
     font-family: 'Roboto';
-    font-size: 19px;
+    font-size: 13px;
     margin-top: 40px;
     font-weight: bold;
 }
@@ -215,7 +233,7 @@ span.textoMenu {
     position: absolute;
     left: 108px;
     background: #0073FF;
-    font-size: 24px;
+    font-size: var(--tamanio4);
     font-family: 'Roboto';
     font-weight: bold;
     color: #FFF;
@@ -255,7 +273,7 @@ ul.itemsMenu li:hover {
     justify-content: center;
     align-items: center;
     font-weight: bold;
-    font-size: 28px;
+    font-size: var(--tamanio5);
     font-family: 'Roboto';
     color: #FFF;
     width: calc(100% - 86px);
@@ -318,7 +336,7 @@ span.nombreUsuario {
     box-shadow: none;
     height: auto;
     line-height: normal;
-    font-size: 24px;
+    font-size: var(--tamanio4);
     color: #0055C8;
     /* display: block; */
     margin-bottom: 24px;
@@ -342,12 +360,12 @@ span.nombreUsuario {
 .active.menuLateral ul.subMenu>li {
     padding: 5px 0;
     padding-left: 5px;
-    font-size: 17px;
+    font-size: var(--tamanio2);
     position: relative;
 }
 
 .active.menuLateral .subMenu span.textoMenu {
-    font-size: 17px;
+    font-size: var(--tamanio2);
     color: #959595;
     margin: 0;
     width: auto;
@@ -394,7 +412,7 @@ body {
     color: #848484;
     font-family: Roboto;
     font-weight: bold;
-    font-size: 24px;
+    font-size: var(--tamanio4);
     text-align: left;
 }
 
@@ -416,7 +434,7 @@ body {
     font-family: Roboto;
     font-style: normal;
     font-weight: 500;
-    font-size: 14px;
+    font-size: var(--tamanio1);
     border: 1px solid #E7E7E7;
     box-sizing: border-box;
     border-radius: 4px;
@@ -435,7 +453,7 @@ body {
     color: #FFF;
     font-family: Roboto;
     font-weight: bold;
-    font-size: 16px;
+    font-size: var(--tamanio3);
     padding: 11px 17px;
     border: 0;
     border-radius: 2px;
@@ -469,7 +487,7 @@ a.btnGeneral {
     font-family: Roboto;
     font-style: normal;
     font-weight: bold;
-    font-size: 17px;
+    font-size: var(--tamanio2);
     color: #FFF;
     padding: 8px 20px;
     background: #0073FF;
@@ -561,7 +579,7 @@ form.formGeneral .form-group label {
     font-family: Roboto;
     font-style: normal;
     font-weight: 500;
-    font-size: 14px;
+    font-size: var(--tamanio1);
     color: #A9A9A9;
     left: 0;
     margin: 0;
@@ -588,7 +606,7 @@ form.formGeneral .form-group input {
     font-weight: 500;
     /* identical to box height */
     padding: 6px;
-    font-size: 14px;
+    font-size: var(--tamanio1);
     color: #FFF;
     transition: all 0.5s;
     z-index: 2;
@@ -635,7 +653,7 @@ form.formGeneral .form-group input[type="datetime-local"] {
     color: #848484;
     font-family: Roboto;
     font-weight: bold;
-    font-size: 16px;
+    font-size: var(--tamanio3);
     text-align: center;
     margin: 20px 0;
 }
@@ -668,7 +686,7 @@ a.quitarPersonaVive {
     color: #FFF;
     font-family: Roboto;
     font-weight: bold;
-    font-size: 16px;
+    font-size: var(--tamanio3);
     padding: 11px 46px;
     border: 0;
     outline: none;
@@ -686,7 +704,7 @@ h1.ordenSuperior {
     font-family: Roboto;
     font-style: normal;
     font-weight: bold;
-    font-size: 36px;
+    font-size: var(--tamanio6);
     line-height: 42px;
     letter-spacing: -1px;
     color: #0055C8;
@@ -815,7 +833,7 @@ ul.itemsMenu>li:hover>ul.subMenu {
     position: relative;
     text-align: left;
     left: 0;
-    font-size: 14px;
+    font-size: var(--tamanio1);
     line-height: 45px;
     color: #000;
     box-shadow: none;
@@ -1236,7 +1254,7 @@ input[type="submit"].enfasis-background {
 .inicioSesion input[type="text"],
 .inicioSesion input[type="email"],
 .inicioSesion input[type="password"] {
-    padding-left: 135px;
+    padding-left: 105px;
 }
 
 a.btnMed {
@@ -1261,7 +1279,7 @@ h3.grisClaro {
 
 h1.granAzul {
     color: #0055C8;
-    font-size: 35px;
+    font-size: var(--tamanio6);
 }
 
 .afiliacion button.btn.btn-success.btnCambioAfiliacion,
@@ -1332,7 +1350,7 @@ a.seleccionarEmpleado {
 }
 
 .seleccionarArchivo label {
-    font-size: 16px;
+    font-size: var(--tamanio3);
     display: block;
     background: #EBEBEB;
     border: 1px solid #DEDEDE;
@@ -1422,6 +1440,7 @@ a.verDetalleCompro {
 
 table.table tr td {
     position: relative;
+    text-transform: capitalize;
 }
 
 .nuevoTipoCotizante {
@@ -1461,7 +1480,7 @@ div.dataTables_wrapper div.dataTables_length select {
 
 li.cerrar_sesion i,
 li.busqueda i {
-    font-size: 35px;
+    font-size: var(--tamanio6);
     color: #FFF;
 }
 
@@ -1626,4 +1645,14 @@ a.version {
 
 .table-responsive {
     min-height: 320px;
+}
+
+.ojo-password {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    margin-top: -2px;
+    font-size: 20px;
+    margin-right: 12px;
+    cursor: pointer;
 }

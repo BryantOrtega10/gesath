@@ -50,29 +50,6 @@ $(document).ready(function() {
         }
 
     });
-
-    $.ajax({
-        type: 'GET',
-        url: "/notificaciones/numeroNotificaciones",
-        success: function(data) {
-            if (data.numNoVistos > 0) {
-                $(".numNotificaciones").html(data.numNoVistos);
-            } else {
-                $(".numNotificaciones").css("display", "none");
-            }
-        },
-        error: function(data) {
-            /*retornarAlerta(
-                data.responseJSON.exception,
-                data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
-                'error',
-                'Aceptar'
-            );*/
-            console.log("error");
-            console.log(data);
-        }
-    });
-
     $("body").on("keyup", "#buscarMenu", function(e) {
         $.ajax({
             type: 'GET',

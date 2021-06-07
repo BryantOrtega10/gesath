@@ -109,9 +109,9 @@
                 <h3 class="grisClaro">Se encontraron {{ $numResultados }} resultados.</h3>
                 <table class="table table-hover table-striped">
                     <tr>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Numero Documento</th>
-                        <th scope="col">Ciudad</th>
+                        <th scope="col"  class="text-left">ID</th>
+                        <th scope="col">Nombre</th>                        
+                        <th scope="col">Empresa</th>
                         <th scope="col">Nomina</th>
                         <th scope="col">Centro costo</th>
                         <th scope="col">Estado</th>
@@ -119,11 +119,12 @@
                     </tr>
                     @foreach ($empleados as $empleado)
                         <tr>
-                            <th class="text-left">
+                            <th class="text-left">{{ $empleado->numeroIdentificacion }}</th>
+                            <td>
                                 {{ $empleado->primerApellido . ' ' . $empleado->segundoApellido . ' ' . $empleado->primerNombre . ' ' . $empleado->segundoNombre }}
-                            </th>
-                            <td>{{ $empleado->numeroIdentificacion }}</td>
-                            <td>{{ $empleado->ciudad }}</td>
+                            </td>
+                            
+                            <td>{{ $empleado->nombreEmpresa }}</td>
                             <td>{{ $empleado->nombreNomina }}</td>
                             <td>{{ $empleado->centroCosto }}</td>
                             <td>
@@ -142,9 +143,11 @@
                                     <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                                   
                                     <div class="dropdown-menu dropdown-menu-right">
-                                        @if (in_array("52",$dataUsu->permisosUsuario))
-                                        <a href="/empleado/formModificar/{{ $empleado->idempleado }}" class="dropdown-item editar">
-                                            <i class="fas fa-edit"></i> Editar</a>
+                                        @if ($empleado->fkEstado != '2')
+                                            @if (in_array("52",$dataUsu->permisosUsuario))
+                                            <a href="/empleado/formModificar/{{ $empleado->idempleado }}" class="dropdown-item editar">
+                                                <i class="fas fa-edit"></i> Editar</a>
+                                            @endif
                                         @endif
                                         @if (in_array("53",$dataUsu->permisosUsuario))
                                         <a href="/empleado/formVer/{{ $empleado->idempleado }}" class="dropdown-item  ver">

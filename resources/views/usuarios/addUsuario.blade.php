@@ -4,9 +4,10 @@
         <label for="username">Nombre de usuario</label>
         <input type="text" class="form-control" id="username" name = "username" required>
     </div>
-    <div class="form-group">
+    <div class="form-group" style="position: relative">
         <label for="password">Contraseña</label>
         <input type="password" class="form-control" id="password" name = "password" required>
+        <div class="ojo-password" data-para="password"><i class="fas fa-eye"></i></div>
     </div>
     <div class="form-group">
         <label for="fkRol">Rol</label>

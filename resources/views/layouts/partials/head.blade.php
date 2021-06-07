@@ -21,6 +21,7 @@
 <script src='https://cdn.jsdelivr.net/npm/moment@2.27.0/min/moment.min.js'></script>
 
 <script src="{{ URL::asset('js/general.js') }}"></script>
+<script src="{{ URL::asset('js/notificaciones.js') }}"></script>
 <script src="{{ URL::asset('js/controlErroresFormularios.js') }}"></script>
 <script src="{{ URL::asset('js/sweetAlertas.js') }}"></script>
 <script src="{{ URL::asset('js/funcionesGenerales.js') }}"></script>

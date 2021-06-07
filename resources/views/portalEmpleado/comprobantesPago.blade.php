@@ -86,7 +86,7 @@
                 'searchable': false,
                 "render": (data, type, full, meta) => {
                     return `
-                        <form method = "GET" action = "/reportes/comprobantePdf/${data}">
+                        <form method = "GET" target="_blank" action = "/reportes/comprobantePdf/${data}">
                             <button class "btn btn-link">Descargar&nbsp;<i class="fas fa-download"></i></button>
                         </form>
                     `;

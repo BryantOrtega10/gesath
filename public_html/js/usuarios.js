@@ -373,4 +373,13 @@ $(document).ready(function() {
         $(this).parent().parent().find($("input[type='checkbox']")).prop("checked", $(this).prop("checked"));
     });
 
+    $("body").on("click", ".ojo-password", function(e) {
+        if ($("#" + $(this).attr("data-para")).prop("type") == "password") {
+            $("#" + $(this).attr("data-para")).prop("type", "text");
+        } else {
+            $("#" + $(this).attr("data-para")).prop("type", "password");
+        }
+    });
+
+
 });

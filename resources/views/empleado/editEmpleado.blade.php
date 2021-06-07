@@ -7,7 +7,7 @@
 @endsection
 
 @section('contenido')
-<h1 class="ordenSuperior">Modificar empleado</h1>
+<h1 class="ordenSuperior">Modificar {{$empleado->nombreTipoDoc}} - {{$empleado->numeroIdentificacion}} - {{ $empleado->primerApellido . ' ' . $empleado->segundoApellido . ' ' . $empleado->primerNombre . ' ' . $empleado->segundoNombre }}</h1>
 <nav>
     <div class="navGeneral nav nav-tabs" id="nav-tab" role="tablist">
         <a class="nav-item nav-link @if($destino=="") active @endif" id="nav-datosP-tab" data-toggle="tab" href="#nav-datosP" role="tab" aria-controls="nav-datosP" aria-selected="@if($destino=="") true @else false @endif">Datos Personales</a>
@@ -875,6 +875,14 @@
                                 </select>
                             </div>
                         </div>
+                        @if (isset($periodoActivo->fechaFin))
+                            <div class="col-3">
+                                <div class="form-group hasText">
+                                    <label for="fechaRetiro" class="control-label">Fecha retiro</label>
+                                    <input type="date" readonly class="form-control" value="{{$periodoActivo->fechaFin}}" id="fechaRetiro" name="fechaRetiro"/>                    
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     
                     @if (sizeof($cambiosTipoCotizante)>0)

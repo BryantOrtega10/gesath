@@ -32,6 +32,20 @@
         .page_break { 
             page-break-before: always; 
         }
+
+        .page 
+        {
+            top: .3in;
+            right: .3in;
+            bottom: .3in;
+            left: .3in;
+            position: absolute;
+            z-index: -1000;
+            min-width: 7in;
+            min-height: 11.7in;
+            
+        }
+
     </style>
 </head>
 <body style = "max-width: 800px; width: 100%; margin: auto;">

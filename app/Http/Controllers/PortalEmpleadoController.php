@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Dompdf\Dompdf;
 use DateTime;
+use Illuminate\Support\Facades\Storage;
 
 class PortalEmpleadoController extends Controller
 {
@@ -29,7 +30,10 @@ class PortalEmpleadoController extends Controller
             'empleado.fkEmpresa'
         )
         ->where('idempleado', $dataUsu->fkEmpleado)->first();
-        $fotoEmple = 'http://gesath.web-html.com/storage/imgEmpleados/'.$dataEmple->foto;
+
+         
+        $fotoEmple = Storage::url($dataEmple->foto);
+        
         $dataEmpr = DB::table('empresa')->select(
             'empresa.idempresa',
             'empresa.logoEmpresa',
@@ -40,8 +44,7 @@ class PortalEmpleadoController extends Controller
         )->join('empleado', 'empresa.idempresa', 'empleado.fkEmpresa')
         ->where('empresa.idempresa', $dataEmple->fkEmpresa)->first();
             
-        if (is_null($dataEmple->foto) || $dataEmple->foto === '') {
-           
+        if (is_null($dataEmple->foto) || $dataEmple->foto === '') {           
             if (is_null($dataEmpr->logoEmpresa)) {
                 $fotoEmple = '/img/noimage.png';
             } else {
@@ -267,105 +270,144 @@ class PortalEmpleadoController extends Controller
         setlocale(LC_ALL, "es_ES", 'Spanish_Spain', 'Spanish');
         $fechaCarta = ucwords(iconv('ISO-8859-2', 'UTF-8', strftime("%A, %d de %B de %Y", strtotime(date('Y-m-d')))));
 
-        $dompdf = new Dompdf();
-        $datosEmpleado = DB::table('empleado')
-        ->join('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
-        ->join('empresa', 'empleado.fkEmpresa', 'empresa.idempresa')
-        ->select(
-            'datospersonales.primerNombre',
-            'datospersonales.segundoNombre',
-            'datospersonales.primerApellido',
-            'datospersonales.segundoApellido',
-            'datospersonales.numeroIdentificacion',
-            'empresa.razonSocial'
-        )
-        ->where('empleado.idempleado', $idEmple)
+        $empleado = DB::table("empleado", "e")
+        ->selectRaw('dp.*,e.*,ti.nombre as tipoidentificacion, emp.razonSocial as nombreEmpresa,
+                    CONCAT_WS(" ",dp.primerApellido, dp.segundoApellido, dp.primerNombre, dp.segundoNombre) as nombreCompleto, c.nombreCargo')
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
+        ->join("nomina as n","n.idNomina", "=","e.fkNomina","left")
+        ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa","left")
+        ->join("cargo as c","c.idCargo", "=","e.fkCargo","left")
+        ->where("e.idempleado","=",$idEmple)
         ->first();
 
-        $empresasEmpleado = DB::table('empleado')
-        ->join('empresa', 'empleado.fkEmpresa', 'empresa.idempresa')
-        ->join('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
-        ->join('nomina', 'empleado.fkNomina', 'nomina.idnomina')
-        ->join('conceptofijo', 'empleado.idempleado', 'conceptofijo.fkEmpleado')
-        ->join('cargo', 'empleado.fkCargo', 'cargo.idCargo')
-        ->join('centrocosto', 'empresa.idempresa', 'centrocosto.fkEmpresa')
-        ->join('periodo', 'periodo.fkEmpleado', 'empleado.idempleado')
-        ->select(
-            'conceptofijo.valor as sueldoConceptoFijo',
-            'conceptofijo.unidad',
-            'cargo.nombreCargo',
-            'centrocosto.nombre',
-            'empresa.razonSocial',
-            'periodo.fechaInicio',
-            'periodo.fechaFin',
-            'periodo.salario as sueldoPeriodo',
-            'periodo.fkEstado'
-        )
-        ->where('empleado.idempleado', $idEmple)
-        ->whereIn('conceptofijo.fkConcepto', ['1', '2', '53', '54'])
-        ->groupBy('empresa.idempresa')
-        ->orderBy('periodo.fechaInicio', 'DESC')
-        ->get();
+        $contrato = DB::table("contrato","con")
+        ->select("tc.nombre as tipoContrato")        
+        ->join("tipocontrato as tc","tc.idtipoContrato","=","con.fkTipoContrato")
+        ->where("con.fkEmpleado","=",$idEmple)      
+        ->orderBy("idcontrato","desc")
+        ->first();
 
-        $posibleReintegro = DB::table('periodo')
-        ->join('estado', 'periodo.fkEstado', 'estado.idestado')
-        ->join('empleado', 'periodo.fkEmpleado', 'empleado.idempleado')
-        ->join('nomina', 'periodo.fkNomina', 'nomina.idNomina')
-        ->join('empresa', 'empleado.fkEmpresa', 'empresa.idempresa')
-        ->join('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
-        ->join('conceptofijo', 'empleado.idempleado', 'conceptofijo.fkEmpleado')
-        ->join('cargo', 'empleado.fkCargo', 'cargo.idCargo')
-        ->join('centrocosto', 'empresa.idempresa', 'centrocosto.fkEmpresa')
-        ->select(
-            'conceptofijo.valor as sueldoConceptoFijo',
-            'conceptofijo.unidad',
-            'cargo.nombreCargo',
-            'centrocosto.nombre',
-            'empresa.razonSocial',
-            'periodo.fechaInicio',
-            'periodo.fechaFin',
-            'periodo.salario as sueldoPeriodo',
-            'periodo.fkEstado',
-            'estado.nombre'
-        )
-        ->where('empleado.idempleado', $idEmple)
-        ->where('periodo.fkEstado', ['1', '2', '53', '54'])
-        ->where('conceptofijo.fkConcepto', '1')
-        ->groupBy('empresa.idempresa')
-        ->get();
-
-        $trabajos = null;
-
-        if ($posibleReintegro) {
-            $empresasEmple = $empresasEmpleado->merge($posibleReintegro);
-            $trabajos = $empresasEmple->all();
-        } else {
-            $trabajos = $empresasEmpleado->all();
-            $trabajos = collect($trabajos)->sortByDesc('fechaInicio')->reverse()->toArray();
-        }        
-
-        /* return response()->json([
-            'dataEmpleado' => $datosEmpleado,
-            'empresasEmpleado' => $trabajos,
-            'fechaCarta' => $fechaCarta
-        ]); */
-
-        /* return view('/pdfs.certificadoLaboral', [
-            'dataEmpleado' => $datosEmpleado,
-            'empresasEmpleado' => $trabajos,
-            'fechaCarta' => $fechaCarta
-        ]); */
+        $arrDatos =  (array) $empleado;
         
-        $vista = view('/pdfs.certificadoLaboral', [
-            'dataEmpleado' => $datosEmpleado,
-            'empresasEmpleado' => $trabajos,
-            'fechaCarta' => $fechaCarta
-        ]);
+        $periodos = DB::table("periodo")
+        ->select("periodo.*","cargo.nombreCargo","tipocontrato.nombre as nombreTipoContrato","n.nombre as nombreNomina", "n.fkEmpresa",
+                "u.nombre as ciudadEmpresa")
+        ->leftJoin("cargo","cargo.idCargo","=","periodo.fkCargo")
+        ->leftJoin("tipocontrato","tipocontrato.idtipoContrato","=","periodo.fkTipoContrato")
+        ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
+        ->leftJoin("empresa as emp","emp.idempresa", "=","n.fkEmpresa")
+        ->join("ubicacion as u","u.idubicacion", "=","emp.fkUbicacion","left")
+        ->where("periodo.fkEmpleado","=",$idEmple)
+        ->orderBy("idPeriodo","desc")
+        ->get();
+        $html='
+        <html>
+        <body>
+            <style>
+            *{
+                -webkit-hyphens: auto;
+                -ms-hyphens: auto;
+                hyphens: auto;
+                font-family: sans-serif;                
+            }
+            td{
+                text-align: left;
+                font-size: 10px;
+            }
+            th{
+                text-align: left;
+                font-size: 10px;
+            }
+            .liquida td, .liquida th{
+                font-size:11px;
+            }
+            
+            @page { 
+                margin: 0in;
+                position: absolute;
+            }
+            .page {
+                top: 2.5cm;
+                right: 3cm;
+                bottom: 2.5cm;
+                left: 3cm;
+                position: absolute;
+                z-index: -1000;
+                min-width: 16cm;
+                min-height: 11.7in;
+                
+            }
+            .page_break { 
+                page-break-before: always; 
+            }
+        
+            </style>
+            ';
+        foreach($periodos as $periodo){
 
-        $dompdf->loadHtml($vista ,'UTF-8');
+            $mensaje = DB::table("mensaje")->where("tipo","=", 6)
+            ->where("fkEmpresa", "=",$periodo->fkEmpresa)
+            ->first();
+            if(!isset($mensaje)){
+                $mensaje = DB::table("mensaje")->where("idMensaje","=", 6)->first();
+            }
+            
+            $arrDatos["periodoNomina"] = "";
+            if(isset($periodo->nombreNomina)){
+                $arrDatos["nombreEmpresa"] = $periodo->nombreNomina;
+            }
+            else{
+                $arrDatos["nombreEmpresa"] = $empleado->nombreEmpresa;
+            }
+            if(isset($periodo->nombreCargo)){
+                $arrDatos["nombreCargo"] = $periodo->nombreCargo;
+            }
+            else{
+                $arrDatos["nombreCargo"] = $empleado->nombreCargo;
+            }
+
+            if(isset($periodo->nombreTipoContrato)){
+                $arrDatos["tipoContrato"] = $periodo->nombreTipoContrato;
+            }
+            else{
+                $arrDatos["tipoContrato"] = $contrato->tipoContrato;
+            }
+
+            $arrDatos["fechaIngreso"] = $periodo->fechaInicio;
+
+            if(isset($periodo->fechaFin)){
+                $arrDatos["fechaRetiro"] = $periodo->fechaFin;
+            }
+            else{
+                $arrDatos["fechaRetiro"] = "Actual";
+            }
+            if(isset($periodo->salario)){
+                $arrDatos["salario"] = "$".number_format($periodo->salario, 2, ",", ".");
+            }
+            else{
+                $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
+                ->whereIn("fkConcepto",[1,2,53,54])->first();                
+                $arrDatos["salario"] = "$".number_format($conceptoSalario->valor, 2, ",", ".");
+            }
+            $arrDatos["fechaActual"] = $fechaCarta;
+            $mensaje->html = $this->reemplazarCampos($mensaje->html, $arrDatos);
+            $mensaje->asunto = $this->reemplazarCampos($mensaje->asunto, $arrDatos);
+            $html.='<div class="page">'.$mensaje->html.'</div><div class="page_break"></div>';
+        }
+        $html = substr($html, 0, strlen($html) - 30);
+        $html.='
+            </body>
+        </html>
+        ';
+
+        $dompdf = new Dompdf();
+        
+
+        $dompdf->loadHtml($html ,'UTF-8');
         $dompdf->setPaper('letter', 'portrait');
         $dompdf->render();
-        $dompdf->get_canvas()->get_cpdf()->setEncryption($datosEmpleado->numeroIdentificacion, $datosEmpleado->numeroIdentificacion);
+        $dompdf->get_canvas()->get_cpdf()->setEncryption($empleado->numeroIdentificacion, $empleado->numeroIdentificacion);
         $dompdf->stream("Certificación Laboral", array('compress' => 1, 'Attachment' => 1));
     }
 
@@ -466,5 +508,20 @@ class PortalEmpleadoController extends Controller
 		{
 		    return response()->json(["success" => false, "mensaje" => "Error, No existe una usuario con este ID"]);
 		}
+    }
+
+    private function reemplazarCampos($mensaje, $datos){
+        $adminController = new AdminCorreosController();
+        $arrayCampos = $adminController->arrayCampos;
+        foreach($arrayCampos as $id => $campo){
+            if(isset($datos[$id])){
+                $mensaje = str_replace($campo, $datos[$id], $mensaje);
+            }
+            else{
+                $mensaje = str_replace($campo, "", $mensaje);
+            }
+        }
+        return $mensaje;
+        
     }
 }

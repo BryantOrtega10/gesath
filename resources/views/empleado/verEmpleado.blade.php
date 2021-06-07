@@ -7,7 +7,7 @@
 @endsection
 
 @section('contenido')
-<h1 class="ordenSuperior">Ver empleado</h1>
+<h1 class="ordenSuperior">Ver {{$empleado->nombreTipoDoc}} - {{$empleado->numeroIdentificacion}} - {{ $empleado->primerApellido . ' ' . $empleado->segundoApellido . ' ' . $empleado->primerNombre . ' ' . $empleado->segundoNombre }}</h1>
 <nav>
     <div class="navGeneral nav nav-tabs" id="nav-tab" role="tablist">
         <a class="nav-item nav-link @if($destino=="") active @endif" id="nav-datosP-tab" data-toggle="tab" href="#nav-datosP" role="tab" aria-controls="nav-datosP" aria-selected="@if($destino=="") true @else false @endif">Datos Personales</a>
@@ -51,25 +51,25 @@
                     <div class="col-3">
                         <div class="form-group  @isset($empleado->primerNombre) hasText @endif">
                             <label for="pNombre" class="control-label">Primer Nombre</label>
-                            <input type="text" disabled class="form-control" id="pNombre" name="pNombre" value="{{ $empleado->primerNombre }}" />
+                            <input type="text" readonly class="form-control" id="pNombre" name="pNombre" value="{{ $empleado->primerNombre }}" />
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group  @isset($empleado->segundoNombre) hasText @endif">
                             <label for="sNombre" class="control-label">Segundo Nombre</label>
-                            <input type="text" disabled class="form-control" id="sNombre" name="sNombre" value="{{ $empleado->segundoNombre }}" />
+                            <input type="text" readonly class="form-control" id="sNombre" name="sNombre" value="{{ $empleado->segundoNombre }}" />
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group  @isset($empleado->primerApellido) hasText @endif">
                             <label for="pApellido" class="control-label">Primer Apellido</label>
-                            <input type="text" disabled class="form-control" id="pApellido" name="pApellido" value="{{ $empleado->primerApellido }}" />
+                            <input type="text" readonly class="form-control" id="pApellido" name="pApellido" value="{{ $empleado->primerApellido }}" />
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group  @isset($empleado->segundoApellido) hasText @endif">
                             <label for="sApellido" class="control-label">Segundo Apellido</label>
-                            <input type="text" disabled class="form-control" id="sApellido" name="sApellido" value="{{ $empleado->segundoApellido }}" />
+                            <input type="text" readonly class="form-control" id="sApellido" name="sApellido" value="{{ $empleado->segundoApellido }}" />
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->numeroIdentificacion) hasText @endif">
                             <label for="numIdentificacion" class="control-label">Número Identificación</label>
-                            <input type="text" disabled class="form-control" id="numIdentificacion" name="numIdentificacion" value="{{ $empleado->numeroIdentificacion }}"/>
+                            <input type="text" readonly class="form-control" id="numIdentificacion" name="numIdentificacion" value="{{ $empleado->numeroIdentificacion }}"/>
                         </div>
                         <input type="hidden" id="numIdentificacionAnt" value="{{$empleado->numeroIdentificacion}}" name="numIdentificacionAnt" /> 
                     </div>
@@ -131,7 +131,7 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fechaExpedicion) hasText @endif">
                             <label for="fechaExpedicion" class="control-label">Fecha Expedición</label>
-                            <input type="date" disabled class="form-control" id="fechaExpedicion" name="fechaExpedicion" value="{{ $empleado->fechaExpedicion }}" />
+                            <input type="date" readonly class="form-control" id="fechaExpedicion" name="fechaExpedicion" value="{{ $empleado->fechaExpedicion }}" />
                         </div>
                     </div>
                     <div class="col-3">
@@ -161,14 +161,14 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->libretaMilitar) hasText @endisset">
                             <label for="libretaMilitar" class="control-label">Libreta Militar</label>
-                            <input type="text" disabled class="form-control" id="libretaMilitar" name="libretaMilitar" value="{{ $empleado->libretaMilitar }}"/>
+                            <input type="text" readonly class="form-control" id="libretaMilitar" name="libretaMilitar" value="{{ $empleado->libretaMilitar }}"/>
                         </div>
                     </div>
             
                     <div class="col-3">
                         <div class="form-group @isset($empleado->distritoMilitar) hasText @endisset">
                             <label for="distritoMilitar" class="control-label">Distrito Militar - Clase</label>
-                            <input type="text" disabled class="form-control" id="distritoMilitar" name="distritoMilitar"  value="{{ $empleado->distritoMilitar }}" />
+                            <input type="text" readonly class="form-control" id="distritoMilitar" name="distritoMilitar"  value="{{ $empleado->distritoMilitar }}" />
                         </div>
                     </div>
                     <div class="col-3">
@@ -203,7 +203,7 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fechaNacimiento) hasText @endisset">
                             <label for="fechaNacimiento" class="control-label">Fecha Nacimiento</label>
-                            <input type="date" disabled class="form-control" id="fechaNacimiento" name="fechaNacimiento" value="{{ $empleado->fechaNacimiento }}" />
+                            <input type="date" readonly class="form-control" id="fechaNacimiento" name="fechaNacimiento" value="{{ $empleado->fechaNacimiento }}" />
                         </div>
                     </div>
                     <div class="col-3">
@@ -251,7 +251,7 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->direccion) hasText @endisset">
                             <label for="direccion" class="control-label">Direccion</label>
-                            <input type="text" disabled class="form-control" id="direccion" name="direccion" value="{{ $empleado->direccion }}" />
+                            <input type="text" readonly class="form-control" id="direccion" name="direccion" value="{{ $empleado->direccion }}" />
                         </div>
                     </div>
                     <div class="col-3">
@@ -292,13 +292,13 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->barrio) hasText @endisset">
                             <label for="barrio" class="control-label">Barrio</label>
-                            <input type="text" disabled class="form-control" id="barrio" name="barrio" value="{{ $empleado->barrio }}" />
+                            <input type="text" readonly class="form-control" id="barrio" name="barrio" value="{{ $empleado->barrio }}" />
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->estrato) hasText @endisset">
                             <label for="estrato" class="control-label">Estrato</label>
-                            <input type="text" disabled class="form-control" id="estrato" name="estrato"  value="{{ $empleado->estrato }}" />
+                            <input type="text" readonly class="form-control" id="estrato" name="estrato"  value="{{ $empleado->estrato }}" />
                         </div>
                     </div>
                     <div class="col-3">
@@ -315,7 +315,7 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->telefonoFijo) hasText @endisset">
                             <label for="telFijo" class="control-label">Telefono fijo</label>
-                            <input type="text" disabled class="form-control" id="telFijo" name="telFijo"  value="{{ $empleado->telefonoFijo }}"/>                    
+                            <input type="text" readonly class="form-control" id="telFijo" name="telFijo"  value="{{ $empleado->telefonoFijo }}"/>                    
                         </div>
                     </div>
                 </div>
@@ -323,7 +323,7 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->celular) hasText @endisset">
                             <label for="celular" class="control-label">Celular</label>
-                            <input type="text" disabled class="form-control" id="celular" name="celular"  value="{{ $empleado->celular }}"/>                    
+                            <input type="text" readonly class="form-control" id="celular" name="celular"  value="{{ $empleado->celular }}"/>                    
                         </div>
                     </div>
                     <div class="col-3">
@@ -376,13 +376,13 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->tallaCamisa) hasText @endisset">
                             <label for="tallaCamisa" class="control-label">Talla Camisa</label>
-                            <input type="text" disabled class="form-control" id="tallaCamisa" name="tallaCamisa" value="{{ $empleado->tallaCamisa }}"/>                    
+                            <input type="text" readonly class="form-control" id="tallaCamisa" name="tallaCamisa" value="{{ $empleado->tallaCamisa }}"/>                    
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->tallaPantalon) hasText @endisset">
                             <label for="tallaPantalon" class="control-label">Talla Pantalon</label>
-                            <input type="text" disabled class="form-control" id="tallaPantalon" name="tallaPantalon" value="{{ $empleado->tallaPantalon }}"/>                    
+                            <input type="text" readonly class="form-control" id="tallaPantalon" name="tallaPantalon" value="{{ $empleado->tallaPantalon }}"/>                    
                         </div>
                     </div>
                 </div>
@@ -390,19 +390,19 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->tallaZapatos) hasText @endisset">
                             <label for="tallaZapatos" class="control-label">Talla Zapatos</label>
-                            <input type="text" disabled class="form-control" id="tallaZapatos" name="tallaZapatos" value="{{ $empleado->tallaZapatos }}"/>                    
+                            <input type="text" readonly class="form-control" id="tallaZapatos" name="tallaZapatos" value="{{ $empleado->tallaZapatos }}"/>                    
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->otros) hasText @endisset">
                             <label for="otros" class="control-label">Otros, Cual?</label>
-                            <input type="text" disabled class="form-control" id="otros" name="otros" value="{{ $empleado->otros }}"/>                    
+                            <input type="text" readonly class="form-control" id="otros" name="otros" value="{{ $empleado->otros }}"/>                    
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->tallaOtros) hasText @endisset">
                             <label for="tallaOtros" class="control-label">Talla Otros</label>
-                            <input type="text" disabled class="form-control" id="tallaOtros" name="tallaOtros" value="{{ $empleado->tallaOtros }}"/>                    
+                            <input type="text" readonly class="form-control" id="tallaOtros" name="tallaOtros" value="{{ $empleado->tallaOtros }}"/>                    
                         </div>
                     </div>
                 </div>
@@ -428,19 +428,19 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($contactosEmergencia[$i-1]->nombre) hasText @endisset">
                                         <label for="nombreEmergencia{{$i}}" class="control-label">Nombre</label>
-                                        <input type="text" disabled class="form-control" id="nombreEmergencia{{$i}}" data-id="{{$i}}" name="nombreEmergencia[]" value="{{$contactosEmergencia[$i-1]->nombre}}"/>
+                                        <input type="text" readonly class="form-control" id="nombreEmergencia{{$i}}" data-id="{{$i}}" name="nombreEmergencia[]" value="{{$contactosEmergencia[$i-1]->nombre}}"/>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($contactosEmergencia[$i-1]->telefono) hasText @endisset">
                                         <label for="telefonoEmergencia{{$i}}" class="control-label">Telefono</label>
-                                        <input type="text" disabled class="form-control" id="telefonoEmergencia{{$i}}" data-id="{{$i}}" name="telefonoEmergencia[]" value="{{$contactosEmergencia[$i-1]->telefono}}"/>                    
+                                        <input type="text" readonly class="form-control" id="telefonoEmergencia{{$i}}" data-id="{{$i}}" name="telefonoEmergencia[]" value="{{$contactosEmergencia[$i-1]->telefono}}"/>                    
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($contactosEmergencia[$i-1]->direccion) hasText @endisset">
                                         <label for="direccionEmergencia{{$i}}" class="control-label">Direccion</label>
-                                        <input type="text" disabled class="form-control" id="direccionEmergencia{{$i}}" data-id="{{$i}}" name="direccionEmergencia[]" value="{{$contactosEmergencia[$i-1]->direccion}}"/>                    
+                                        <input type="text" readonly class="form-control" id="direccionEmergencia{{$i}}" data-id="{{$i}}" name="direccionEmergencia[]" value="{{$contactosEmergencia[$i-1]->direccion}}"/>                    
                                     </div>
                                 </div>
                                 <div class="col-3">
@@ -506,13 +506,13 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($nucleo->nombre) hasText  @endisset">
                                         <label for="nombrePersonaV{{$idRow}}" class="control-label">Nombre</label>
-                                        <input type="text" disabled class="form-control" id="nombrePersonaV{{$idRow}}" data-id="{{$idRow}}" name="nombrePersonaV[]" value="{{$nucleo->nombre}}" />                    
+                                        <input type="text" readonly class="form-control" id="nombrePersonaV{{$idRow}}" data-id="{{$idRow}}" name="nombrePersonaV[]" value="{{$nucleo->nombre}}" />                    
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($nucleo->fechaNacimiento) hasText  @endisset">
                                         <label for="fechaNacimientoPersonaV{{$idRow}}" class="control-label">Fecha Nacimiento</label>
-                                        <input type="date" disabled class="form-control" id="fechaNacimientoPersonaV{{$idRow}}" data-id="{{$idRow}}" name="fechaNacimientoPersonaV[]" value="{{$nucleo->fechaNacimiento}}">                    
+                                        <input type="date" readonly class="form-control" id="fechaNacimientoPersonaV{{$idRow}}" data-id="{{$idRow}}" name="fechaNacimientoPersonaV[]" value="{{$nucleo->fechaNacimiento}}">                    
                                     </div>
                                 </div>
                                 <div class="col-3">
@@ -563,25 +563,25 @@
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->primerApellido) hasText  @endisset">
                                     <label for="primerApellidoUpc{{$idRow}}" class="control-label">Primer Apellido:</label>
-                                    <input type="text" disabled class="form-control" id="primerApellidoUpc{{$idRow}}" data-id="{{$idRow}}" name="primerApellidoUpc[]" value="{{$upcAdic->primerApellido}}" />                    
+                                    <input type="text" readonly class="form-control" id="primerApellidoUpc{{$idRow}}" data-id="{{$idRow}}" name="primerApellidoUpc[]" value="{{$upcAdic->primerApellido}}" />                    
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->segundoApellido) hasText  @endisset">
                                     <label for="segundoApellidoUpc{{$idRow}}" class="control-label">Segundo Apellido:</label>
-                                    <input type="text" disabled class="form-control" id="segundoApellidoUpc{{$idRow}}" data-id="{{$idRow}}" name="segundoApellidoUpc[]" value="{{$upcAdic->segundoApellido}}" />                    
+                                    <input type="text" readonly class="form-control" id="segundoApellidoUpc{{$idRow}}" data-id="{{$idRow}}" name="segundoApellidoUpc[]" value="{{$upcAdic->segundoApellido}}" />                    
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->primerNombre) hasText  @endisset">
                                     <label for="primerNombreUpc{{$idRow}}" class="control-label">Primer Nombre:</label>
-                                    <input type="text" disabled class="form-control" id="primerNombreUpc{{$idRow}}" data-id="{{$idRow}}" name="primerNombreUpc[]" value="{{$upcAdic->primerNombre}}" />                    
+                                    <input type="text" readonly class="form-control" id="primerNombreUpc{{$idRow}}" data-id="{{$idRow}}" name="primerNombreUpc[]" value="{{$upcAdic->primerNombre}}" />                    
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->segundoNombre) hasText  @endisset">
                                     <label for="segundoNombreUpc{{$idRow}}" class="control-label">Segundo Nombre:</label>
-                                    <input type="text" disabled class="form-control" id="segundoNombreUpc{{$idRow}}" data-id="{{$idRow}}" name="segundoNombreUpc[]" value="{{$upcAdic->segundoNombre}}" />                    
+                                    <input type="text" readonly class="form-control" id="segundoNombreUpc{{$idRow}}" data-id="{{$idRow}}" name="segundoNombreUpc[]" value="{{$upcAdic->segundoNombre}}" />                    
                                 </div>
                             </div>
                         </div>
@@ -601,13 +601,13 @@
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->numIdentificacion) hasText @endisset">
                                     <label for="numIdentificacionUpc{{$idRow}}" class="control-label">Número Identificación</label>
-                                    <input type="text" disabled class="form-control" id="numIdentificacionUpc{{$idRow}}" data-id="{{$idRow}}" name="numIdentificacionUpc[]" value="{{$upcAdic->numIdentificacion}}"/>                    
+                                    <input type="text" readonly class="form-control" id="numIdentificacionUpc{{$idRow}}" data-id="{{$idRow}}" name="numIdentificacionUpc[]" value="{{$upcAdic->numIdentificacion}}"/>                    
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->fechaNacimiento) hasText @endisset">
                                     <label for="fechaNacimientoUpc{{$idRow}}" class="control-label">Fecha nacimiento</label>
-                                    <input type="date" disabled class="form-control" id="fechaNacimientoUpc{{$idRow}}" data-id="{{$idRow}}" name="fechaNacimientoUpc[]" value="{{$upcAdic->fechaNacimiento}}"/>                    
+                                    <input type="date" readonly class="form-control" id="fechaNacimientoUpc{{$idRow}}" data-id="{{$idRow}}" name="fechaNacimientoUpc[]" value="{{$upcAdic->fechaNacimiento}}"/>                    
                                 </div>
                             </div>
                             <div class="col-3">
@@ -727,7 +727,7 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fechaIngreso) hasText @endisset">
                                 <label for="infoFechaIngreso" class="control-label">Fecha ingreso</label>
-                                <input type="date" disabled class="form-control" id="infoFechaIngreso" name="infoFechaIngreso" value="{{ $empleado->fechaIngreso }}"/>                    
+                                <input type="date" readonly class="form-control" id="infoFechaIngreso" name="infoFechaIngreso" value="{{ $empleado->fechaIngreso }}"/>                    
                             </div>
                         </div>
                         <div class="col-3">
@@ -802,14 +802,14 @@
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoUsuario" class="control-label">Usuario</label>
-                                <input type="text" disabled class="form-control" id="infoUsuario" name="infoUsuario" readonly value="{{$empleado->usuarioTxt}}"/>                    
+                                <input type="text" readonly class="form-control" id="infoUsuario" name="infoUsuario" readonly value="{{$empleado->usuarioTxt}}"/>                    
                             </div>
                         </div>
                         @if (!$usuExiste)
                         <div class="col-3">
                             <div class="form-group">
                                 <label for="password" class="control-label">Contraseña</label>
-                                <input type="text" disabled class="form-control pass_usu" id="password" name="password" readonly/>                    
+                                <input type="text" readonly class="form-control pass_usu" id="password" name="password" readonly/>                    
                             </div>
                             
                         </div>
@@ -845,6 +845,14 @@
                                 </select>
                             </div>
                         </div>
+                        @if (isset($periodoActivo->fechaFin))
+                        <div class="col-3">
+                            <div class="form-group hasText">
+                                <label for="fechaRetiro" class="control-label">Fecha retiro</label>
+                                <input type="date" readonly class="form-control" value="{{$periodoActivo->fechaFin}}" id="fechaRetiro" name="fechaRetiro"/>                    
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </section>
                 <section>
@@ -880,7 +888,7 @@
                                     <div class="col-3">
                                         <div class="form-group hasText">
                                             <label for="infoPorcentaje{{$i}}" class="control-label">Porcentaje</label>
-                                            <input type="text" disabled class="form-control" id="infoPorcentaje{{$i}}" name="infoPorcentaje[]" readonly value="{{$centrosCostoxEmpleado[$i-1]->porcentajeTiempoTrabajado}}%"/>                    
+                                            <input type="text" readonly class="form-control" id="infoPorcentaje{{$i}}" name="infoPorcentaje[]" readonly value="{{$centrosCostoxEmpleado[$i-1]->porcentajeTiempoTrabajado}}%"/>                    
                                         </div>
                                     </div>
                                 </div>
@@ -922,7 +930,7 @@
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoDuracionContrato" class="control-label">Duración contrato</label>
-                                <input type="text" disabled class="form-control" id="infoDuracionContrato" name="infoDuracionContrato" 
+                                <input type="text" readonly class="form-control" id="infoDuracionContrato" name="infoDuracionContrato" 
                                     @if ($contratoActivo->tipoDuracionContrato == "MES")
                                         value="{{$contratoActivo->numeroMeses}}"
                                     @else
@@ -937,7 +945,7 @@
                         <div class="col-3">
                             <div class="form-group @isset($contratoActivo->fechaFin) hasText @endisset">
                                 <label for="infoFechaFin" class="control-label">Fecha fin contrato</label>
-                                <input type="date" disabled class="form-control" id="infoFechaFin" name="infoFechaFin" readonly value="{{$contratoActivo->fechaFin}}"/>
+                                <input type="date" readonly class="form-control" id="infoFechaFin" name="infoFechaFin" readonly value="{{$contratoActivo->fechaFin}}"/>
                             </div>
                         </div>
                     </div>
@@ -974,13 +982,13 @@
                             <div class="col-3">
                                 <div class="form-group">
                                     <label for="infoDuracionContratoN" class="control-label">Duración contrato</label>
-                                    <input type="text" disabled class="form-control" id="infoDuracionContratoN" name="infoDuracionContratoN"/>
+                                    <input type="text" readonly class="form-control" id="infoDuracionContratoN" name="infoDuracionContratoN"/>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group">
                                     <label for="infoFechaFinN" class="control-label">Fecha fin contrato</label>
-                                    <input type="date" disabled class="form-control" id="infoFechaFinN" name="infoFechaFinN" readonly/>
+                                    <input type="date" readonly class="form-control" id="infoFechaFinN" name="infoFechaFinN" readonly/>
                                 </div>
                             </div>
                         </div>
@@ -1022,7 +1030,7 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->numeroCuenta) hasText @endisset">
                                 <label for="infoNoCuenta" class="control-label">N&uacute;mero de cuenta</label>
-                                <input type="text" disabled class="form-control" id="infoNoCuenta" name="infoNoCuenta" value="{{ $empleado->numeroCuenta }}"/>
+                                <input type="text" readonly class="form-control" id="infoNoCuenta" name="infoNoCuenta" value="{{ $empleado->numeroCuenta }}"/>
                             </div>
                         </div>
                         <div class="col-2">
@@ -1051,7 +1059,7 @@
                         <div class="col-2">
                             <div class="form-group @isset($empleado->otroDocumento) hasText @endisset">
                                 <label for="infoOtroDocumento" class="control-label">Otro documento</label>
-                                <input type="text" disabled class="form-control" id="infoOtroDocumento" name="infoOtroDocumento" value="{{$empleado->otroDocumento}}"/>
+                                <input type="text" readonly class="form-control" id="infoOtroDocumento" name="infoOtroDocumento" value="{{$empleado->otroDocumento}}"/>
                             </div>
                         </div>
                     </div>
@@ -1059,7 +1067,7 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->otraFormaPago) hasText @endisset">
                                 <label for="infoOtraFormaPago" class="control-label">Otra forma de pago:</label>
-                                <input type="text" disabled class="form-control" id="infoOtraFormaPago" name="infoOtraFormaPago" value="{{ $empleado->otraFormaPago }}"/>
+                                <input type="text" readonly class="form-control" id="infoOtraFormaPago" name="infoOtraFormaPago" value="{{ $empleado->otraFormaPago }}"/>
                             </div>
                         </div>
                     </div>
@@ -1083,7 +1091,7 @@
                         <div class="col-3 porcentajeRetencion @if ($empleado->procedimientoRetencion == "PORCENTAJE") activo @endif">
                             <div class="form-group @isset($empleado->porcentajeRetencion) hasText @endisset">
                                 <label for="infoPorcentajeRetencion" class="control-label">Porcentaje retencion:</label>
-                                <input type="text" disabled class="form-control" id="infoPorcentajeRetencion" name="infoPorcentajeRetencion" value="{{ $empleado->porcentajeRetencion }}"/>
+                                <input type="text" readonly class="form-control" id="infoPorcentajeRetencion" name="infoPorcentajeRetencion" value="{{ $empleado->porcentajeRetencion }}"/>
                             </div>
                         </div>
                     </div>
@@ -1117,14 +1125,14 @@
                                     <div class="col-3">
                                         <div class="form-group  @isset($beneficiosTributarios[$i-1]->fechaVigencia) hasText @endisset">
                                             <label for="infoFechaVigencia{{$i}}" class="control-label">Fecha Vigencia</label>
-                                            <input type="date" disabled class="form-control" id="infoFechaVigencia{{$i}}" name="infoFechaVigencia[]" value="{{$beneficiosTributarios[$i-1]->fechaVigencia}}"/>                    
+                                            <input type="date" readonly class="form-control" id="infoFechaVigencia{{$i}}" name="infoFechaVigencia[]" value="{{$beneficiosTributarios[$i-1]->fechaVigencia}}"/>                    
                                         </div>
                                     </div>
                                     <div class="col-2">
                                         <div class="infoBeneficioSinPersona @if($beneficiosTributarios[$i-1]->fkTipoBeneficio != "4") activo @endif" data-id="{{$i}}">
                                             <div class="form-group  @isset($beneficiosTributarios[$i-1]->valorTotal) hasText @endisset">
                                                 <label for="infoValorTotal{{$i}}" class="control-label">Valor total</label>
-                                                <input type="text" disabled class="form-control separadorMiles valorTotalBeneficio"  data-id="{{$i}}"  id="infoValorTotal{{$i}}" name="infoValorTotal[]"  value="{{$beneficiosTributarios[$i-1]->valorTotal}}"/>                    
+                                                <input type="text" readonly class="form-control separadorMiles valorTotalBeneficio"  data-id="{{$i}}"  id="infoValorTotal{{$i}}" name="infoValorTotal[]"  value="{{$beneficiosTributarios[$i-1]->valorTotal}}"/>                    
                                             </div>
                                         </div>
                                         <div class="infoPersonaBeneficio1 @if($beneficiosTributarios[$i-1]->fkTipoBeneficio == "4") activo @endif" data-id="{{$i}}">
@@ -1143,7 +1151,7 @@
                                         <div class="infoBeneficioSinPersona @if($beneficiosTributarios[$i-1]->fkTipoBeneficio != "4") activo @endif" data-id="{{$i}}">
                                             <div class="form-group  @isset($beneficiosTributarios[$i-1]->numMeses) hasText @endisset">
                                                 <label for="infoNumMeses{{$i}}" class="control-label">Num Meses</label>
-                                                <input type="text" disabled class="form-control infoNumMesesBeneficio" id="infoNumMeses{{$i}}"  data-id="{{$i}}"  name="infoNumMeses[]"  value="{{$beneficiosTributarios[$i-1]->numMeses}}"/>                    
+                                                <input type="text" readonly class="form-control infoNumMesesBeneficio" id="infoNumMeses{{$i}}"  data-id="{{$i}}"  name="infoNumMeses[]"  value="{{$beneficiosTributarios[$i-1]->numMeses}}"/>                    
                                             </div>
                                         </div>
                                         <div class="infoPersonaBeneficio1 @if($beneficiosTributarios[$i-1]->fkTipoBeneficio == "4") activo @endif" data-id="{{$i}}">
@@ -1163,13 +1171,13 @@
                                         <div class="infoBeneficioSinPersona @if($beneficiosTributarios[$i-1]->fkTipoBeneficio != "4") activo @endif" data-id="{{$i}}">
                                             <div class="form-group  @isset($beneficiosTributarios[$i-1]->valorMensual) hasText @endisset">
                                                 <label for="infoValorMensual{{$i}}" class="control-label">Valor mensual</label>
-                                                <input type="text" disabled class="form-control separadorMiles infoValorMensual" data-id="{{$i}}" id="infoValorMensual{{$i}}" name="infoValorMensual[]" value="{{$beneficiosTributarios[$i-1]->valorMensual}}"/>
+                                                <input type="text" readonly class="form-control separadorMiles infoValorMensual" data-id="{{$i}}" id="infoValorMensual{{$i}}" name="infoValorMensual[]" value="{{$beneficiosTributarios[$i-1]->valorMensual}}"/>
                                             </div>
                                         </div>
                                         <div class="infoPersonaBeneficio1 @if($beneficiosTributarios[$i-1]->fkTipoBeneficio == "4") activo @endif" data-id="{{$i}}">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->numIdentificacion) hasText @endisset">
                                                 <label for="infoNumIdentificacion{{$i}}" class="control-label">Número Identificación</label>
-                                                <input type="text" disabled class="form-control" id="infoNumIdentificacion{{$i}}" name="infoNumIdentificacion[]" value="{{$beneficiosTributarios[$i-1]->numIdentificacion}}" />
+                                                <input type="text" readonly class="form-control" id="infoNumIdentificacion{{$i}}" name="infoNumIdentificacion[]" value="{{$beneficiosTributarios[$i-1]->numIdentificacion}}" />
                                             </div>
                                         </div>
                                     </div>
@@ -1201,7 +1209,7 @@
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->numIdentificacion) hasText @endisset">
                                                 <label for="info2NumIdentificacion{{$i}}" class="control-label">Número Identificación</label>
-                                                <input type="text" disabled class="form-control" id="info2NumIdentificacion{{$i}}" name="info2NumIdentificacion[]" value="{{$beneficiosTributarios[$i-1]->numIdentificacion}}" />
+                                                <input type="text" readonly class="form-control" id="info2NumIdentificacion{{$i}}" name="info2NumIdentificacion[]" value="{{$beneficiosTributarios[$i-1]->numIdentificacion}}" />
                                             </div>
                                         </div>
                                         <div class="col-3">
@@ -1220,7 +1228,7 @@
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->direccion) hasText @endisset">
                                                 <label for="info2DireccionPersona{{$i}}" class="control-label">Direccion</label>
-                                                <input type="text" disabled class="form-control" id="info2DireccionPersona{{$i}}" data-id="{{$i}}" name="info2DireccionPersona[]" value="{{$beneficiosTributarios[$i-1]->direccion}}"/>                    
+                                                <input type="text" readonly class="form-control" id="info2DireccionPersona{{$i}}" data-id="{{$i}}" name="info2DireccionPersona[]" value="{{$beneficiosTributarios[$i-1]->direccion}}"/>                    
                                             </div>
                                         </div>
                                         <div class="col-3">
@@ -1298,7 +1306,7 @@
                         <div class="col-3">
                             <div class="form-group">
                                 <label for="infoFechaIngreso" class="control-label">Fecha ingreso</label>
-                                <input type="date" disabled class="form-control" id="infoFechaIngreso" name="infoFechaIngreso"/>                    
+                                <input type="date" readonly class="form-control" id="infoFechaIngreso" name="infoFechaIngreso"/>                    
                             </div>
                         </div>
                         <div class="col-3">
@@ -1368,13 +1376,13 @@
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoUsuario" class="control-label">Usuario</label>
-                                <input type="text" disabled class="form-control" id="infoUsuario" name="infoUsuario" readonly value="{{$empleado->numeroIdentificacion}}"/>                    
+                                <input type="text" readonly class="form-control" id="infoUsuario" name="infoUsuario" readonly value="{{$empleado->numeroIdentificacion}}"/>                    
                             </div>
                         </div>
                         <div class="col-3">
                             <div class="form-group">
                                 <label for="password" class="control-label">Contraseña</label>
-                                <input type="text" disabled class="form-control pass_usu" id="password" name="password" readonly/>                    
+                                <input type="text" readonly class="form-control pass_usu" id="password" name="password" readonly/>                    
                             </div>
                             
                         </div>
@@ -1412,7 +1420,7 @@
                                 <div class="col-3">
                                     <div class="form-group hasText">
                                         <label for="infoPorcentaje1" class="control-label">Porcentaje</label>
-                                        <input type="text" disabled class="form-control" id="infoPorcentaje1" name="infoPorcentaje[]" readonly value="100%"/>                    
+                                        <input type="text" readonly class="form-control" id="infoPorcentaje1" name="infoPorcentaje[]" readonly value="100%"/>                    
                                     </div>
                                 </div>
                             </div>
@@ -1450,13 +1458,13 @@
                             <div class="col-3">
                                 <div class="form-group">
                                     <label for="infoDuracionContrato" class="control-label">Duración contrato</label>
-                                    <input type="text" disabled class="form-control" id="infoDuracionContrato" name="infoDuracionContrato"/>
+                                    <input type="text" readonly class="form-control" id="infoDuracionContrato" name="infoDuracionContrato"/>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group">
                                     <label for="infoFechaFin" class="control-label">Fecha fin contrato</label>
-                                    <input type="date" disabled class="form-control" id="infoFechaFin" name="infoFechaFin" readonly/>
+                                    <input type="date" readonly class="form-control" id="infoFechaFin" name="infoFechaFin" readonly/>
                                 </div>
                             </div>
                         </div>
@@ -1497,7 +1505,7 @@
                         <div class="col-3">
                             <div class="form-group">
                                 <label for="infoNoCuenta" class="control-label">N&uacute;mero de cuenta</label>
-                                <input type="text" disabled class="form-control" id="infoNoCuenta" name="infoNoCuenta"/>
+                                <input type="text" readonly class="form-control" id="infoNoCuenta" name="infoNoCuenta"/>
                             </div>
                         </div>
                         <div class="col-3">
@@ -1515,7 +1523,7 @@
                         <div class="col-3">
                             <div class="form-group">
                                 <label for="infoOtroDocumento" class="control-label">Otro documento</label>
-                                <input type="text" disabled class="form-control" id="infoOtroDocumento" name="infoOtroDocumento"/>
+                                <input type="text" readonly class="form-control" id="infoOtroDocumento" name="infoOtroDocumento"/>
                             </div>
                         </div>
                     </div>
@@ -1523,7 +1531,7 @@
                         <div class="col-3">
                             <div class="form-group">
                                 <label for="infoOtraFormaPago" class="control-label">Otra forma de pago:</label>
-                                <input type="text" disabled class="form-control" id="infoOtraFormaPago" name="infoOtraFormaPago"/>
+                                <input type="text" readonly class="form-control" id="infoOtraFormaPago" name="infoOtraFormaPago"/>
                             </div>
                         </div>
                     </div>
@@ -1546,7 +1554,7 @@
                         <div class="col-3 porcentajeRetencion">
                             <div class="form-group">
                                 <label for="infoPorcentajeRetencion" class="control-label">Porcentaje retencion:</label>
-                                <input type="text" disabled class="form-control" id="infoPorcentajeRetencion" name="infoPorcentajeRetencion"/>
+                                <input type="text" readonly class="form-control" id="infoPorcentajeRetencion" name="infoPorcentajeRetencion"/>
                             </div>
                         </div>
                     </div>
@@ -1658,7 +1666,7 @@
                                             @else
                                                 @foreach ($tipoafilicaciones as $tipoafilicacion)
                                                     @if ($afiliaciones[$num - 1]->fkTipoAfilicacion == $tipoafilicacion->idTipoAfiliacion)
-                                                        <input type="text" disabled class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
+                                                        <input type="text" readonly class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
                                                         <input type="hidden" name="afiliacionTipoAfilicacion[]" value="{{$tipoafilicacion->idTipoAfiliacion}}" />
                                                     @endif
                                                 @endforeach
@@ -1683,7 +1691,7 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($afiliaciones[$num - 1]->fechaAfiliacion) hasText @endisset">
                                             <label for="afiliacionFecha{{$num}}" class="control-label">Fecha Afiliación *</label>
-                                            <input type="date" disabled class="form-control" id="afiliacionFecha{{$num}}" name="afiliacionFecha[]" value="{{$afiliaciones[$num - 1]->fechaAfiliacion}}"/>
+                                            <input type="date" readonly class="form-control" id="afiliacionFecha{{$num}}" name="afiliacionFecha[]" value="{{$afiliaciones[$num - 1]->fechaAfiliacion}}"/>
                                         </div>
                                     </div>
                                     
@@ -1694,7 +1702,7 @@
                                             hasText
                                         @endif">
                                             <label for="afiliaFechaInicioCambio{{$num}}" class="control-label">Fecha cambio Inicio</label>
-                                            <input type="date" disabled class="form-control" id="afiliaFechaInicioCambio{{$num}}" name="afiliaFechaInicioCambio[]" 
+                                            <input type="date" readonly class="form-control" id="afiliaFechaInicioCambio{{$num}}" name="afiliaFechaInicioCambio[]" 
                                             @if (isset($afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]))
                                                 value="{{ $afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]->fechaCambio }}"
                                             @endif
@@ -1729,7 +1737,7 @@
                                         <label for="afiliacionTipoAfilicacion1" class="control-label">Tipo afiliación *</label>
                                         @foreach ($tipoafilicaciones as $tipoafilicacion)
                                             @if ($tipoafilicacion->idTipoAfiliacion == 1)
-                                                <input type="text" disabled class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
+                                                <input type="text" readonly class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
                                                 <input type="hidden" name="afiliacionTipoAfilicacion[]" value="{{$tipoafilicacion->idTipoAfiliacion}}" />
                                             @endif
                                         @endforeach                                        
@@ -1749,7 +1757,7 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($empleado->fechaIngreso) hasText @endisset">
                                         <label for="afiliacionFecha1" class="control-label">Fecha Afiliación *</label>
-                                        <input type="date" disabled class="form-control" id="afiliacionFecha1" name="afiliacionFecha[]"  value="{{$empleado->fechaIngreso}}" />
+                                        <input type="date" readonly class="form-control" id="afiliacionFecha1" name="afiliacionFecha[]"  value="{{$empleado->fechaIngreso}}" />
                                     </div>
                                 </div>
                                 
@@ -1758,7 +1766,7 @@
                                 <div class="col-3">
                                     <div class="form-group">
                                         <label for="afiliaFechaInicioCambio1" class="control-label">Fecha cambio Inicio</label>
-                                        <input type="date" disabled class="form-control" id="afiliaFechaInicioCambio1" name="afiliaFechaInicioCambio[]" />
+                                        <input type="date" readonly class="form-control" id="afiliaFechaInicioCambio1" name="afiliaFechaInicioCambio[]" />
                                     </div>
                                 </div>
                                 <div class="col-3">
@@ -1781,7 +1789,7 @@
                                         <label for="afiliacionTipoAfilicacion2" class="control-label">Tipo afiliación *</label>
                                         @foreach ($tipoafilicaciones as $tipoafilicacion)
                                             @if ($tipoafilicacion->idTipoAfiliacion == 2)
-                                                <input type="text" disabled class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
+                                                <input type="text" readonly class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
                                                 <input type="hidden" name="afiliacionTipoAfilicacion[]" value="{{$tipoafilicacion->idTipoAfiliacion}}" />
                                             @endif
                                         @endforeach
@@ -1801,7 +1809,7 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($empleado->fechaIngreso) hasText @endisset">
                                         <label for="afiliacionFecha2" class="control-label">Fecha Afiliación *</label>
-                                        <input type="date" disabled class="form-control" id="afiliacionFecha2" name="afiliacionFecha[]"  value="{{$empleado->fechaIngreso}}" />
+                                        <input type="date" readonly class="form-control" id="afiliacionFecha2" name="afiliacionFecha[]"  value="{{$empleado->fechaIngreso}}" />
                                     </div>
                                 </div>
                                 
@@ -1810,7 +1818,7 @@
                                 <div class="col-3">
                                     <div class="form-group">
                                         <label for="afiliaFechaInicioCambio2" class="control-label">Fecha cambio Inicio</label>
-                                        <input type="date" disabled class="form-control" id="afiliaFechaInicioCambio2" name="afiliaFechaInicioCambio[]" />
+                                        <input type="date" readonly class="form-control" id="afiliaFechaInicioCambio2" name="afiliaFechaInicioCambio[]" />
                                     </div>
                                 </div>
                                 <div class="col-3">
@@ -1833,7 +1841,7 @@
                                         <label for="afiliacionTipoAfilicacion3" class="control-label">Tipo afiliación *</label>
                                         @foreach ($tipoafilicaciones as $tipoafilicacion)
                                             @if ($tipoafilicacion->idTipoAfiliacion == 3)
-                                                <input type="text" disabled class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
+                                                <input type="text" readonly class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
                                                 <input type="hidden" name="afiliacionTipoAfilicacion[]" value="{{$tipoafilicacion->idTipoAfiliacion}}" />
                                             @endif
                                         @endforeach
@@ -1853,7 +1861,7 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($empleado->fechaIngreso) hasText @endisset">
                                         <label for="afiliacionFecha3" class="control-label">Fecha Afiliación *</label>
-                                    <input type="date" disabled class="form-control" id="afiliacionFecha3" name="afiliacionFecha[]" value="{{$empleado->fechaIngreso}}" />
+                                    <input type="date" readonly class="form-control" id="afiliacionFecha3" name="afiliacionFecha[]" value="{{$empleado->fechaIngreso}}" />
                                     </div>
                                 </div>
                                 
@@ -1863,7 +1871,7 @@
                                 <div class="col-3">
                                     <div class="form-group">
                                         <label for="afiliaFechaInicioCambio3" class="control-label">Fecha cambio Inicio</label>
-                                        <input type="date" disabled class="form-control" id="afiliaFechaInicioCambio3" name="afiliaFechaInicioCambio[]" />
+                                        <input type="date" readonly class="form-control" id="afiliaFechaInicioCambio3" name="afiliaFechaInicioCambio[]" />
                                     </div>
                                 </div>
 
@@ -1889,7 +1897,7 @@
                                             <label for="afiliacionTipoAfilicacion4" class="control-label">Tipo afiliación *</label>
                                             @foreach ($tipoafilicaciones as $tipoafilicacion)
                                                 @if ($tipoafilicacion->idTipoAfiliacion == 4)
-                                                    <input type="text" disabled class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
+                                                    <input type="text" readonly class="form-control" value="{{$tipoafilicacion->nombre}}" readonly/>
                                                     <input type="hidden" name="afiliacionTipoAfilicacion[]" value="{{$tipoafilicacion->idTipoAfiliacion}}" />
                                                 @endif
                                             @endforeach
@@ -1909,7 +1917,7 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($empleado->fechaIngreso) hasText @endisset">
                                             <label for="afiliacionFecha4" class="control-label">Fecha Afiliación *</label>
-                                            <input type="date" disabled class="form-control" id="afiliacionFecha4" name="afiliacionFecha[]"  value="{{$empleado->fechaIngreso}}" />
+                                            <input type="date" readonly class="form-control" id="afiliacionFecha4" name="afiliacionFecha[]"  value="{{$empleado->fechaIngreso}}" />
                                         </div>
                                     </div>
                                     
@@ -1918,7 +1926,7 @@
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label for="afiliaFechaInicioCambio4" class="control-label">Fecha cambio Inicio</label>
-                                            <input type="date" disabled class="form-control" id="afiliaFechaInicioCambio4" name="afiliaFechaInicioCambio[]" />
+                                            <input type="date" readonly class="form-control" id="afiliaFechaInicioCambio4" name="afiliaFechaInicioCambio[]" />
                                         </div>
                                     </div>
                                     <div class="col-3">
@@ -1999,13 +2007,13 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($conceptosFijos[$i-1]->valor) hasText @endisset">
                                         <label for="conFiValor{{$i}}" class="control-label">Valor</label>
-                                        <input type="text" disabled class="form-control separadorMiles" id="conFiValor{{$i}}" name="conFiValor[]" value="{{$conceptosFijos[$i-1]->valor}}" />
+                                        <input type="text" readonly class="form-control separadorMiles" id="conFiValor{{$i}}" name="conFiValor[]" value="{{$conceptosFijos[$i-1]->valor}}" />
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($conceptosFijos[$i-1]->porcentaje) hasText @endisset">
                                         <label for="conFiPorcentaje{{$i}}" class="control-label">Porcentaje</label>
-                                        <input type="text" disabled class="form-control" id="conFiPorcentaje{{$i}}" name="conFiPorcentaje[]" @if ($i == 1) readonly @endif value="{{$conceptosFijos[$i-1]->porcentaje}}" />
+                                        <input type="text" readonly class="form-control" id="conFiPorcentaje{{$i}}" name="conFiPorcentaje[]" @if ($i == 1) readonly @endif value="{{$conceptosFijos[$i-1]->porcentaje}}" />
                                     </div>
                                 </div>
                             </div>
@@ -2013,13 +2021,13 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($conceptosFijos[$i-1]->fechaInicio) hasText @endisset">
                                         <label for="conFiFechaInicio{{$i}}" class="control-label">Fecha Inicio</label>
-                                        <input type="date" disabled class="form-control" id="conFiFechaInicio{{$i}}" name="conFiFechaInicio[]" value="{{$conceptosFijos[$i-1]->fechaInicio}}" />
+                                        <input type="date" readonly class="form-control" id="conFiFechaInicio{{$i}}" name="conFiFechaInicio[]" value="{{$conceptosFijos[$i-1]->fechaInicio}}" />
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($conceptosFijos[$i-1]->fechaFin) hasText @endisset">
                                         <label for="conFiFechaFin{{$i}}" class="control-label">Fecha Fin</label>
-                                        <input type="date" disabled class="form-control" id="conFiFechaFin{{$i}}" name="conFiFechaFin[]"  value="{{$conceptosFijos[$i-1]->fechaFin}}"/>
+                                        <input type="date" readonly class="form-control" id="conFiFechaFin{{$i}}" name="conFiFechaFin[]"  value="{{$conceptosFijos[$i-1]->fechaFin}}"/>
                                     </div>
                                 </div>
                                 @if ($i == 1)
@@ -2031,7 +2039,7 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($cambioSalario) hasText @endisset">
                                             <label for="conFiFechaInicioCambio{{$i}}" class="control-label">Fecha cambio Inicio</label>
-                                            <input type="date" disabled class="form-control" id="conFiFechaInicioCambio{{$i}}" name="conFiFechaInicioCambio" 
+                                            <input type="date" readonly class="form-control" id="conFiFechaInicioCambio{{$i}}" name="conFiFechaInicioCambio" 
                                             @isset($cambioSalario)
                                                     value="{{$cambioSalario->fechaCambio}}"
                                                 @endisset
@@ -2041,7 +2049,7 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($cambioSalario) hasText @endisset">
                                             <label for="conValorCambio{{$i}}" class="control-label">Valor Nuevo</label>
-                                            <input type="text" disabled class="form-control separadorMiles" id="conValorCambio{{$i}}" name="conValorCambio" 
+                                            <input type="text" readonly class="form-control separadorMiles" id="conValorCambio{{$i}}" name="conValorCambio" 
                                                 @isset($cambioSalario)
                                                     value="{{$cambioSalario->valorNuevo}}"
                                                 @endisset
@@ -2091,13 +2099,13 @@
                                     <div class="col-3">
                                         <div class="form-group hasText">
                                             <label for="conFiValor1" class="control-label">Valor</label>
-                                            <input type="text" disabled class="form-control separadorMiles" id="conFiValor1" name="conFiValor[]" value="{{$conceptosFijos[0]->valor}}" />
+                                            <input type="text" readonly class="form-control separadorMiles" id="conFiValor1" name="conFiValor[]" value="{{$conceptosFijos[0]->valor}}" />
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label for="conFiPorcentaje1" class="control-label">Porcentaje</label>
-                                            <input type="text" disabled class="form-control" id="conFiPorcentaje1" name="conFiPorcentaje[]" readonly />
+                                            <input type="text" readonly class="form-control" id="conFiPorcentaje1" name="conFiPorcentaje[]" readonly />
                                         </div>
                                     </div>
                                 </div>
@@ -2107,13 +2115,13 @@
                                             hasText
                                         @endisset">
                                             <label for="conFiFechaInicio1" class="control-label">Fecha Inicio</label>
-                                            <input type="date" disabled class="form-control" id="conFiFechaInicio1" name="conFiFechaInicio[]"  value="{{$conceptosFijos[0]->fechaInicio}}" />
+                                            <input type="date" readonly class="form-control" id="conFiFechaInicio1" name="conFiFechaInicio[]"  value="{{$conceptosFijos[0]->fechaInicio}}" />
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group @isset($conceptosFijos[0]->fechaFin) hasText @endisset">
                                             <label for="conFiFechaFin1" class="control-label">Fecha Fin</label>
-                                            <input type="date" disabled class="form-control" id="conFiFechaFin1" name="conFiFechaFin[]"  value="{{$conceptosFijos[0]->fechaFin}}" />
+                                            <input type="date" readonly class="form-control" id="conFiFechaFin1" name="conFiFechaFin[]"  value="{{$conceptosFijos[0]->fechaFin}}" />
                                         </div>
                                     </div>
                                     
@@ -2122,7 +2130,7 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($cambioSalario) hasText @endisset">
                                             <label for="conFiFechaInicioCambio1" class="control-label">Fecha cambio inicio</label>
-                                            <input type="date" disabled class="form-control" id="conFiFechaInicioCambio1" name="conFiFechaInicioCambio" 
+                                            <input type="date" readonly class="form-control" id="conFiFechaInicioCambio1" name="conFiFechaInicioCambio" 
                                                 @isset($cambioSalario)
                                                     value="{{$cambioSalario->fechaCambio}}"
                                                 @endisset
@@ -2132,7 +2140,7 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($cambioSalario) hasText @endisset">
                                             <label for="conValorCambio1" class="control-label">Valor Nuevo</label>
-                                            <input type="text" disabled class="form-control separadorMiles" id="conValorCambio1" name="conValorCambio"
+                                            <input type="text" readonly class="form-control separadorMiles" id="conValorCambio1" name="conValorCambio"
                                                 @isset($cambioSalario)
                                                     value="{{$cambioSalario->valorNuevo}}"
                                                 @endisset
@@ -2179,13 +2187,13 @@
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label for="conFiValor1" class="control-label">Valor</label>
-                                            <input type="text" disabled class="form-control separadorMiles" id="conFiValor1" name="conFiValor[]" />
+                                            <input type="text" readonly class="form-control separadorMiles" id="conFiValor1" name="conFiValor[]" />
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label for="conFiPorcentaje1" class="control-label">Porcentaje</label>
-                                            <input type="text" disabled class="form-control" id="conFiPorcentaje1" name="conFiPorcentaje[]" readonly />
+                                            <input type="text" readonly class="form-control" id="conFiPorcentaje1" name="conFiPorcentaje[]" readonly />
                                         </div>
                                     </div>
                                 </div>
@@ -2196,13 +2204,13 @@
                                             hasText
                                         @endisset">
                                             <label for="conFiFechaInicio1" class="control-label">Fecha Inicio</label>
-                                            <input type="date" disabled class="form-control" id="conFiFechaInicio1" name="conFiFechaInicio[]" value="@isset($contratoActivo->fechaInicio){{$contratoActivo->fechaInicio}}@endisset" />
+                                            <input type="date" readonly class="form-control" id="conFiFechaInicio1" name="conFiFechaInicio[]" value="@isset($contratoActivo->fechaInicio){{$contratoActivo->fechaInicio}}@endisset" />
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group">
                                             <label for="conFiFechaFin1" class="control-label">Fecha Fin</label>
-                                            <input type="date" disabled class="form-control" id="conFiFechaFin1" name="conFiFechaFin[]" />
+                                            <input type="date" readonly class="form-control" id="conFiFechaFin1" name="conFiFechaFin[]" />
                                         </div>
                                     </div>
                                 </div>

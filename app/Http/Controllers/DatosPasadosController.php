@@ -207,9 +207,9 @@ class DatosPasadosController extends Controller
                                 <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
                                 <td>'.$datoPasado->nombreConcepto.'</td>
                                 <td>'.$datoPasado->fecha.'</td>
-                                <td>'.$datoPasado->cantidad.'</td>
-                                <td>'.$datoPasado->tipoUnidad.'</td>
                                 <td>$ '.number_format($datoPasado->valor,0, ",", ".").'</td>
+                                <td>'.$datoPasado->cantidad.'</td>
+                                <td>'.$datoPasado->tipoUnidad.'</td>                                
                                 <td>'.$datoPasado->estado.'</td>
                             </tr>';
                         }
@@ -326,9 +326,9 @@ class DatosPasadosController extends Controller
                     <td>'.$datoPasado->primerApellido.' '.$datoPasado->segundoApellido.' '.$datoPasado->primerNombre.' '.$datoPasado->segundoNombre.'</td>
                     <td>'.$datoPasado->nombreConcepto.'</td>
                     <td>'.$datoPasado->fecha.'</td>
-                    <td>'.$datoPasado->cantidad.'</td>
-                    <td>'.$datoPasado->tipoUnidad.'</td>
                     <td>$ '.number_format($datoPasado->valor,0, ",", ".").'</td>
+                    <td>'.$datoPasado->cantidad.'</td>
+                    <td>'.$datoPasado->tipoUnidad.'</td>                    
                     <td>'.$datoPasado->estado.'</td>
                 </tr>';
             }
@@ -363,9 +363,10 @@ class DatosPasadosController extends Controller
     }
     public function aprobarCarga($idCarga){
         $datosPasados = DB::table("datos_pasados","dp")
-        ->select("dp.*","e.*","c.fkNaturaleza as naturalezaConcepto")
+        ->select("dp.*","e.*","c.fkNaturaleza as naturalezaConcepto", "n.periodo")
         ->join("empleado as e", "e.idempleado", "=", "dp.fkEmpleado")
         ->join("concepto as c", "c.idconcepto", "=", "dp.fkConcepto")
+        ->join("nomina as n","n.idNomina", "=","e.fkNomina")
         ->where("dp.fkCargaDatosPasados","=",$idCarga)
         ->where("dp.fkEstado","=","3")
         ->orderBy("dp.fecha")
@@ -373,6 +374,7 @@ class DatosPasadosController extends Controller
         ->orderBy("e.fkNomina")
         ->orderBy("dp.fkConcepto")
         ->get();
+        $dia = 0;
         $mes = 0;
         $anio = 0;
         $empleado = 0;
@@ -389,21 +391,59 @@ class DatosPasadosController extends Controller
 
         }
         foreach($datosPasados as $datoPasado){
-
             
-           
-            if($mes != date("m",strtotime($datoPasado->fecha)) || $anio != date("Y",strtotime($datoPasado->fecha)) || $nomina != $datoPasado->fkNomina){
+            $condicion = ($mes != date("m",strtotime($datoPasado->fecha)) || $anio != date("Y",strtotime($datoPasado->fecha)) || $nomina != $datoPasado->fkNomina);
+            if($datoPasado->periodo == "15"){
+                if(date("d",strtotime($datoPasado->fecha)) <= 15){
+                    $diaInt = "15";
+                }
+                else{
+                    $diaInt = date("t",strtotime($datoPasado->fecha));
+                }
+                
+                $condicion = $condicion || $dia != $diaInt;
+            }   
+
+
+            if($condicion){
+                $fechaLiquida = date("Y-m-t",strtotime($datoPasado->fecha));
+                $fechaInicio = date("Y-m-01",strtotime($datoPasado->fecha));
+                $fechaFin = date("Y-m-t",strtotime($datoPasado->fecha));
+                $fechaProximaInicio = date("Y-m-01",strtotime($datoPasado->fecha." +1 month"));
+                $fechaProximaFin = date("Y-m-t",strtotime($datoPasado->fecha." +1 month"));
+                
+                if($datoPasado->periodo == "15"){
+                    if(date("d",strtotime($datoPasado->fecha)) <= 15){
+                        $dia = "15";
+                        $fechaLiquida = date("Y-m-15",strtotime($datoPasado->fecha));
+                        $fechaInicio = date("Y-m-01",strtotime($datoPasado->fecha));
+                        $fechaFin = date("Y-m-15",strtotime($datoPasado->fecha));
+                        $fechaProximaInicio = date("Y-m-16",strtotime($datoPasado->fecha));
+                        $fechaProximaFin = date("Y-m-t",strtotime($datoPasado->fecha));
+                    }
+                    else{
+                        $dia = date("t",strtotime($datoPasado->fecha));
+                        $fechaLiquida = date("Y-m-t",strtotime($datoPasado->fecha));
+                        $fechaInicio = date("Y-m-16",strtotime($datoPasado->fecha));
+                        $fechaFin = date("Y-m-t",strtotime($datoPasado->fecha));
+                        $fechaProximaInicio = date("Y-m-01",strtotime($datoPasado->fecha." +1 month"));
+                        $fechaProximaFin = date("Y-m-16",strtotime($datoPasado->fecha." +1 month"));
+                    }
+                }   
                 
                 $mes = date("m",strtotime($datoPasado->fecha));
                 $anio = date("Y",strtotime($datoPasado->fecha));
                 $nomina = $datoPasado->fkNomina;
+
+
+
                 $liquidacionId = DB::table("liquidacionnomina")
                 ->insertGetId([
-                    "fechaLiquida" => date("Y-m-t",strtotime($datoPasado->fecha)),
-                    "fechaInicio" => date("Y-m-01",strtotime($datoPasado->fecha)),
-                    "fechaFin" => date("Y-m-t",strtotime($datoPasado->fecha)),
-                    "fechaProximaInicio" => date("Y-m-01",strtotime($datoPasado->fecha." +1 month")),
-                    "fechaProximaFin" => date("Y-m-01",strtotime($datoPasado->fecha." +1 month")),
+                    "fechaLiquida" => $fechaLiquida,
+                    "fechaInicio" => $fechaInicio,
+                    "fechaFin" => $fechaFin,
+                    "fechaProximaInicio" => $fechaProximaInicio,
+                    "fechaProximaFin" => $fechaProximaFin,
                     "fkTipoLiquidacion" => "8",
                     "fkNomina" => $nomina,
                     "fkEstado" => "5",
@@ -419,9 +459,22 @@ class DatosPasadosController extends Controller
                 $salario = 0;
                 $netoPagar = 0;
                 foreach($datosPasados as $datoPasado2){
-                   
-                    if( $empleado == $datoPasado2->fkEmpleado && date("m",strtotime($datoPasado2->fecha)) == $mes 
-                    && date("Y",strtotime($datoPasado2->fecha)) == $anio){
+                    
+                    $condicion2 = ( $empleado == $datoPasado2->fkEmpleado && date("m",strtotime($datoPasado2->fecha)) == $mes 
+                    && date("Y",strtotime($datoPasado2->fecha)) == $anio);
+                    if($datoPasado2->periodo == "15"){
+                        if(date("d",strtotime($datoPasado2->fecha)) <= 15){
+                            $diaInt2 = 15;
+                        }
+                        else{
+                            $diaInt2 = date("t",strtotime($datoPasado2->fecha));
+                        }
+
+                        $condicion2 = $condicion2 && $dia == $diaInt2;
+                    }
+
+
+                    if($condicion2){
                         if ($datoPasado2->fkConcepto == "1" || $datoPasado2->fkConcepto == "2")
                         {
                             $periodo = $periodo + $datoPasado2->cantidad;
@@ -1402,12 +1455,13 @@ class DatosPasadosController extends Controller
         ->get();
 
         foreach($datosPasados as $datoPasado){            
-
-            $datoPasado->mes =  $datoPasado->mes + 1;
-            if( $datoPasado->mes == 13){
-                $datoPasado->mes = 1;
-                $datoPasado->anio = $datoPasado->anio + 1;
-            }
+            if($datoPasado->fkConcepto == "67" || $datoPasado->fkConcepto == "68"){
+                $datoPasado->mes =  $datoPasado->mes + 1;
+                if( $datoPasado->mes == 13){
+                    $datoPasado->mes = 1;
+                    $datoPasado->anio = $datoPasado->anio + 1;
+                }
+            }            
 
             $saldoExiste = DB::table("saldo")
             ->where("fkConcepto", "=", $datoPasado->fkConcepto)
