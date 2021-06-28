@@ -138,6 +138,32 @@ $(document).ready(function() {
         });
     });
 
+    $("body").on("click", ".verFormula", function(e) {
+        e.preventDefault();
+        cargando();
+        var url = $(this).attr("href");
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(data) {
+                $("#cargando").css("display", "none");
+                $(".respForm[data-para='formulaConcepto']").html(data);
+                $('#formulaConceptoModal').modal('show');
+            },
+            error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
+                console.log("error");
+                console.log(data);
+            }
+        });
+    });
+
 
     $("body").on("change", "#tipoInicio", function() {
 
@@ -230,7 +256,31 @@ $(document).ready(function() {
         });
     });
 
-
+    $("body").on("click", ".ver", function(e) {
+        e.preventDefault();
+        cargando();
+        var url = $(this).attr("href");
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(data) {
+                $("#cargando").css("display", "none");
+                $(".respForm[data-para='concepto']").html(data);
+                $('#conceptoModal').modal('show');
+            },
+            error: function(data) {
+                $("#cargando").css("display", "none");
+                retornarAlerta(
+                    data.responseJSON.exception,
+                    data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                    'error',
+                    'Aceptar'
+                );
+                console.log("error");
+                console.log(data);
+            }
+        });
+    });
 
 
     $("body").on("click", ".quitarOperacion", function(e) {
@@ -307,4 +357,10 @@ $(document).ready(function() {
     $("body").on("click", ".recargar", function() {
         window.open('/concepto', '_self');
     });
+
+    $("#filtrarEmpleado").submit(function(e) {
+        e.preventDefault();
+        window.open("/concepto?nombre=" + $("#busc_nombre").val() + "&naturaleza=" + $("#busc_naturaleza").val(), "_self");
+    });
+
 });

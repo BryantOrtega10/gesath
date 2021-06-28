@@ -23,8 +23,8 @@
             <tr>
                 <th>ID Nómina</th>
                 <th>Nombre</th>
-                <th>Tipo Periodo</th>
                 <th>Periodo</th>
+                <th>D&iacute;as cesantias</th>
                 <th>ID Nómina</th>
                 <th></th>
             </tr>
@@ -34,8 +34,8 @@
             <tr>
                 <td>{{ $nom->idNomina }}</td>
                 <td>{{ $nom->nombre }}</td>
-                <td>{{ $nom->tipoPeriodo }}</td>
                 <td>{{ $nom->periodo }}</td>
+                <td>{{ $nom->diasCesantias }}</td>
                 <td>{{ $nom->id_uni_nomina }}</td>
                 <td>
                     <div class="dropdown">

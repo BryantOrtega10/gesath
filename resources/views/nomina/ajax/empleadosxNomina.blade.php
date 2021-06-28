@@ -1,3 +1,4 @@
+<div class="text-center"><input type="submit" value="Liquidar" class="btnSubmitGen" /></div>
 <input type="hidden" name="excluirEmpleados" id="excluirEmpleados" />
 @if ($tipoNomina == 7)
     <div class="row">
@@ -81,7 +82,7 @@
         @endforeach
 
         
-        <div class="text-center"><input type="submit" value="Liquidar" class="btnSubmitGen" /></div>
+        
 
     </div>
 

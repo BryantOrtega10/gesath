@@ -9,6 +9,15 @@
         <input type="text" class="form-control" id="id_uni_centro" name = "id_uni_centro">
     </div>
     <div class="form-group">
+        <label for="dias_cesantias">Dias cesantias</label>
+        <select class="form-control" id="dias_cesantias" name = "dias_cesantias">
+            <option value="">Sin configurar</option>
+            <option value="30">30 </option>
+            <option value="36">36</option>
+        </select>        
+    </div>
+    <div class="form-group">
         <button type="submit" class="btn btn-primary">Agregar</button>
     </div>
+    
 </form>

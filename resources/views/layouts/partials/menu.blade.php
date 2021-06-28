@@ -6,7 +6,7 @@
                 <span class="nombreUsuario">
                     Hola {{ $dataUsu->primerNombre }} {{ $dataUsu->primerApellido }}
                 </span>
-                @if (isset($dataUsu->foto))
+                @if (isset($dataUsu->foto) && !empty($dataUsu->foto))
                     <img src="/storage/imgEmpleados/{{ $dataUsu->foto }}" />    
                 @else
                     <img src="{{ URL::asset('img/menu/personaDefecto.png') }}" />

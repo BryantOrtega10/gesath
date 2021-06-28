@@ -244,6 +244,31 @@ class ConceptoController extends Controller
             "gruposConcepto" => $gruposConcepto
         ]);
     }
+
+    public function getFormVer($idConcepto){
+        $naturalezas = DB::table('naturalezaconcepto')->get();
+        $tiposConcepto = DB::table('tipo_concepto')->get();
+        $variables = Variable::orderBy("nombre")->get();
+        
+        $concepto = DB::table('concepto','c')->where("idconcepto","=", $idConcepto)->first();
+        $formulaConcepto = DB::table('formulaconcepto', 'fc')->where("fkConcepto", "=", $idConcepto)->get();
+
+        $gruposConcepto = DB::table("grupoconcepto","gc")
+        ->select("gc.*", "gcc.fkConcepto as relacion")
+        ->leftjoin('grupoconcepto_concepto as gcc', function($join) use($idConcepto){
+            $join->on('gcc.fkGrupoConcepto','=','gc.idgrupoConcepto'); 
+            $join->where('gcc.fkConcepto','=',$idConcepto);
+        })
+        ->orderBy("gc.nombre")->get();
+    	return view('/concepto.ver', [
+            'naturalezas' => $naturalezas,
+            'tiposConcepto' => $tiposConcepto,
+            'variables' => $variables,
+            'formulaConcepto' => $formulaConcepto,
+            'concepto' => $concepto,
+            "gruposConcepto" => $gruposConcepto
+        ]);
+    }
     public function getFormEdit($idConcepto){
         $naturalezas = DB::table('naturalezaconcepto')->get();
         $tiposConcepto = DB::table('tipo_concepto')->get();
@@ -286,6 +311,31 @@ class ConceptoController extends Controller
         }
         else{
             return view('/concepto.formulaConcepto.modFormulaConcepto', [
+                'variables' => $variables, 
+                'tipoOperaciones' => $tipoOperaciones,
+                'conceptos' => $conceptos,
+                'grupoConceptos' => $grupoconceptos,
+                'formulaConcepto' => $formulaConcepto
+            ]);
+        }
+    
+
+
+        
+    }
+
+    public function getFormulaConceptoVer($idConcepto){
+        $variables = Variable::whereIn("fkTipoCampo", ["1","2","4"])->orderBy("nombre")->get();
+        $tipoOperaciones = DB::table('tipooperacion')->get();
+        $conceptos = DB::table('concepto')->get();
+        $grupoconceptos = DB::table('grupoconcepto')->get();
+
+        $formulaConcepto = DB::table('formulaconcepto', 'fc')->where("fkConcepto", "=", $idConcepto)->get();
+        if(sizeof($formulaConcepto) == 0){
+            return view('/concepto.formulaConcepto.verFormulaConceptoNohay');
+        }
+        else{
+            return view('/concepto.formulaConcepto.verFormulaConcepto', [
                 'variables' => $variables, 
                 'tipoOperaciones' => $tipoOperaciones,
                 'conceptos' => $conceptos,

@@ -135,17 +135,16 @@
             </select>
         </div>
         <div class="col form-group">
-            <label for="fkEstado">Estado</label>
-            <select name="fkEstado" id="fkEstado" class="form-control">
+            
+            <input type="hidden" name="fkEstado" id="fkEstado" value="1" />
+            <!--<select name="fkEstado" id="fkEstado" class="form-control">
                 <option value="">-- Seleccione una opción --</option>
                 @foreach ($estados as $estado)
-                    <option value="{{ $estado->idestado}}"
-                    @if ($estado->idestado == old('fkEstado', $tercero->fkEstado))
-                        selected="selected"
-                    @endif
-                    >{{ $estado->nombre }}</option>
+                    <option value="{{ $estado->idestado}}">{{ $estado->nombre }}</option>
                 @endforeach
-            </select>
+            </select>-->
+
+            
         </div>
     </div>
     <div class="form-check form-group">

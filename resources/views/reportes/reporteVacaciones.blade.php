@@ -28,7 +28,16 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>                       
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group hasText">
+                            <label for="tipoReporte" class="control-label">Tipo reporte</label>
+                            <select class="form-control" id="tipoReporte" name="tipoReporte">
+                                <option value="PDF">PDF</option>
+                                <option value="EXCEL">EXCEL</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-3">
                         <div class="form-group">
                             <label for="fechaFin" class="control-label">Fecha</label>

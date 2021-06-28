@@ -157,7 +157,8 @@ $(document).ready(function() {
             contentType: false,
             data: formdata,
             success: function(data) {
-
+                $("#cargando").css("display", "none");
+                $(".separadorMiles").inputmask({ alias: "currency", removeMaskOnSubmit: true });
                 if (data.success) {
                     window.open("/empleado/", "_self");
                 } else {

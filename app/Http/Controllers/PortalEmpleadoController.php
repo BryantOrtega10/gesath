@@ -117,16 +117,26 @@ class PortalEmpleadoController extends Controller
         ]);
     }
 
-    public function diasVacacionesDisponibles($idEmpleado){        
-        $empleado = DB::table("empleado","e")->where("e.idempleado","=",$idEmpleado)->first();
+    public function diasVacacionesDisponibles($idEmpleado){       
+        
+        
+        $empleado = DB::table("empleado","e")
+        ->where("e.idempleado","=",$idEmpleado
+        )->first();
         $fechaFin = date("Y-m-d");
+
+        $periodoActivoReintegro = DB::table("periodo")
+        ->where("fkEmpleado", "=", $empleado->idempleado)->orderBy("idPeriodo","desc")->first();
+
+
 
         $novedadesRetiro = DB::table("novedad","n")
         ->select("r.fecha")
         ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
-        ->where("n.fkEmpleado", "=", $empleado->idempleado)
+        ->where("n.fkPeriodoActivo", "=", $periodoActivoReintegro->idPeriodo)
         ->whereIn("n.fkEstado",["7","8"])
         ->whereNotNull("n.fkRetiro")
+        ->orderBy("n.idNovedad", "desc")
         ->first();
 
         $fechaFin = date("Y-m-d");
@@ -139,9 +149,10 @@ class PortalEmpleadoController extends Controller
             }
         }
         $diasVac = $periodoPagoVac * 15 / 360;
+
         $novedadesVacacion = DB::table("novedad","n")
         ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
-        ->where("n.fkEmpleado","=",$empleado->idempleado)
+        ->where("n.fkPeriodoActivo", "=", $periodoActivoReintegro->idPeriodo)
         ->whereIn("n.fkEstado",["7", "8"]) // Pagada o sin pagar-> no que este eliminada
         ->whereNotNull("n.fkVacaciones")
         ->get();
@@ -149,6 +160,7 @@ class PortalEmpleadoController extends Controller
         foreach($novedadesVacacion as $novedadVacacion){
             $diasVac = $diasVac - $novedadVacacion->diasCompensar;
         }
+       
         if(isset($diasVac) && $diasVac < 0){
             $diasVac = 0;
         }
@@ -158,13 +170,6 @@ class PortalEmpleadoController extends Controller
         $fechaInicioVacas = new DateTime($fechaFin);
         $stringResta = (string) 'P'.round($diasVac).'D';
         $fechaInicioVacas->sub(new \DateInterval($stringResta));
-
-        /* return response()->json([
-            "diasVac" => number_format($diasVac, 2),
-            "fechaIngreso" => $empleado->fechaIngreso,
-            "fechaInicioVacas" => date("Y-m-d", $fechaInicioVacas),
-            "fechaCorteCalculo" => $fechaFin
-        ]); */
 
         return view ('portalEmpleado.vacacionesEmple', [
             "diasVac" => floatval(round(number_format($diasVac), 2)),
@@ -248,6 +253,7 @@ class PortalEmpleadoController extends Controller
                 'liquidacionnomina.fechaFin',
             ])
             ->where('boucherpago.fkEmpleado', '=', $idEmple)
+            ->orderBy("boucherpago.idBoucherPago","desc")
             ->get();
         return $bouchersPago;
     }

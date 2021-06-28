@@ -424,7 +424,6 @@ class AdminCorreosController extends Controller
         ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
         ->leftJoin("empresa as emp","emp.idempresa", "=","n.fkEmpresa")
         ->join("ubicacion as u","u.idubicacion", "=","emp.fkUbicacion","left")
-        ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
         ->where("idPeriodo","=",$empresayLiquidacion->fkPeriodoActivo)
         ->orderBy("idPeriodo","desc")
         ->first();

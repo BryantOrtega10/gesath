@@ -55,3 +55,15 @@ $("body").on("submit", "#iniciarSesion", function(e) {
         );
     }
 });
+$("body").on("click", ".ojo-password", function(e) {
+
+    if ($("#" + $(this).attr("data-para")).prop("type") == "password") {
+        $(this).find("i").removeClass("fa-eye");
+        $(this).find("i").addClass("fa-eye-slash");
+        $("#" + $(this).attr("data-para")).prop("type", "text");
+    } else {
+        $(this).find("i").removeClass("fa-eye-slash");
+        $(this).find("i").addClass("fa-eye");
+        $("#" + $(this).attr("data-para")).prop("type", "password");
+    }
+});

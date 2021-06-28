@@ -70,8 +70,10 @@ Route::group([
 	Route::post('condiciones/agregarCondicion', 'CondicionController@insert');
 	Route::get('getForm/edit/{id}', 'ConceptoController@getFormEdit');
 	Route::get('getForm/copy/{id}', 'ConceptoController@getFormCopy');
-
+	Route::get('getForm/ver/{id}', 'ConceptoController@getFormVer');
+	
 	Route::get('getFormulaConcepto/{id}', 'ConceptoController@getFormulaConceptoMod');
+	Route::get('getFormulaConceptoVer/{id}', 'ConceptoController@getFormulaConceptoVer');
 	Route::post('modificar','ConceptoController@update');
 	Route::post('copiar','ConceptoController@copy');
 
@@ -237,7 +239,8 @@ Route::group([
 	});	
 });
 Route::group([
-	'prefix' => 'reportes'
+	'prefix' => 'reportes',
+	'middleware' => ['auth', 'guest:1,2,3'],
 ], function(){
 	Route::get('documentoNominaHorizontal/{idNomina}','ReportesNominaController@documentoNominaHorizontal');
 	Route::get('reporteNominaAcumulado','ReportesNominaController@reporteNominaAcumuladoIndex');
@@ -246,6 +249,7 @@ Route::group([
 	Route::get('reporteNominaHorizontal','ReportesNominaController@reporteNominaHorizontalIndex');
 	Route::post('documentoNominaHorizontalFechas','ReportesNominaController@documentoNominaHorizontalFechas');
 	Route::get('comprobantePdf/{idBoucher}','ReportesNominaController@boucherPagoPdf');	
+	Route::get('comprobantePdfPass/{idBoucher}','ReportesNominaController@boucherPagoPdfPass');	
 	Route::post('documentoSSTxt','ReportesNominaController@documentoSSTxt');	
 	Route::post('documentoProv','ReportesNominaController@documentoProv');
 	Route::get('seleccionarDocumentoSeguridad','ReportesNominaController@seleccionarDocumentoSeguridad');
@@ -495,6 +499,7 @@ Route::group([
 	'middleware' => ['auth', 'guest:2,3'],
 ], function() {
 	Route::get('/', 'EmpresaController@index');
+	Route::get('/exportar', 'EmpresaController@exportar');
 	Route::get('/getForm/add', 'EmpresaController@getFormAdd');
 	Route::post('/agregarEmpresa', 'EmpresaController@create');
 	Route::get('/datosEmpresaXId/{id}', 'EmpresaController@edit');
@@ -610,7 +615,7 @@ Route::group([
 	Route::post('/eliminarCargo/{id}', 'CargosController@delete');
 	Route::get('/subirPlano', 'CargosController@subirPlanoIndex');
 	Route::post('/subirArchivo', 'CargosController@subirArchivo');
-	
+	Route::get('/exportar', 'CargosController@exportar');
 });
 
 Route::group([

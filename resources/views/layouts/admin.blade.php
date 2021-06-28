@@ -13,7 +13,7 @@
         <section class="contenido">
             <div class="menuLateral">
                 @yield('menuLateral')
-                <a href="/versiones/Notas version 2.2.pdf" target="_blank" class="version">Version: 2.2</a>
+                <a href="#" target="_blank" class="version">Version: 2.3</a>
             </div>
             <div class="contenidoInterno">
                 @yield('contenido')

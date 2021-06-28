@@ -10,7 +10,7 @@
     <body>
         <nav class="barra_nav navbar navbar-expand-sm justify-content-end">
             <span class="navbar-brand color_blanco margen_izq_brand">
-                <img class = "foto_perfil_redonda" src = "{{ $fotoEmple }}"> &nbsp;
+                <div class="foto_perfil_redonda"><img src = "{{ $fotoEmple }}"></div> &nbsp;
                 {{ $dataEmple->primerNombre }} {{ $dataEmple->segundoNombre }} {{ $dataEmple->primerApellido }} {{ $dataEmple->segundoApellido }}
                 
             </span>

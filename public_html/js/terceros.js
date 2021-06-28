@@ -117,6 +117,7 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 const error = data.responseJSON;
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
@@ -191,6 +192,7 @@ $(document).ready(function() {
                 }
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 const error = data.responseJSON;
                 if (error.error_code === 'VALIDATION_ERROR') {
                     mostrarErrores(error.errors);
@@ -256,6 +258,7 @@ $(document).ready(function() {
                     }
                 },
                 error: function(data) {
+                    $("#cargando").css("display", "none");
                     console.log(data);
                 }
             });
@@ -274,9 +277,11 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(data) {
+                $("#cargando").css("display", "none");
                 $(".ubicaciones").append(data);
             },
             error: function(data) {
+                $("#cargando").css("display", "none");
                 console.log(data);
             }
         });
@@ -295,9 +300,11 @@ function traerDOMUbicaciones() {
         processData: false,
         contentType: false,
         success: function(data) {
+            $("#cargando").css("display", "none");
             $(".ubicaciones").append(data);
         },
         error: function(data) {
+            $("#cargando").css("display", "none");
             console.log(data);
         }
     });

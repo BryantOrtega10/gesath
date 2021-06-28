@@ -21,16 +21,16 @@
             <tr>
                 <th>Minimo</th>
                 <th>Maximo</th>
-                <th>Adicion</th>
                 <th>Porcentaje</th>
+                <th>Adicion</th>                
                 <th></th>
             </tr>
             @foreach ($retencion as $rete)
                 <tr>
                     <td>{{$rete->minimo}}</td>
                     <td>{{$rete->maximo}}</td>
-                    <td>{{$rete->adicion}}</td>
                     <td>{{($rete->porcentaje * 100)}}%</td>
+                    <td>{{$rete->adicion}}</td>
                     <td>
                         <div class="dropdown">
                             <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>

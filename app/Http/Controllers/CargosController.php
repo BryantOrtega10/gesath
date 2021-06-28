@@ -8,6 +8,8 @@ use App\CargosModel;
 use App\Http\Requests\CargosRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use League\Csv\Reader;
+use League\Csv\Writer;
+use SplTempFileObject;
 
 class CargosController extends Controller
 {
@@ -19,6 +21,31 @@ class CargosController extends Controller
             'dataUsu' => $usu
         ]);
     }
+
+    public function exportar(){
+        $cargos = CargosModel::all();
+        $arrDef = array([
+            "idCargo",
+            "Nombre"
+        ]);
+        foreach ($cargos as $cargo){
+            array_push($arrDef, [
+                $cargo->idCargo,
+                $cargo->nombreCargo
+            ]);
+        }
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename=conceptos.csv');
+
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->setDelimiter(';');
+        $csv->insertAll($arrDef);
+        $csv->setOutputBOM(Reader::BOM_UTF8);
+        $csv->output('cargos.csv');
+    }
+
 
     public function subirPlanoIndex(){
         $usu = UsuarioController::dataAdminLogueado();

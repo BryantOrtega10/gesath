@@ -25,6 +25,7 @@
                 <th scope="col">ID</th>
                 <th scope="col">Nombre</th>
                 <th scope="col"># Centro interno</th>
+                <th scope="col">D&iacute;as Cesantias</th>
                 <th scope="col"></th>
             </tr>
         </thead>
@@ -34,6 +35,11 @@
                 <th scope="row">{{ $cen->idcentroCosto }}</th>
                 <th scope="row">{{ $cen->nombre }}</th>
                 <th scope="row">{{ $cen->id_uni_centro }}</th>
+                <th scope="row">@if (isset($cen->diasCesantias))
+                    {{$cen->diasCesantias}}
+                    @else
+                    Sin configurar 
+                @endif</th>
                 <td>
                     <div class="dropdown">
                         <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false" id="dropdownMenuButton"></i>

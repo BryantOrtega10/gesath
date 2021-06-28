@@ -14,8 +14,7 @@ $(document).ready(function() {
 
     var camposOpciones = {
 
-
-        opcionales: ["sApellido", "sNombre", "telFijo", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "inputFoto", "libretaMilitar", "distritoMilitar", "tIdentificacionAnt", "numIdentificacionAnt", "segundoApellidoUpc?", "segundoNombreUpc?"],
+        opcionales: ["sApellido", "sNombre", "telFijo", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo1", "correo2", "inputFoto", "libretaMilitar", "distritoMilitar", "tIdentificacionAnt", "numIdentificacionAnt", "segundoApellidoUpc?", "segundoNombreUpc?", "barrio"],
         opcionalesAVeces: [{
                 camposQueSonOb: ["nombreEmergencia?", "telefonoEmergencia?", "telefonoEmergencia?", "direccionEmergencia?", "paisEmergencia?", "deptoEmergencia?", "lugarEmergencia?"],
                 camposCambia: ["nombreEmergencia?", "telefonoEmergencia?", "telefonoEmergencia?", "direccionEmergencia?", "paisEmergencia?", "deptoEmergencia?", "lugarEmergencia?"],

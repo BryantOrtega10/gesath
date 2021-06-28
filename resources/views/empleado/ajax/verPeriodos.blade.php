@@ -4,6 +4,7 @@
         <th width="120">Fecha Inicio</th>
         <th width="120">Fecha Fin</th>
         <th>Empresa</th>
+        <th>Nomina</th>
         <th>Cargo</th>
         <th>Tipo Contrato</th>
         <th>Salario final</th>
@@ -15,6 +16,7 @@
         <td>{{$i}}</td>
         <td>{{$empleado->fechaIngreso}}</td>    
         <td></td>
+        <td>{{$empleado->nombreEmpresa}}</td>
         <td>{{$empleado->nombreNomina}}</td>
         <td>{{$empleado->nombreCargo}}</td>    
         <td>{{$tipoContrato->nombreTipoContrato}}</td>    
@@ -28,6 +30,7 @@
             <td>{{$i}}</td>
             <td>{{$periodo->fechaInicio}}</td>    
             <td>{{$periodo->fechaFin}}</td>
+            <td>{{$periodo->nombreEmpresa}}</td>
             <td>{{$periodo->nombreNomina}}</td>
             <td>{{$periodo->nombreCargo}}</td>
             <td>{{$periodo->nombreTipoContrato}}</td>

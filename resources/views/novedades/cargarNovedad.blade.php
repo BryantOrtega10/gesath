@@ -17,23 +17,31 @@
             <div class="row">
                 <div class="col-3">
                     <div class="form-group">
+                        <label for="empresa" class="control-label">Empresa:</label>
+                        <select class="form-control" id="empresa" name="empresa">
+                            <option value=""></option>
+                            @foreach ($empresas as $empresa)
+                                <option value="{{$empresa->idempresa}}">{{$empresa->razonSocial}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="form-group">
                         <label for="nomina" class="control-label">N&oacute;mina:</label>
                         <select class="form-control" id="nomina" name="nomina">
                             <option value=""></option>
-                            @foreach ($nominas as $nomina)
-                                <option value="{{$nomina->idNomina}}">{{$nomina->nombre}}</option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="respTipoNomina"></div>
                 </div>
-                <div class="col-3">
+                <div class="col-2">
                     <div class="form-group">
                         <label for="fecha" class="control-label">Fecha novedad:</label>
                         <input type="date" class="form-control" id="fecha" name="fecha"/>
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-2">
                     <div class="form-group">
                         <label for="tipo_novedad" class="control-label">Tipo novedad:</label>
                         <select class="form-control" id="tipo_novedad" name="tipo_novedad">
@@ -44,7 +52,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-3" id="resp_tipoReporte">
+                <div class="col-2" id="resp_tipoReporte">
                     <div class="form-group">
                         <label for="tipo_reporte" class="control-label">Tipo reporte:</label>
                         <select class="form-control" id="tipo_reporte" name="tipo_reporte">

@@ -445,9 +445,19 @@ $(document).ready(function() {
             $('#infoFechaFin').val(fechaTxt);
             $('#infoFechaFin').trigger("blur");
 
+        } else {
+            $('#infoFechaFin').val("");
+            $('#infoFechaFin').trigger("blur");
         }
     }
 
+    $("body").on("change", "#infoTipoContrato", function() {
+        if ($(this).val() == "2") //Indefinido
+        {
+            $('#infoFechaFin').val("");
+            $('#infoFechaFin').trigger("blur");
+        }
+    });
 
     $("body").on("change", "#infoDuracionContratoN", function() {
         cambiarFechaFinalContratoN();

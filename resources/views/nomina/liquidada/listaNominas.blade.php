@@ -51,44 +51,48 @@
         </div>        
     </form>
     <div class="table-responsive">
-        <table class="table table-hover table-striped">
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Fecha Liquida</th>
-                <th scope="col">Empresa</th>
-                <th scope="col">Nómina</th>
-                <th scope="col">Tipo</th>
-                <th scope="col">Estado</th>
-                <th scope="col"></th>
-            </tr>
-            @foreach ($liquidaciones as $liquidacion)
-            <tr>
-                <th scope="row">{{ $liquidacion->idLiquidacionNomina }}</th>
-                <td>{{ $liquidacion->fechaLiquida }}</td>
-                <td>{{ $liquidacion->razonSocial }}</td>
-                <td>{{ $liquidacion->nomNombre }}</td>                
-                <td>{{ $liquidacion->tipoLiquidacion }}</td>
-                <td>{{ $liquidacion->estado }}</td>
-                <td>
-                    <div class="btn-group">
-                        <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
-                      
-                        <div class="dropdown-menu dropdown-menu-right">
-                            @if ($liquidacion->fkTipoLiquidacion == 8 && in_array("141",$dataUsu->permisosUsuario))
-                                <a href="/nomina/cancelarSolicitud" class="dropdown-item cancelarSolicitud" data-id="{{$liquidacion->idLiquidacionNomina}}">Cancelar liquidación</a>
-                            @endif
-                            @if (in_array("70",$dataUsu->permisosUsuario))
-                            <a href="/nomina/documentoRetencion/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Documento retencion en la fuente</a>
-                            @endif
-                            @if (in_array("71",$dataUsu->permisosUsuario))
-                            <a href="/nomina/reversar/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Reversar nomina</a>
-                            @endif
-                            <a href="/nomina/verSolicitudLiquidacionSinEdit/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Ver</a>
+        <table class="table table-hover table-striped" id="solicitudes_tabla">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Fecha Liquida</th>
+                    <th scope="col">Empresa</th>
+                    <th scope="col">Nómina</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($liquidaciones as $liquidacion)
+                <tr>
+                    <th scope="row">{{ $liquidacion->idLiquidacionNomina }}</th>
+                    <td>{{ $liquidacion->fechaLiquida }}</td>
+                    <td>{{ $liquidacion->razonSocial }}</td>
+                    <td>{{ $liquidacion->nomNombre }}</td>                
+                    <td>{{ $liquidacion->tipoLiquidacion }}</td>
+                    <td>{{ $liquidacion->estado }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <i class="fas fa-ellipsis-v dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                        
+                            <div class="dropdown-menu dropdown-menu-right">
+                                @if ($liquidacion->fkTipoLiquidacion == 8 && in_array("141",$dataUsu->permisosUsuario))
+                                    <a href="/nomina/cancelarSolicitud" class="dropdown-item cancelarSolicitud" data-id="{{$liquidacion->idLiquidacionNomina}}">Cancelar liquidación</a>
+                                @endif
+                                @if (in_array("70",$dataUsu->permisosUsuario))
+                                <a href="/nomina/documentoRetencion/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Documento retencion en la fuente</a>
+                                @endif
+                                @if (in_array("71",$dataUsu->permisosUsuario))
+                                <a href="/nomina/reversar/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Reversar nomina</a>
+                                @endif
+                                <a href="/nomina/verSolicitudLiquidacionSinEdit/{{$liquidacion->idLiquidacionNomina}}" class="dropdown-item">Ver</a>
+                            </div>
                         </div>
-                    </div>
-                </td>
-            </tr>
-            @endforeach
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
         </table>
     </div>
     {{ $liquidaciones->appends($arrConsulta)->links() }}
@@ -98,6 +102,11 @@
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $("#solicitudes_tabla").DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.22/i18n/Spanish.json'
             }
         });
         function cargando() {

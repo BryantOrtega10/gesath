@@ -713,6 +713,7 @@ $(document).ready(function() {
 
 
     function bloquearCampos() {
+        $("#empresa").prop("disabled", true);
         $("#nomina").prop("disabled", true);
         $("#fecha").prop("disabled", true);
         $("#tipo_novedad").prop("disabled", true);
@@ -721,9 +722,38 @@ $(document).ready(function() {
     }
 
     function desbloquearCampos() {
+        $("#empresa").prop("disabled", false);
         $("#nomina").prop("disabled", false);
         $("#fecha").prop("disabled", false);
         $("#tipo_novedad").prop("disabled", false);
         $("#tipo_reporte").prop("disabled", false);
     }
+    $("body").on("change", "#empresa", function(e) {
+        e.preventDefault();
+        const idEmpresa = $(this).val();
+        $("#nomina").html('<option value=""></option>');
+        $("#nomina").trigger("change");
+        if (idEmpresa != "") {
+            cargando();
+            $.ajax({
+                type: 'GET',
+                url: "/empleado/cargarDatosPorEmpresa/" + idEmpresa,
+                success: function(data) {
+                    $("#cargando").css("display", "none");
+                    $("#nomina").html(data.opcionesNomina);
+                },
+                error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
+                    console.log("error");
+                    console.log(data);
+                }
+            });
+        }
+    });
 });

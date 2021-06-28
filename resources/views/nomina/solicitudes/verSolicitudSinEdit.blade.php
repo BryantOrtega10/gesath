@@ -10,19 +10,19 @@
 <div class="cajaGeneral text-left verSolicitud">
     <h1 class="granAzul">Ver solicitud de liquidaci&oacute;n</h1>
     <div class="row">
-        <div class="col-3">
+        <div class="col-2">
             <div class="form-group hasText">
                 <label for="fechaLiquida" class="control-label">Fecha Pago:</label>
                 <input type="text" class="form-control" id="fechaLiquida" name="fechaLiquida" value="{{$liquidaciones->fechaLiquida}}" readonly/>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-2">
             <div class="form-group hasText">
                 <label for="tipoLiquidacion" class="control-label">Tipo Liquidaci&oacute;n:</label>
                 <input type="text" class="form-control" id="tipoLiquidacion" name="tipoLiquidacion" readonly value="{{$liquidaciones->tipoLiquidacion}}"/>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-2">
             <div class="form-group hasText">
                 <label for="estado" class="control-label">Estado:</label>
                 <input type="text" class="form-control" id="estado" name="estado" readonly value="{{$liquidaciones->estado}}"/>
@@ -32,6 +32,12 @@
             <div class="form-group hasText">
                 <label for="razonSocial" class="control-label">Empresa:</label>
                 <input type="text" class="form-control" id="razonSocial" name="razonSocial" readonly value="{{$liquidaciones->razonSocial}}"/>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="form-group hasText">
+                <label for="nomina" class="control-label">N&oacute;mina:</label>
+                <input type="text" class="form-control" id="nomina" name="nomina" readonly value="{{$liquidaciones->nombreNomina}}"/>
             </div>
         </div>
     </div>
@@ -98,19 +104,19 @@
     <br>
     <form autocomplete="off" action="{{ Request::url() }}" method="GET" id="filtrarEmpleado" class="formGeneral">
         <div class="row">
-            <div class="col-4">
-                <div class="form-group @isset($req->nombre) hasText @endisset">
-                    <label for="nombre" class="control-label">Nombre:</label>
-                    <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
-                </div>               
-            </div>
-            <div class="col-4">
+            <div class="col-3">
                 <div class="form-group @isset($req->numDoc) hasText @endisset">
                     <label for="numDoc" class="control-label">Número Identificación:</label>
                     <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc) value="{{$req->numDoc}}" @endisset/>
                 </div>               
             </div>
-            <div class="col-4">
+            <div class="col-3">
+                <div class="form-group @isset($req->nombre) hasText @endisset">
+                    <label for="nombre" class="control-label">Nombre:</label>
+                    <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/>
+                </div>               
+            </div>
+            <div class="col-3">
                 <input type="submit" value="Consultar"/><input type="reset" class="recargar" data-url="{{Request::url()}}" value=""  style="margin-left: 5px;"/> 
             </div>
         </div>

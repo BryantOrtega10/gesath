@@ -8,17 +8,22 @@
 
 @section('contenido')
 <div class="row">
-    <div class="col-8">
+    <div class="col-6">
         <h1 class="granAzul">Cargos</h1>
     </div>
+    @if (in_array("144",$dataUsu->permisosUsuario))
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="/cargos/exportar"> <i class="fas fa-download"></i>Exportar</a>
+    </div>
+    @endif
     @if (in_array("134",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
-        <a class="btn btnAzulGen btnGeneral text-center" href="/cargos/subirPlano"> <i class="fas fa-upload"></i> Subir archivo plano</a>
+        <a class="btn btnAzulGen btnGeneral text-center" href="/cargos/subirPlano"> <i class="fas fa-upload"></i> Cargar</a>
     </div>
     @endif
     @if (in_array("131",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
-        <a class="btn btnAzulGen btnGeneral text-center"  href="#" id="addCargo">Agregar cargo</a>
+        <a class="btn btnAzulGen btnGeneral text-center"  href="#" id="addCargo">Agregar</a>
     </div>
     @endif
 </div>

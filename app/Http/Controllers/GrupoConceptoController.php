@@ -27,7 +27,7 @@ class GrupoConceptoController extends Controller
     }
 
     public function getMasConceptos($idRegistro){
-        $conceptos = DB::table('concepto')->get();        
+        $conceptos = DB::table('concepto')->orderBy("nombre")->get();        
 
         return view('/grupoConcepto/conceptos.addConcepto', [
             'conceptos' => $conceptos,
@@ -72,7 +72,7 @@ class GrupoConceptoController extends Controller
                 'grupoconcepto_concepto.*'
             )->where('grupoconcepto_concepto.fkGrupoConcepto', '=', $id)
             ->get();
-            $conceptos = Concepto::all();
+            $conceptos = Concepto::orderBy("nombre")->get();
             $cantCon = sizeof($grupoConceptoFKS);
             $vistaConceptos = view('/grupoConcepto/conceptos.editConcepto', [
                 'grupoConcepto' => $grupoConcepto,

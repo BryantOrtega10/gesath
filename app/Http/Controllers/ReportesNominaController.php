@@ -18,8 +18,8 @@ use Exception;
 
 class ReportesNominaController extends Controller
 {
-    private $rutaBaseImagenes = "/home/soft2/public_html/"; 
-    //private $rutaBaseImagenes = "G:/Trabajo/Gesath/Mayo/20/app/public_html/"; 
+    //private $rutaBaseImagenes = "/home/soft2/public_html/"; 
+    private $rutaBaseImagenes = "G:/Trabajo/Gesath/web/gesathWeb/public_html/"; 
     
 
     public function reporteNominaHorizontalIndex(){
@@ -63,6 +63,10 @@ class ReportesNominaController extends Controller
         ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa")
         ->where("ln.idLiquidacionNomina","=",$idLiquidacionNomina)
         ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
+        ->orderBy("dp.primerApellido")
+        ->orderBy("dp.segundoApellido")
+        ->orderBy("dp.primerNombre")
+        ->orderBy("dp.segundoNombre")
         ->orderBy("e.idempleado")
         ->orderBy("c.idconcepto")
         ->get();
@@ -82,6 +86,10 @@ class ReportesNominaController extends Controller
         ->join("cargo","cargo.idCargo","=","e.fkCargo")
         ->where("ln.idLiquidacionNomina","=",$idLiquidacionNomina)
         ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
+        ->orderBy("dp.primerApellido")
+        ->orderBy("dp.segundoApellido")
+        ->orderBy("dp.primerNombre")
+        ->orderBy("dp.segundoNombre")
         ->orderBy("e.idempleado")
         ->orderBy("c.idconcepto")
         ->get();
@@ -308,7 +316,7 @@ class ReportesNominaController extends Controller
         ->select("c.idconcepto","c.nombre","ln.fechaLiquida","e.idempleado",
         "dp.primerNombre","dp.segundoNombre", 
         "dp.primerApellido","dp.segundoApellido","ti.nombre as tipoidentificacion", 
-        "dp.numeroIdentificacion", "bp.diasTrabajados", "ibp.valor", "bp.idBoucherPago","bp.fkPeriodoActivo","p.fechaInicio as fechaIngreso", "cargo.nombreCargo", "ibp.cantidad", "ibp.tipoUnidad")
+        "dp.numeroIdentificacion", "bp.diasTrabajados", "ibp.valor", "bp.idBoucherPago","bp.fkPeriodoActivo","p.fechaInicio as fechaIngreso","p.fechaFin as fechaRetiro", "cargo.nombreCargo", "ibp.cantidad", "ibp.tipoUnidad")
         ->join("concepto as c","c.idconcepto", "=","ibp.fkConcepto")
         ->join("boucherpago as bp","bp.idBoucherPago","=", "ibp.fkBoucherPago")
         ->join("periodo as p", "p.idPeriodo","=","bp.fkPeriodoActivo")
@@ -320,14 +328,17 @@ class ReportesNominaController extends Controller
         ->join("cargo","cargo.idCargo","=","e.fkCargo")
         ->whereBetween("ln.fechaLiquida",[$req->fechaInicio, $req->fechaFin])
         ->where("n.fkEmpresa", "=", $req->empresa);
-        if(isset($req->concepto)){
-            
+        if(isset($req->concepto)){            
             $nominas = $nominas->whereIn("c.idconcepto", $req->concepto);
         }
         if(isset($req->idEmpleado)){
             $nominas = $nominas->where("e.idempleado", "=", $req->idEmpleado);
         }
         $nominas = $nominas->orderBy("ln.fechaLiquida")
+        ->orderBy("dp.primerApellido")
+        ->orderBy("dp.segundoApellido")
+        ->orderBy("dp.primerNombre")
+        ->orderBy("dp.segundoNombre")
         ->orderBy("e.idempleado")
         ->orderBy("c.idconcepto")
         ->get();
@@ -352,6 +363,7 @@ class ReportesNominaController extends Controller
                     $matrizReporte[$nomina->fkPeriodoActivo]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
                     $matrizReporte[$nomina->fkPeriodoActivo]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
                     $matrizReporte[$nomina->fkPeriodoActivo]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
+                    $matrizReporte[$nomina->fkPeriodoActivo]["Fecha retiro"][$nomina->idconcepto] = $nomina->fechaRetiro;     
                     $matrizReporte[$nomina->fkPeriodoActivo]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
                     $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
                     $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
@@ -363,7 +375,8 @@ class ReportesNominaController extends Controller
                 $matrizReporte[$nomina->fkPeriodoActivo]["Documento"][$nomina->idconcepto] = $nomina->numeroIdentificacion;            
                 $matrizReporte[$nomina->fkPeriodoActivo]["Empleado"][$nomina->idconcepto] = $nomina->primerApellido." ".$nomina->segundoApellido." ".$nomina->primerNombre." ".$nomina->segundoNombre;
                 $matrizReporte[$nomina->fkPeriodoActivo]["Cargo"][$nomina->idconcepto] = $nomina->nombreCargo;
-                $matrizReporte[$nomina->fkPeriodoActivo]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;            
+                $matrizReporte[$nomina->fkPeriodoActivo]["Fecha ingreso"][$nomina->idconcepto] = $nomina->fechaIngreso;    
+                $matrizReporte[$nomina->fkPeriodoActivo]["Fecha retiro"][$nomina->idconcepto] = $nomina->fechaRetiro;             
                 $matrizReporte[$nomina->fkPeriodoActivo]["Concepto"][$nomina->idconcepto] = $nomina->nombre;
                 $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida][$nomina->idconcepto] = $nomina->valor;
                 $matrizReporte[$nomina->fkPeriodoActivo][$nomina->fechaLiquida." UNIDADES"][$nomina->idconcepto] = $nomina->cantidad;
@@ -476,9 +489,14 @@ class ReportesNominaController extends Controller
         ->join("empresa as emp","emp.idempresa", "=", "e.fkEmpresa")
         ->join("nomina as nom","nom.idNomina", "=", "e.fkNomina")
         ->join("cargo","cargo.idCargo","=","e.fkCargo")
-        ->whereBetween("ln.fechaLiquida",[$req->fechaInicio, $req->fechaFin])
-        ->where("n.fkEmpresa", "=", $req->empresa)
-        ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
+        ->whereBetween("ln.fechaLiquida",[$req->fechaInicio, $req->fechaFin]);
+        if(isset($req->nomina)){
+            $nominas = $nominas->where("n.idNomina", "=", $req->nomina);
+        }
+        if(isset($req->empresa)){
+            $nominas = $nominas->where("n.fkEmpresa", "=", $req->empresa);
+        }
+        $nominas = $nominas->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
         ->orderBy("ln.fechaLiquida")
         ->orderBy("e.idempleado")
         ->orderBy("c.idconcepto")
@@ -1924,7 +1942,6 @@ class ReportesNominaController extends Controller
         return $pdf;       
     }
 
-
     public function boucherPagoPdf($idBoucherPago){
 
         $empresayLiquidacion = DB::table("empresa", "e")
@@ -3238,6 +3255,1319 @@ class ReportesNominaController extends Controller
         $dompdf->stream("Comprobante de Pago ".$idBoucherPago.".pdf", array('compress' => 1, 'Attachment' => 0));
     }
     
+    public function boucherPagoPdfPass($idBoucherPago){
+
+        $empresayLiquidacion = DB::table("empresa", "e")
+        ->select("e.*", "ln.*", "n.nombre as nom_nombre", "bp.*")
+        ->join("nomina as n","n.fkEmpresa", "e.idempresa")
+        ->join("liquidacionnomina as ln","ln.fkNomina", "n.idNomina")
+        ->join("boucherpago as bp","bp.fkLiquidacion", "ln.idLiquidacionNomina")
+        ->where("bp.idBoucherPago","=",$idBoucherPago)
+        ->first();
+    
+        $userSolicita = "";
+        if(isset($empresayLiquidacion->fkUserSolicita)){
+            $usuario = DB::table('users')->select(
+                'users.username',
+                'users.email',
+                'datospersonales.primerNombre',
+                'datospersonales.primerApellido',
+                'datospersonales.foto',
+                'empleado.idempleado'
+            )->leftJoin('empleado', 'users.fkEmpleado', 'empleado.idempleado',"left")
+            ->leftJoin('empresa', 'empresa.idempresa', 'empleado.fkEmpresa',"left")
+            ->leftJoin('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales',"left")
+            ->where('users.id', $empresayLiquidacion->fkUserSolicita)
+            ->first();
+            
+            if(isset($usuario->primerNombre)){
+                $userSolicita = $usuario->primerNombre." ".$usuario->primerApellido;
+            }
+            else{
+                $userSolicita = $usuario->username;
+            }
+        }
+
+        $userAprueba = "";
+        if(isset($empresayLiquidacion->fkUserAprueba)){
+            $usuario = DB::table('users')->select(
+                'users.username',
+                'users.email',
+                'datospersonales.primerNombre',
+                'datospersonales.primerApellido',
+                'datospersonales.foto',
+                'empleado.idempleado'
+            )
+            ->leftJoin('empleado', 'users.fkEmpleado', 'empleado.idempleado')
+            ->leftJoin('empresa', 'empresa.idempresa', 'empleado.fkEmpresa')
+            ->leftJoin('datospersonales', 'datospersonales.idDatosPersonales', 'empleado.fkDatosPersonales')
+            ->where('users.id',"=", $empresayLiquidacion->fkUserAprueba)
+            ->first();
+            
+            if(isset($usuario->primerNombre)){
+                $userAprueba = $usuario->primerNombre." ".$usuario->primerApellido;
+            }
+            else{
+                $userAprueba = $usuario->username;
+            }
+        }
+
+
+        
+        $empleado = DB::table("empleado","e")
+        ->select("e.idempleado", "e.fechaIngreso","e.tipoRegimen", "e.fkNomina",
+        "dp.primerNombre","dp.segundoNombre", 
+        "dp.primerApellido","dp.segundoApellido","ti.nombre as tipoidentificacion", 
+        "dp.numeroIdentificacion", "cargo.nombreCargo")
+        ->join("boucherpago as bp","bp.fkEmpleado", "e.idempleado")
+        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
+        ->join("cargo","cargo.idCargo","=","e.fkCargo")
+        ->where("bp.idBoucherPago","=",$idBoucherPago)
+        ->first();
+
+        
+        $nomina = DB::table("nomina","n")
+        ->where("n.idNomina","=",$empleado->fkNomina)->first();
+
+
+        $pension = DB::table("tercero", "t")->
+        select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero", "ti.nombre as tipoidentificacion", "t.digitoVer"])
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+        ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+        ->where("a.fkEmpleado","=",$empleado->idempleado)
+        ->where("a.fkTipoAfilicacion","=","4") //4-Pensión Obligatoria 
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
+        ->first();
+
+        $salud = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
+        "ti.nombre as tipoidentificacion", "t.digitoVer"])
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+        ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+        ->where("a.fkEmpleado","=",$empleado->idempleado)
+        ->where("a.fkTipoAfilicacion","=","3") //3-Salud
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
+        ->first();
+
+        $cesantiasEmp = DB::table("tercero", "t")->select(["t.razonSocial", "t.numeroIdentificacion", "t.idTercero",
+            "ti.nombre as tipoidentificacion", "t.digitoVer"])
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+        ->join("afiliacion as a","t.idTercero", "=","a.fkTercero")
+        ->where("a.fkEmpleado","=",$empleado->idempleado)
+        ->where("a.fkTipoAfilicacion","=","1") //2-CCF
+        ->where("a.fkPeriodoActivo","=",$empresayLiquidacion->fkPeriodoActivo)
+        ->first();
+
+        $entidadBancaria = DB::table("tercero", "t")->select(["t.razonSocial", "e.numeroCuenta"])
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","t.fkTipoIdentificacion")
+        ->join("empleado as e", "e.fkEntidad", "=","t.idTercero")
+        ->where("e.idempleado","=",$empleado->idempleado)
+        ->first();
+
+        $idItemBoucherPago = DB::table("item_boucher_pago","ibp")
+        ->join("concepto AS c","c.idconcepto","=", "ibp.fkConcepto")
+        ->where("ibp.fkBoucherPago","=",$idBoucherPago)
+        ->get();
+
+        $itemsBoucherPagoFueraNomina = DB::table("item_boucher_pago_fuera_nomina","ibpfn")
+        ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
+        ->where("ibpfn.fkBoucherPago","=",$idBoucherPago)
+        ->get();
+
+        $itemsBoucherPagoFueraNominaCesTras = DB::table("item_boucher_pago_fuera_nomina","ibpfn")
+        ->select("ibpfn.*","c.*")
+        ->join("concepto AS c","c.idconcepto","=", "ibpfn.fkConcepto")
+        ->join("boucherpago as bp","bp.idBoucherPago","=","ibpfn.fkBoucherPago")
+        ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
+        ->whereRaw("MONTH(ln.fechaLiquida)= MONTH('".$empresayLiquidacion->fechaLiquida."')")
+        ->whereRaw("YEAR(ln.fechaLiquida)= YEAR('".$empresayLiquidacion->fechaLiquida."')")
+        ->where("bp.fkEmpleado","=", $empleado->idempleado)
+        ->where("ln.idLiquidacionNomina","<>",$empresayLiquidacion->idLiquidacionNomina)
+        ->where("ln.fkTipoLiquidacion","=","11")
+        ->where("ln.fkEstado","=","5")
+        ->get();
+
+
+        foreach($itemsBoucherPagoFueraNominaCesTras as $itemBoucherPagoFueraNominaCesTras){
+            $itemsBoucherPagoFueraNomina->push($itemBoucherPagoFueraNominaCesTras);
+        }
+
+
+
+
+        $periodoPasadoReintegro = DB::table("periodo")
+        ->where("fkEstado","=","2")
+        ->where("fkEmpleado", "=", $empleado->idempleado)
+        ->where("fechaInicio","<=",$empresayLiquidacion->fechaInicio)
+        ->where("fechaFin",">=",$empresayLiquidacion->fechaInicio)
+        ->where("fkNomina","=",$empresayLiquidacion->fkNomina)
+        ->first();
+        
+        if(isset($periodoPasadoReintegro)){
+            $conceptoSalario = new stdClass;
+            $conceptoSalario->valor = $periodoPasadoReintegro->salario;
+        }
+        else{
+            $conceptoSalario = DB::table("conceptofijo")->where("fkEmpleado","=",$empleado->idempleado)
+            ->whereIn("fkConcepto",[1,2,53,54])->first();
+        }
+        
+
+
+
+        //VACACIONES
+        $novedadesVacacionActual = DB::table("novedad","n")
+        ->select("v.*", "c.nombre","c.idconcepto", "ibpn.valor")
+        ->join("concepto as c","c.idconcepto", "=","n.fkConcepto")
+        ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
+        ->join("item_boucher_pago_novedad as ibpn","ibpn.fkNovedad","=","n.idNovedad")
+        ->join("item_boucher_pago as ibp","ibp.idItemBoucherPago","=","ibpn.fkItemBoucher")
+        ->where("ibp.fkBoucherPago","=",$idBoucherPago)
+        ->whereIn("n.fkEstado",["8","7"]) // Pagada -> no que este eliminada
+        ->whereNotNull("n.fkVacaciones")
+        ->get();
+        //$diasVac = $totalPeriodoPagoAnioActual * 15 / 360;
+        
+
+
+
+
+
+        $base64 = "";
+        if(is_file($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa)){
+            $imagedata = file_get_contents($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresayLiquidacion->logoEmpresa);
+                    // alternatively specify an URL, if PHP settings allow
+            $base64 = base64_encode($imagedata);
+        }
+        else{
+            unset($empresayLiquidacion->logoEmpresa);
+        }
+        $mensajeGen = array();
+        $mensajeGen[8] = DB::table("mensaje")->where("idMensaje","=","8")->first();
+        $mensajeGen[9] = DB::table("mensaje")->where("idMensaje","=","9")->first();
+        
+        $arrMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+        $dompdf = new Dompdf();
+        $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
+        $dompdf->getOptions()->setIsPhpEnabled(true);
+        $html='
+        <!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"</head><body>
+        <body>
+            <style>
+            *{
+                -webkit-hyphens: auto;
+                -ms-hyphens: auto;
+                hyphens: auto;
+                font-family: sans-serif;                
+            }
+            td{
+                text-align: left;
+                font-size: 11px;
+            }
+            th{
+                text-align: left;
+                font-size: 11px;
+            }
+            .liquida td, .liquida th{
+                font-size:11px;
+            }
+            
+            @page { 
+                margin: 0in;
+            }
+            .page {
+                top: .3in;
+                right: .3in;
+                bottom: .3in;
+                left: .3in;
+                position: absolute;
+                z-index: -1000;
+                min-width: 7in;
+                min-height: 11.7in;
+                
+            }
+            .page_break { 
+                page-break-before: always; 
+            }
+            .tituloTable td b{
+                font-size: 14px;
+            }
+            </style>
+            ';
+            $novedadesRetiro = DB::table("novedad","n")
+            ->select("r.fecha", "r.fechaReal","mr.nombre as motivoRet")
+            ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+            ->join("motivo_retiro as mr","mr.idMotivoRetiro","=","r.fkMotivoRetiro")
+            ->where("n.fkEmpleado", "=", $empleado->idempleado)
+            ->whereIn("n.fkEstado",["7", "8"])
+            ->whereNotNull("n.fkRetiro")
+            ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
+
+
+            if($empresayLiquidacion->fkTipoLiquidacion == "7"){
+                $html.='<div class="page liquida">
+                <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                    <table class="tituloTable">
+                        <tr>
+                            <td rowspan="2">
+                            '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
+                            </td>
+                            <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                        </tr>
+                        <tr>
+                            <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                        </tr>
+                    </table>
+                    <center>
+                        <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">COMPROBANTE DE PAGO DE NÓMINA</h2><br>
+                    </center>
+                    <table style="width: 100%;">
+                        <tr>
+                            <th>Nómina</th>
+                            <td>'.$empresayLiquidacion->nom_nombre.'</td>
+                            <th>Período liquidación</th>
+                            <td>
+                                '.date("Y",strtotime($empresayLiquidacion->fechaInicio))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaInicio)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaInicio)).' 
+                                a
+                                '.date("Y",strtotime($empresayLiquidacion->fechaFin))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaFin)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaFin)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Empleado</th>
+                            <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                            <th>Salario</th>
+                            <td>$ '.number_format($conceptoSalario->valor,0, ",", ".").'</td>
+                        </tr>
+                        <tr>
+                            <th>Identificación</th>
+                            <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                            <th>Cargo</th>
+                            <td>'.$empleado->nombreCargo.'</td>
+                        </tr>
+                        <tr>
+                            <th>Entidad Bancaria</th>
+                            <td>'.(isset($entidadBancaria->razonSocial) ? $entidadBancaria->razonSocial : "").'</td>
+                            <th>Cuenta</th>
+                            <td>'.(isset($entidadBancaria->numeroCuenta) ? $entidadBancaria->numeroCuenta : "").'</td>
+                        </tr>
+                        <tr>
+                            <th>EPS</th>
+                            <td>'.$salud->razonSocial.'</td>
+                            <th>Fondo Pensiones</th>
+                            <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
+                        </tr>
+                        
+                    </table>
+                    <br>
+                </div>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <th style="background: #d89290; text-align: center;" colspan="2">Devengado</th>
+                                <th style="background: #d89290; text-align: center;">Deducciones</th>                        
+                            </tr>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">Conceptos Liquidados</th>
+                                <th style="background: #CCC; text-align: center;">Cantidad</th>
+                                <th style="background: #CCC; text-align: center;">Unidad</th>
+                                <th style="background: #CCC; text-align: center;">Pagos</th>
+                                <th style="background: #CCC; text-align: center;">Beneficios</th>
+                                <th style="background: #CCC; text-align: center;">Descuentos</th>
+                            </tr>';
+                            $totalDesc = 0;
+                            $totalPag = 0;
+                
+                            foreach($idItemBoucherPago as $itemBoucherPago){
+                                $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                                    <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->nombre.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.((15 / 180) * $itemBoucherPago->cantidad).'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->tipoUnidad.'</td>';
+                                    
+                                    if($itemBoucherPago->valor > 0){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor,0, ",", ".").'</td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                        $totalPag = $totalPag + $itemBoucherPago->valor;
+                                    }
+                                    else{
+                                        $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor*-1,0, ",", ".").'</td>';
+                                        $totalDesc = $totalDesc + $itemBoucherPago->valor;
+                                    }
+
+                                $html.='</tr>';
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;">Totales</th>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;">$'.number_format($totalPag,0, ",", ".").'</td>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;"></td>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" >$'.number_format($totalDesc*-1,0, ",", ".").'</td>
+                                    </tr>
+                            ';
+                            $totalGen = $totalPag + $totalDesc;
+                            if($totalGen<0){
+                                $totalGen=0;
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;" >Neto a pagar en cuenta nómina</th>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" colspan="2">$'.number_format($totalGen,0, ",", ".").'</td>
+                                        
+                                    </tr>
+                            ';
+                            
+                        $html.='</table>
+
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Bases para cálculo de seguridad social</th>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Salud</td><td style="text-align: right;">$'.number_format($empresayLiquidacion->ibc_eps,0, ",", ".").'</td>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Pension</td><td style="text-align: right;">$'.number_format($empresayLiquidacion->ibc_afp,0, ",", ".").'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Mensaje Empresarial</th>
+                            </tr>
+                            <tr>
+                                <td style="text-align: justify;">'.$mensajeGen[8]->html.'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="position: absolute; bottom: 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td>COLABORADOR</td>
+                                <td></td>
+                                <td>LA EMPRESA</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Cédula o NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                                <td>NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"></td>
+                                <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </div>';
+            }
+            else if(($empresayLiquidacion->fkTipoLiquidacion == "2" || $empresayLiquidacion->fkTipoLiquidacion == "3") && isset($novedadesRetiro->fecha)){
+        
+                $contrato = DB::table("contrato","c")
+                ->join("tipocontrato as tc","tc.idtipoContrato", "=","c.fkTipoContrato")
+                ->where("c.fkEmpleado","=",$empleado->idempleado)
+                ->whereIn("c.fkEstado",["1","2","4"])->first();
+
+                $cambioSalario = DB::table("cambiosalario","cs")
+                ->where("cs.fkEmpleado","=",$empleado->idempleado)
+                ->where("cs.fkEstado","=","5")
+                ->first();
+                $fechaUltimoCamSal = $empleado->fechaIngreso;
+                if(isset($cambioSalario)){
+                    $fechaUltimoCamSal = $cambioSalario->fechaCambio;
+                }
+
+                $diasLab = $this->days_360($empleado->fechaIngreso, $novedadesRetiro->fecha);
+                $meses = intval($diasLab/30);
+                $diasDemas = $diasLab - ($meses * 30);
+                $tiempoTrabTxt = $meses." Meses ".$diasDemas." días";
+
+                $fechaFinMesActual = date("Y-m-t", strtotime($novedadesRetiro->fechaReal));
+                $fechaInicioMesActual = date("Y-m-01", strtotime($novedadesRetiro->fechaReal));
+                $ultimoBoucher = DB::table("boucherpago", "bp")
+                ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"])
+                ->orderBy("bp.idBoucherPago","desc")
+                ->first();
+               
+                
+                if(!isset($ultimoBoucher)){
+                    $ultimoBoucher = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+                }
+                else{
+                    $ultimoBoucherRetiro = DB::table("boucherpago", "bp")
+                    ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
+                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
+                    ->whereIn("ln.fkTipoLiquidacion",["3"])
+                    ->orderBy("bp.idBoucherPago","desc")
+                    ->first();
+
+                    $ultimoBoucher->ibc_afp = $ultimoBoucher->ibc_afp + ($ultimoBoucherRetiro->ibc_afp ?? 0);
+                    $ultimoBoucher->ibc_eps = $ultimoBoucher->ibc_eps + ($ultimoBoucherRetiro->ibc_eps ?? 0);
+                    $ultimoBoucher->ibc_arl = $ultimoBoucher->ibc_arl + ($ultimoBoucherRetiro->ibc_arl ?? 0);
+                    $ultimoBoucher->ibc_ccf = $ultimoBoucher->ibc_ccf + ($ultimoBoucherRetiro->ibc_ccf ?? 0);
+                    $ultimoBoucher->ibc_otros = $ultimoBoucher->ibc_otros + ($ultimoBoucherRetiro->ibc_otros ?? 0);
+                }
+                $IBL = $ultimoBoucher->ibc_eps;
+               
+                $html.='                    
+                <div class="page liquida">
+                    <div style="border: 2px solid #000; padding: 5px 10px; font-size: 15px; margin-bottom: 5px;">
+                        <table class="tituloTable">
+                            <tr>
+                                <td rowspan="2">
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
+                                </td>
+                                <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                            </tr>
+                            <tr>
+                                <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                            </tr>
+                        </table>
+                        <center>
+                            <h2 style="margin:0; margin-bottom: 0px; font-size: 20px;">LIQUIDACIÓN DE CONTRATO</h2>
+                        </center>
+                    </div>
+                    <table style="width: 96%; text-align: left;">
+                        <tr>
+                            <th>
+                                Nómina
+                            </th>
+                            <td>
+                                '.$empresayLiquidacion->nom_nombre.'
+                            </td>
+                            <th>
+                                Período liquidación
+                            </th>
+                            <td>
+                                '.date("Y",strtotime($empresayLiquidacion->fechaInicio))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaInicio)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaInicio)).' 
+                                a
+                                '.date("Y",strtotime($empresayLiquidacion->fechaFin))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaFin)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaFin)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Empleado</th>
+                            <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                            <th>Fecha ingreso</th>
+                            <td>'.date("Y",strtotime($empleado->fechaIngreso))."/".$arrMeses[date("m",strtotime($empleado->fechaIngreso)) - 1].'/'.date("d",strtotime($empleado->fechaIngreso)).'</td>
+                        </tr>
+                        <tr>
+                            <th>Identificación</th>
+                            <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                            <th>Fecha Retiro</th>
+                            <td>'.date("Y",strtotime($novedadesRetiro->fecha))."/".$arrMeses[date("m",strtotime($novedadesRetiro->fecha)) - 1].'/'.date("d",strtotime($novedadesRetiro->fecha)).'</td>
+                        </tr>
+                        <tr>
+                            <th>Tipo Contrato</th>
+                            <td>'.$contrato->nombre.'</td>
+                            <th>Fecha Retiro Real</th>
+                            <td>'.date("Y",strtotime($novedadesRetiro->fechaReal))."/".$arrMeses[date("m",strtotime($novedadesRetiro->fechaReal)) - 1].'/'.date("d",strtotime($novedadesRetiro->fechaReal)).'</td>
+                        </tr>
+                        <tr>
+                            <th>Nómina</th>
+                            <td>'.$empresayLiquidacion->nom_nombre.'</td>
+                            <th>Fecha Último Aumento Salario</th>
+                            <td>
+                                '.date("Y",strtotime($fechaUltimoCamSal))."/".$arrMeses[date("m",strtotime($fechaUltimoCamSal)) - 1].'/'.date("d",strtotime($fechaUltimoCamSal)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Régimen</th>
+                            <td>'.$empleado->tipoRegimen.'</td>
+                            <th>Última Nómina Pagada</th>
+                            <td>
+                                '.date("Y",strtotime($empresayLiquidacion->fechaLiquida))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaLiquida)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaLiquida)).' 
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Tiempo Trabajado</th>
+                            <td>'.$tiempoTrabTxt.'</td>
+                            <th>Cargo</th>
+                            <td>'.$empleado->nombreCargo.'</td>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Salario</th>
+                            <td>$ '.number_format($conceptoSalario->valor,0, ",", ".").'</td>
+                            <th>EPS</th>
+                            <td>'.$salud->razonSocial.'</td>
+                        </tr>
+                        <tr>
+                            <th>Entidad Bancaria</th>
+                            <td>'.(isset($entidadBancaria->razonSocial) ? $entidadBancaria->razonSocial : "").'</td>
+                            <th>Cuenta</th>
+                            <td>'.(isset($entidadBancaria->numeroCuenta) ? $entidadBancaria->numeroCuenta : "").'</td>
+                        </tr>
+                        <tr>
+                            <th>Fondo Pensiones</th>
+                            <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
+                            <th>IBL Seguridad Social </th>
+                            <td>$ '.number_format($this->roundSup($IBL,-2),0, ",", ".").'</td>
+                        </tr>
+                        <tr>
+                            <th>Fondo Cesantías </th>
+                            <td>'.(isset($cesantiasEmp->razonSocial) ? $cesantiasEmp->razonSocial : "").'</td>
+                            <th>Motivo Retiro</th>
+                            <td>'.$novedadesRetiro->motivoRet.'</td>
+                        </tr>
+                    </table>
+                    <br>';
+                    $basePrima = 0;
+                    $baseCes = 0;
+                    $baseVac = 0;
+
+                    $fechaInicioCes = "";
+                    $fechaInicioPrima = "";
+                    $fechaInicioVac = $empleado->fechaIngreso;
+
+                    $fechaFinCes = "";
+                    $fechaFinPrima = "";
+                    $fechaFinVac = $novedadesRetiro->fecha;
+
+                    $diasCes = "";
+                    $diasPrima = "";
+                    $diasVac = "";
+
+                
+                    foreach($idItemBoucherPago as $itemBoucherPago){
+                        if($itemBoucherPago->fkConcepto == 30){
+                            $baseVac = $itemBoucherPago->base;
+                            $diasVac = $itemBoucherPago->cantidad;
+                        }
+
+                        if($itemBoucherPago->fkConcepto == 58){
+                            $basePrima = $itemBoucherPago->base;
+                            $fechaInicioPrima =  $itemBoucherPago->fechaInicio;
+                            $fechaFinPrima =  $itemBoucherPago->fechaFin;                            
+                            $diasPrima = (15 / 180) * $itemBoucherPago->cantidad;
+                        }
+                        
+                        if($itemBoucherPago->fkConcepto == 66){
+                            $baseCes = $itemBoucherPago->base;
+                            $fechaInicioCes =  $itemBoucherPago->fechaInicio;
+                            $fechaFinCes =  $itemBoucherPago->fechaFin;
+                            $diasCes = (($itemBoucherPago->cantidad * $nomina->diasCesantias) / 360);
+                        }
+                        
+                    }
+                    $html.='<div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="6">Promedio Liquidación Prestaciones</th>
+                            </tr>
+                            <tr>
+                                <th>Promedio Cesantías</th>
+                                <td>$'.number_format($baseCes,0, ",", ".").'</td>
+                                <th>Promedio Vacaciones</th>
+                                <td>$'.number_format($baseVac,0, ",", ".").'</td>
+                                <th>Promedio Prima</th>
+                                <td>$'.number_format($basePrima,0, ",", ".").'</td>
+                            </tr>
+                        </table>
+                    </div>';
+                    $html.='<div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="5">Valores Consolidados</th>
+                            </tr>
+                            <tr>
+                                <th  style="background: #CCC; text-align: center;">Tipo Consolidado </th>
+                                <th  style="background: #CCC; text-align: center;">Fecha Inicio</th>
+                                <th  style="background: #CCC; text-align: center;">Fecha Fin</th>
+                                <th  style="background: #CCC; text-align: center;">Total Días</th>
+                            </tr>
+                            <tr>
+                                <th>Cesantías consolidadas</th>
+                                <td>'.$fechaInicioCes.'</td>
+                                <td>'.$fechaFinCes.'</td>
+                                <td>'.round($diasCes,2).'</td>
+                            </tr>
+                            <tr>
+                                <th>Prima de servicios consolidadas</th>
+                                <td>'.$fechaInicioPrima.'</td>
+                                <td>'.$fechaFinPrima.'</td>
+                                <td>'.round($diasPrima,2).'</td>
+                            </tr>
+                            <tr>
+                                <th>Vacaciones consolidadas</th>
+                                <td>'.$fechaInicioVac.'</td>
+                                <td>'.$fechaFinVac.'</td>
+                                <td>'.round($diasVac,2).'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td colspan="4"></td>
+                                <th style="background: #d89290; text-align: center;" colspan="2">Pagos y Descuentos</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">Conceptos Liquidados</th>
+                                <th style="background: #CCC; text-align: center;">Cantidad</th>
+                                <th style="background: #CCC; text-align: center;">Unidad</th>
+                                <th style="background: #CCC; text-align: center;">Base</th>
+                                <th style="background: #CCC; text-align: center;">Pagos</th>
+                                <th style="background: #CCC; text-align: center;">Descuentos</th>
+                                <th style="background: #CCC; text-align: center;">Saldo Cuota</th>                                
+                            </tr>';
+                            $totalDesc = 0;
+                            $totalPag = 0;
+                            foreach($idItemBoucherPago as $itemBoucherPago){
+                                $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                                    <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->nombre.'</td>';
+                                    if($itemBoucherPago->fkConcepto == 58){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.round($diasPrima,2).'</td>';
+                                    }
+                                    else if($itemBoucherPago->fkConcepto == 66 || $itemBoucherPago->fkConcepto == 69){
+                                        
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.round($diasCes,2).'</td>';
+                                    }
+                                    else{
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->cantidad.'</td>';
+                                    }
+
+                                    $html.='
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->tipoUnidad.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->base,0, ",", ".").'</td>';
+
+                                    
+                                    
+                                    if($itemBoucherPago->valor > 0){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor,0, ",", ".").'</td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                        $totalPag = $totalPag + $itemBoucherPago->valor;
+                                    }
+                                    else{
+                                        $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor*-1,0, ",", ".").'</td>';
+                                        $totalDesc = $totalDesc + $itemBoucherPago->valor;
+                                    }
+                                    $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$0</td>';
+
+                                $html.='</tr>';
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="4" style="text-align: right;">Totales</th>
+                                        <th style="text-align: right; border: 1px solid #B0B0B0;">$'.number_format($totalPag,0, ",", ".").'</td>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" >$'.number_format($totalDesc*-1,0, ",", ".").'</td>
+                                    </tr>
+                            ';
+                            $totalGen = $totalPag + $totalDesc;
+                            if($totalGen<0){
+                                $totalGen=0;
+                            }
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;" >Neto a pagar</th>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" colspan="2">$'.number_format($totalGen,0, ",", ".").'</td>
+                                        
+                                    </tr>
+                            ';
+                            $valorText =$this->convertir(($totalPag + $totalDesc));
+                            
+                        $html.='</table>
+                    </div>
+                    <div style="border: 2px solid #000; padding: 10px 20px; font-size: 10px; font-weight: bold; margin-bottom: 5px;">
+                        El valor neto a pagar es: '.strtoupper($valorText).' PESOS M/CTE
+                    </div><br>';
+                    if(sizeof($itemsBoucherPagoFueraNomina)>0){
+                        $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                        <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="5">Fuera de nómina</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;">Conceptos</th>
+                            <th style="background: #CCC; text-align: center;">Cantidad</th>
+                            <th style="background: #CCC; text-align: center;">Unidad</th>
+                            <th style="background: #CCC; text-align: center;">Pagos</th>
+                            <th style="background: #CCC; text-align: center;">Descuentos</th>
+                        </tr>
+                        ';
+                        foreach($itemsBoucherPagoFueraNomina as $itemBoucherPagoFueraNomina){
+                            $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                            <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->nombre.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->cantidad.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->tipoUnidad.'</td>';
+                            
+                            if($itemBoucherPagoFueraNomina->valor > 0){
+                                $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor,0, ",", ".").'</td>
+                                    <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                
+                            }
+                            else{
+                                $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor*-1,0, ",", ".").'</td>';
+                                
+                            }
+                            $html.='</tr>';
+                        }
+                        $html.='</table></div><br> 
+                        </div>
+                        <div class="page_break"></div>
+                        <div class="page">';
+                    }
+                    $html.='<div style="border: 2px solid #000; padding: 0px 10px; margin-bottom: 5px;">
+                        <center><h4 style="margin:0px;" >Observaciones</h4></center>
+                        <table>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">CONSTANCIAS - Se hace constar expresamente los siguiente:</th>
+                            </tr>
+                            <td style="font-size: 8px; text-align: justify;">'.$mensajeGen[9]->html.'</td>
+                        </table>
+                        <table style="width: 100%;">
+                            <tr>
+                                <th style="border: 1px solid #000; width:33%;">ELABORÓ: '.$userSolicita.'</th>
+                                <th style="border: 1px solid #000; width:33%;">REVISÓ: '.$userAprueba.'</th>
+                                <th style="border: 1px solid #000; width:33%;">APROBÓ:</th>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="position: absolute; bottom: 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td>COLABORADOR</td>
+                                <td></td>
+                                <td>LA EMPRESA</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Cédula o NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                                <td>NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"></td>
+                                <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>';
+            }
+            else{
+                $html.='<div class="page">
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        ';
+                        $html.='                        
+                        <table class="tituloTable">
+                            <tr>
+                                <td rowspan="2">
+                                '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
+                                </td>
+                                <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                            </tr>
+                            <tr>
+                                <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                            </tr>
+                        </table>
+                        <center>
+                            <h2 style="margin:0; margin-bottom: 10px;">Comprobante pago nómina</h2>
+                        </center>
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th>
+                                    Nómina
+                                </th>
+                                <td>
+                                    '.$empresayLiquidacion->nom_nombre.'
+                                </td>
+                                <th>
+                                    Periodo liquidación
+                                </th>
+                                <td>
+                                    '.date("Y",strtotime($empresayLiquidacion->fechaInicio))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaInicio)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaInicio)).' 
+                                    a
+                                    '.date("Y",strtotime($empresayLiquidacion->fechaFin))."/".$arrMeses[date("m",strtotime($empresayLiquidacion->fechaFin)) - 1].'/'.date("d",strtotime($empresayLiquidacion->fechaFin)).' 
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Empleado</th>
+                                <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                                <th>Salario</th>
+                                <td>$ '.number_format($conceptoSalario->valor,0, ",", ".").'</td>
+                            </tr>
+                            <tr>
+                                <th>Identificación</th>
+                                <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                                <th>Cargo</th>
+                                <td>'.$empleado->nombreCargo.'</td>
+                            </tr>
+                            <tr>
+                                <th>Entidad Bancaria</th>
+                                <td>'.(isset($entidadBancaria->razonSocial) ? $entidadBancaria->razonSocial : "").'</td>
+                                <th>Cuenta</th>
+                                <td>'.(isset($entidadBancaria->numeroCuenta) ? $entidadBancaria->numeroCuenta : "").'</td>
+                            </tr>
+                            <tr>
+                                <th>EPS</th>
+                                <td>'.$salud->razonSocial.'</td>
+                                <th>Fondo Pensiones</th>
+                                <td>'.(isset($pension->razonSocial) ? $pension->razonSocial : "").'</td>
+                            </tr>
+                        </table>
+                    </div><br>';
+                    if(sizeof($idItemBoucherPago)>0){
+                        $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <th style="background: #d89290; text-align: center;" colspan="2">Devengado</th>
+                                <th style="background: #d89290; text-align: center;">Deducciones</th>                        
+                            </tr>
+                            <tr>
+                                <th style="background: #CCC; text-align: center;">Conceptos Liquidados</th>
+                                <th style="background: #CCC; text-align: center;">Cantidad</th>
+                                <th style="background: #CCC; text-align: center;">Unidad</th>
+                                <th style="background: #CCC; text-align: center;">Pagos</th>
+                                <th style="background: #CCC; text-align: center;">Beneficios</th>
+                                <th style="background: #CCC; text-align: center;">Descuentos</th>
+                            </tr>';
+                            $totalDesc = 0;
+                            $totalPag = 0;
+                
+                            foreach($idItemBoucherPago as $itemBoucherPago){
+                                $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                                    <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->nombre.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->cantidad.'</td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPago->tipoUnidad.'</td>';
+                                    
+                                    if($itemBoucherPago->valor > 0){
+                                        $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor,0, ",", ".").'</td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                        $totalPag = $totalPag + $itemBoucherPago->valor;
+                                    }
+                                    else{
+                                        $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPago->valor*-1,0, ",", ".").'</td>';
+                                        $totalDesc = $totalDesc + $itemBoucherPago->valor;
+                                    }
+
+                                $html.='</tr>';
+                            }
+                            
+
+
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;">Totales</th>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;">$'.number_format($totalPag,0, ",", ".").'</td>
+                                        <td style="text-align: right; border: 1px solid #B0B0B0;"></td>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" >$'.number_format($totalDesc*-1,0, ",", ".").'</td>
+                                    </tr>
+                            ';
+                            $totalGen = $totalPag + $totalDesc;
+                            if($totalGen<0){
+                                $totalGen=0;
+                            }
+                            
+                            $html.='<tr>
+                                        
+                                        <th colspan="3" style="text-align: right;" >Neto a pagar en cuenta nómina</th>
+                                        <td style="text-align: right;border: 1px solid #B0B0B0;" colspan="2">$'.number_format($totalGen,0, ",", ".").'</td>
+                                        
+                                    </tr>
+                            ';
+                            
+                        $html.='</table>
+
+                    </div>
+                    <br>';
+                    }
+                    
+
+                    if(sizeof($itemsBoucherPagoFueraNomina)>0){
+                        $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                        <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="5">Fuera de nómina</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;">Conceptos</th>
+                            <th style="background: #CCC; text-align: center;">Cantidad</th>
+                            <th style="background: #CCC; text-align: center;">Unidad</th>
+                            <th style="background: #CCC; text-align: center;">Pagos</th>
+                            <th style="background: #CCC; text-align: center;">Descuentos</th>
+                        </tr>
+                        ';
+                        foreach($itemsBoucherPagoFueraNomina as $itemBoucherPagoFueraNomina){
+                            $html.='<tr style="border-bottom: 1px solid #B0B0B0;">
+                            <td style="border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->nombre.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->cantidad.'</td>
+                            <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">'.$itemBoucherPagoFueraNomina->tipoUnidad.'</td>';
+                            
+                            if($itemBoucherPagoFueraNomina->valor > 0){
+                                $html.='<td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor,0, ",", ".").'</td>
+                                    <td style="border-bottom: 1px solid #B0B0B0;"></td>';
+                                
+                            }
+                            else{
+                                $html.='<td style="border-bottom: 1px solid #B0B0B0;"></td>
+                                    <td style="text-align: right;border-bottom: 1px solid #B0B0B0;">$'.number_format($itemBoucherPagoFueraNomina->valor*-1,0, ",", ".").'</td>';
+                                
+                            }
+                            $html.='</tr>';
+                        }
+                        $html.='</table></div><br>';
+                    }
+
+                    $html.='<div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Bases para cálculo de seguridad social</th>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Salud</td><td style="text-align: right;">$'.number_format($empresayLiquidacion->ibc_eps,0, ",", ".").'</td>
+                            </tr>
+                            <tr>
+                                <td>Ingreso Base Cotización Pension</td><td style="text-align: right;">$'.number_format($empresayLiquidacion->ibc_afp,0, ",", ".").'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <th style="background: #CCC; text-align: center;" colspan="2">Mensaje Empresarial</th>
+                            </tr>
+                            <tr>
+                                <td style="text-align: justify;">'.$mensajeGen[8]->html.'</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <div style="position: absolute; bottom: 20px;">
+                        <table style="width: 100%; text-align: left;">
+                            <tr>
+                                <td>COLABORADOR</td>
+                                <td></td>
+                                <td>LA EMPRESA</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Cédula o NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                                <td>NIT</td>
+                                <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"></td>
+                                <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </div>
+                ';
+            }
+            if(sizeof($novedadesVacacionActual) > 0){
+                
+                $novedadesRetiro = DB::table("novedad","n")
+                ->select("r.fecha")
+                ->join("retiro AS r", "r.idRetiro","=","n.fkRetiro")
+                ->where("n.fkEmpleado", "=", $empleado->idempleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                )")
+                ->whereIn("n.fkEstado",["7", "8"])
+                ->whereNotNull("n.fkRetiro")
+                ->whereBetween("n.fechaRegistro",[$empresayLiquidacion->fechaInicio, $empresayLiquidacion->fechaFin])->first();
+                $fechaFinalVaca = $empresayLiquidacion->fechaFin;
+                $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$empresayLiquidacion->fechaFin) + 1 ;
+                if(isset($novedadesRetiro)){
+                    if(strtotime($empresayLiquidacion->fechaFin) > strtotime($novedadesRetiro->fecha)){
+                        $periodoPagoVac = $this->days_360($empleado->fechaIngreso,$novedadesRetiro->fecha) + 1 ;
+                        $fechaFinalVaca = $$novedadesRetiro->fecha;
+                    }
+                }
+
+                $diasVac = $periodoPagoVac * 15 / 360;
+
+                $novedadesVacacion = DB::table("novedad","n")
+                ->select("v.*", "c.nombre","c.idconcepto", "ibpn.valor")
+                ->join("concepto as c","c.idconcepto","=","n.fkConcepto")
+                ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
+                ->join("item_boucher_pago_novedad as ibpn","ibpn.fkNovedad","=","n.idNovedad")
+                ->join("item_boucher_pago as ibp","ibp.idItemBoucherPago","=","ibpn.fkItemBoucher")
+                ->where("n.fkEmpleado","=",$empleado->idempleado)
+                ->whereRaw("n.fkPeriodoActivo in(
+                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                )")
+                ->where("ibp.fkBoucherPago","<>",$idBoucherPago)
+                ->whereIn("n.fkEstado",["7"]) // Pagada o sin pagar-> no que este eliminada
+                ->whereNotNull("n.fkVacaciones")
+                ->get();
+                //$diasVac = $totalPeriodoPagoAnioActual * 15 / 360;
+                foreach($novedadesVacacion as $novedadVacacion){
+                    $diasVac = $diasVac - $novedadVacacion->diasCompensar;
+                }
+                if(isset($diasVac) && $diasVac < 0){
+                    $diasVac = 0;
+                }
+
+            
+                
+                $html.='<div class="page_break"></div>
+                    <div class="page">
+                        <div style="border: 2px solid #000; padding: 10px 20px;">
+                            <table class="tituloTable">
+                                <tr>
+                                    <td rowspan="2">
+                                    '.(isset($empresayLiquidacion->logoEmpresa) ? '<img style="max-width: 50px; max-height: 50px; margin-right: 5px;" src="data:image/png;base64,'.$base64.'" class="logoEmpresa" />' : '').'
+                                    </td>
+                                    <td valign="bottom"><b>'.$empresayLiquidacion->razonSocial.'</b></td>
+                                </tr>
+                                <tr>
+                                    <td  valign="top"><b>'.number_format($empresayLiquidacion->documento,0, ",", ".").'-'.$empresayLiquidacion->digitoVerificacion.'</b></td>
+                                </tr>
+                            </table>
+                            <center>
+                                <h2 style="margin:0; margin-bottom: 10px;">Comprobante de Pago de Vacaciones</h2>
+                            </center>
+                            <table style="width: 100%; text-align: left;">
+                                <tr>
+                                    <th>Empleado</th>
+                                    <td>'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                                    <th>Fecha ingreso</th>
+                                    <td>'.date("Y",strtotime($empleado->fechaIngreso))."/".$arrMeses[date("m",strtotime($empleado->fechaIngreso)) - 1].'/'.date("d",strtotime($empleado->fechaIngreso)).'</td>
+                                </tr>
+                                <tr>
+                                    <th>Identificación</th>
+                                    <td>'.$empleado->tipoidentificacion.' '.$empleado->numeroIdentificacion.'</td>
+                                    <th>Cargo</th>
+                                    <td>'.$empleado->nombreCargo.'</td>
+                                </tr>
+                                <tr>
+                                    <th>Días Pendientes Consolidado</th>
+                                    <td>'.round($diasVac,2).'</td>
+                                    <th>Fecha Corte Consolidado:</th>
+                                    <td>'.date("Y",strtotime($fechaFinalVaca))."/".$arrMeses[date("m",strtotime($fechaFinalVaca)) - 1].'/'.date("d",strtotime($fechaFinalVaca)).'</td>
+                                </tr>
+                                
+                            </table>
+                    </div>
+                    <br>
+                    <div style="border: 2px solid #000; padding: 10px 20px;">
+                    <table style="width: 100%; text-align: left; font-size: 10px;">
+                        <tr>
+                            <th style="background: #d89290; text-align: center; font-size: 10px;" colspan="11">Liquidación de Vacaciones</th>                         
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center; font-size: 10px;" rowspan="2">Tipo Movimiento</th>
+                            <th style="background: #CCC; text-align: center; font-size: 10px;" colspan="2">Periodo Causación</th>
+                            <th style="background: #CCC; text-align: center; font-size: 10px;" colspan="4">Periodo Vacaciones</th>
+                            <th style="background: #CCC; text-align: center; font-size: 10px;" colspan="2">Días Pagados</th>
+                            <th style="background: #CCC; text-align: center; font-size: 10px;" rowspan="2">Promedio<br>Diario</th>
+                            <th style="background: #CCC; text-align: center; font-size: 10px;" rowspan="2">Valor<br>Liquidado</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Fecha Inicio</th>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Fecha Fin</th>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Fecha Inicio</th>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Fecha Fin</th>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Días</th>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Regreso</th>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Tiempo</th>
+                            <th style="background: #CCC; text-align: center;font-size: 10px;">Dinero</th>
+                        </tr>
+                        
+                ';
+
+
+                $periodosVacaciones = array();
+                $fechaInicioVacaciones = $empleado->fechaIngreso;
+                $agregarPeriodos = true;
+                /*
+                
+                do{
+                    $date_time_inicio=new DateTime($fechaInicioVacaciones);
+                    $date_time_inicio->add(new DateInterval('P1Y'));
+
+                    $fechaFin = $date_time_inicio->format('Y-m-d');
+                    if(strtotime($fechaFin) > strtotime($empresayLiquidacion->fechaFin)){
+                        $fechaFin = $empresayLiquidacion->fechaFin;
+                        $agregarPeriodos = false;
+                    }
+                    $periodosVacacionFila = array();
+                    $periodosVacacionFila["fechaInicio"] = $fechaInicioVacaciones;
+                    $periodosVacacionFila["fechaFin"] = $fechaFin;
+                    $totalDiasMaximo = (sizeof($periodosVacaciones) + 1) * 15;                    
+                    $totalDiasMinimo = sizeof($periodosVacaciones) * 15;
+                   
+                    $periodosVacacionFila["vacaciones"] = array();
+                    foreach($novedadesVacacionActual as $novedadVacacion){
+                        $diasOtroPeriodo = 0;
+                        foreach($periodosVacaciones as $periodoVacaciones){
+                            foreach($periodoVacaciones['vacaciones'] as $vacaciones){
+                                if($vacaciones["idVacaciones"] == $novedadVacacion->idVacaciones){
+                                    $diasOtroPeriodo = $vacaciones["dias"];
+                                }
+                            }
+                        }
+                        $diasVac = $novedadVacacion->diasCompensar;
+                        if($diasOtroPeriodo != 0){
+                            $diasVac = $novedadVacacion->diasCompensar - $diasOtroPeriodo;
+                        }
+                        if($diasVac != 0){
+                            $diasPeriodoActual = 0;
+                            foreach($periodosVacacionFila["vacaciones"] as $vac2){
+                                $diasPeriodoActual = $diasPeriodoActual + $vac2["dias"];
+                            }
+                            if($diasPeriodoActual < 15){
+                                if(($diasVac + $diasPeriodoActual) >= 15){
+                                    $diasVac = (15 - $diasPeriodoActual);
+                                    
+                                    array_push($periodosVacacionFila["vacaciones"], [
+                                        "dias" => $diasVac,
+                                        "idVacaciones" => $novedadVacacion->idVacaciones
+                                    ]);
+                                }
+                                else{
+                                    array_push($periodosVacacionFila["vacaciones"], [
+                                        "dias" => $diasVac,
+                                        "idVacaciones" => $novedadVacacion->idVacaciones
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+
+
+
+                    array_push($periodosVacaciones, $periodosVacacionFila);
+
+
+
+                }while($agregarPeriodos);*/
+         
+
+                $totalVac = 0;
+                foreach($novedadesVacacionActual as $novedadVacacion){
+                    $tipoMov = str_replace("VACACIONES", "", $novedadVacacion->nombre);
+
+                    
+                    
+
+
+                    $html.='
+                        <tr>
+                            <td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;">'.$tipoMov.'</td>
+                            <td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;" width="50">'.$empleado->fechaIngreso.'</td>
+                            <td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;" width="50">'.$novedadVacacion->fechaInicio.'</td>';
+                        if($novedadVacacion->idconcepto == 29){
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;" width="50">'.$novedadVacacion->fechaInicio.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;" width="50">'.$novedadVacacion->fechaFin.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;" width="50">'.$novedadVacacion->diasCompensar.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;" width="50">'.date("Y-m-d",strtotime($novedadVacacion->fechaFin."+1 day")).'</td>';
+                        }
+                        else{
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;"></td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;"></td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;">'.$novedadVacacion->diasCompensar.'</td>';
+                            $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;"></td>';
+                        }
+                        
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;">'.$novedadVacacion->diasCompensar.'</td>';
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;">$'.number_format($novedadVacacion->valor,0, ",", ".").'</td>';
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;">$'.number_format($novedadVacacion->valor/$novedadVacacion->diasCompensar,0, ",", ".").'</td>';
+                        $html.='<td style="border-bottom: 1px solid #B0B0B0;font-size: 10px;">$'.number_format($novedadVacacion->valor,0, ",", ".").'</td>';
+
+                        $html.='</tr>
+                    ';
+                    $totalVac = $totalVac + $novedadVacacion->valor;
+                    if($totalVac<0){
+                        $totalVac=0;
+                    }
+                }    
+                $html.='
+                    <tr>
+                        <th style="text-align: right; font-size: 10px;" colspan="9">TOTAL LIQUIDADO VACACIONES</th>
+                        <td style="text-align: right; border: 1px solid #B0B0B0; font-size: 10px;" colspan="2">$'.number_format($totalVac,0, ",", ".").'</td>
+                    </tr>            
+                    </table>
+                </div>
+                <br>
+                    <center><h4>Observaciones</h4></center>
+                <br>
+                <div style="border: 2px solid #000; padding: 10px 20px; min-height: 50px;">
+                <br><br><br>
+                </div>
+                <div style="position: absolute; bottom: 20px;">
+                    <table style="width: 100%; text-align: left;">
+                        <tr>
+                            <td>COLABORADOR</td>
+                            <td></td>
+                            <td>LA EMPRESA</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Cédula o NIT</td>
+                            <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                            <td>NIT</td>
+                            <td style="width: 2in; border-bottom: 1px solid #000;"> </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"></td>
+                            <td>Fecha de elaboración:&nbsp;&nbsp;&nbsp; '.date("d/m/Y").'</td>
+                        </tr>
+                    </table>
+                    <table style="width: 100%;">
+                        <tr>
+                            <th style="border: 1px solid #000; width:33%;">ELABORÓ: '.$userSolicita.'</th>
+                            <th style="border: 1px solid #000; width:33%;">REVISÓ: '.$userAprueba.'</th>
+                            <th style="border: 1px solid #000; width:33%;">APROBÓ:</th>
+                        </tr>
+                    </table>
+                </div>
+                ';
+            }            
+
+            
+            $html.='
+            </body>
+        </html>
+        ';
+        
+        $dompdf->loadHtml($html ,'UTF-8');
+
+        // (Optional) Setup the paper size and orientation
+        $dompdf->setPaper('Letter', 'portrait');
+        // Render the HTML as PDF
+        $dompdf->render();
+        $dompdf->getCanvas()->get_cpdf()->setEncryption($empleado->numeroIdentificacion, $empleado->numeroIdentificacion);
+        // Output the generated PDF to Browser
+        $dompdf->stream("Comprobante de Pago ".$idBoucherPago.".pdf", array('compress' => 1, 'Attachment' => 0));
+    }
+    
     public function diasVacacionesDisponibles($idEmpleado){
 
         
@@ -3385,21 +4715,28 @@ class ReportesNominaController extends Controller
         $arrayMuestra[0][20] = $this->plantillaTxt("1",2,"0","right");//Tipo de aportante
         $arrayMuestra[0][21] = $this->plantillaTxt("0",2,"0","right");//Código del operador de información
         
+
+        
         $empleadosGen = DB::table('empleado', 'e')
-        ->select("e.*", "dp.*", "ti.siglaPila")
+        ->select("e.*", "dp.*", "ti.siglaPila","p.fkEstado as estado", "p.fechaInicio as fechaInicioPeriodo"
+        , "p.fechaFin as fechaFinPeriodo", "p.fkNomina as nominaPeriodo", "p.idPeriodo")
         ->join("datospersonales AS dp", "e.fkDatosPersonales", "=" , "dp.idDatosPersonales")
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion","=","dp.fkTipoIdentificacion")
+        ->join("periodo as p","p.fkEmpleado", "=","e.idempleado")
         ->join("boucherpago as bp","bp.fkEmpleado", "=", "e.idempleado")
         ->join("liquidacionnomina as ln","ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
-        ->join("nomina as n","n.idNomina", "=","ln.fkNomina")
+        ->join("nomina as n","n.idNomina", "=","p.fkNomina")
         ->where("n.fkEmpresa","=",$idEmpresa)
         ->whereIn("ln.fkTipoLiquidacion",["1","2","3","4","5","6","9"]) //1 - Normal, 2- Retiro
         ->where("ln.fkEstado","=","5")
-        ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")
-        ->distinct()->get();
+        ->whereRaw("(ln.fechaFin <= '".$fechaFinMesActual."' and ln.fechaInicio >= '".$fechaInicioMesActual."')")        
+        ->distinct()
+        ->orderby("e.idempleado")->get();
         $contador=1;
         $totalNomina = 0;
         $numeroEmpleados = 0;
+        
+        
         foreach($empleadosGen as $empleado){
             $arrayFila = array();
             $arrayNuevoRegistro = array();
@@ -3559,7 +4896,9 @@ class ReportesNominaController extends Controller
             $arrayFila[41] = $this->plantillaTxt(round($ibcAFP),9,"0","right");
             
             //ING
-            if(strtotime($fechaInicioMesActual) <= strtotime($empleado->fechaIngreso)){
+            //Verificar bien el if y que la empresa sea la misma que trae el periodo
+            if(strtotime($fechaInicioMesActual) <= strtotime($empleado->fechaInicioPeriodo)){
+                
                 $arrayFila[14] = $this->plantillaTxt("X",1,"","left");
                 
                 $arrayFila[79] = $this->plantillaTxt($empleado->fechaIngreso,10,"","left");
@@ -3575,14 +4914,13 @@ class ReportesNominaController extends Controller
             }
 
             
+            
             //RET
             $novedadesRetiro = DB::table("novedad","n")
                 ->select("r.fecha")
                 ->join("retiro as r", "r.idRetiro", "=","n.fkRetiro")
                 ->where("n.fkEmpleado","=", $empleado->idempleado)
-                ->whereRaw("n.fkPeriodoActivo in(
-                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."'
-                )")
+                ->where("n.fkPeriodoActivo","=",$empleado->idPeriodo)
                 ->whereIn("n.fkEstado",["8"]) // Pagada-> no que este eliminada
                 ->whereNotNull("n.fkRetiro")
                 ->whereBetween("n.fechaRegistro",[$fechaInicioMesActual, $fechaFinMesActual])
@@ -3594,17 +4932,35 @@ class ReportesNominaController extends Controller
 
                 
                 $diasRetiro = 30 - intval(substr($novedadesRetiro[0]->fecha,8,2));
-                if($diasRetiro>0){
-                    if($esRetiroNegativo == 0){
-                        if($empleado->fkTipoCotizante != "51" ){
-                            $periodoTrabajado = $periodoTrabajado - $diasRetiro;
+                
+                if(strtotime($novedadesRetiro[0]->fecha) > strtotime($empleado->fechaIngreso)){
+                    if($diasRetiro>0){
+                        if($esRetiroNegativo == 0){
+                            if($empleado->fkTipoCotizante != "51" ){
+                                $periodoTrabajado = $periodoTrabajado - $diasRetiro;
+                            }
                         }
-                    }
+                        
+                    } 
+                    if($esRetiroNegativo == 1){
+                        $arrayFila[80] = $this->plantillaTxt($fechaInicioMesActual,10,"","left");//
+                    }          
+                }
+                else{
+                    if($diasRetiro>0){
+                        if($esRetiroNegativo == 0){
+                            if($empleado->fkTipoCotizante != "51" ){
+                                $periodoTrabajado = $periodoTrabajado + intval(substr($novedadesRetiro[0]->fecha,8,2));
+                            }
+                        }
+                        
+                    } 
+                    if($esRetiroNegativo == 1){
+                        $arrayFila[80] = $this->plantillaTxt($fechaInicioMesActual,10,"","left");//
+                    } 
+                }
+              
                     
-                } 
-                if($esRetiroNegativo == 1){
-                    $arrayFila[80] = $this->plantillaTxt($fechaInicioMesActual,10,"","left");//
-                }               
             }
             else{
                 $arrayFila[15] = $this->plantillaTxt("",1," ","left");
@@ -4641,9 +5997,11 @@ class ReportesNominaController extends Controller
                 $arrayFila[38] = $this->plantillaTxt("",2,"0","right");   
             }
 
+            $minimosRedondeoFijoSal = DB::table("tabla_smmlv_redondeo")->where("dias","=","30")->first();
+            $salarioMes = ($conceptoFijoSalario->valor < $minimosRedondeoFijoSal->ibc ? $minimosRedondeoFijoSal->ibc :$conceptoFijoSalario->valor);
+                
+            $arrayFila[39] = $this->plantillaTxt(intval($salarioMes),9,"0","right");
             
-            
-            $arrayFila[39] = $this->plantillaTxt(intval($conceptoFijoSalario->valor),9,"0","right");
 
             if($empleado->tipoRegimen=="Salario Integral"){
                 $arrayFila[40] = $this->plantillaTxt("X",1," ","left");
@@ -5370,7 +6728,10 @@ class ReportesNominaController extends Controller
                 ->where("cf.fkEmpleado", "=", $empleado->idempleado)
                 ->first();
                 
-                $arrayFila2[39] = $this->plantillaTxt(intval($conceptoFijoSalario->valor),9,"0","right");
+                $minimosRedondeoFijoSal = DB::table("tabla_smmlv_redondeo")->where("dias","=","30")->first();
+                $salarioMes = ($conceptoFijoSalario->valor < $minimosRedondeoFijoSal->ibc ? $minimosRedondeoFijoSal->ibc :$conceptoFijoSalario->valor);
+                
+                $arrayFila2[39] = $this->plantillaTxt(intval($salarioMes),9,"0","right");
     
                 if($empleado->tipoRegimen=="Salario Integral"){
                     $arrayFila2[40] = $this->plantillaTxt("X",1," ","left");
@@ -7109,370 +8470,501 @@ class ReportesNominaController extends Controller
     }
     public function reporteVacaciones(Request $req){
 
-        $dataUsu = Auth::user();
+        if($req->tipoReporte == "PDF"){
+        
+            $dataUsu = Auth::user();
 
-        $empresa = DB::table("empresa", "e")->where("e.idempresa","=",$req->empresa)->first();
+            $empresa = DB::table("empresa", "e")->where("e.idempresa","=",$req->empresa)->first();
 
-        $empleados = DB::table("empleado","e")
-        ->select("e.*","dp.*","ccfijo.valor as valorSalario")
-        ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-        ->join("conceptofijo as ccfijo","ccfijo.fkEmpleado", "=", "e.idempleado")
-        ->join("nomina as n","n.idNomina", "=","e.fkNomina")
-        ->where("n.fkEmpresa","=",$req->empresa)
-        ->where("e.fkEstado","=","1")
-        ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
-        ->get();
-        $dompdf = new Dompdf();
-        $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
-        $dompdf->getOptions()->setIsPhpEnabled(true);
+            $empleados = DB::table("empleado","e")
+            ->select("e.*","dp.*","ccfijo.valor as valorSalario")
+            ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+            ->join("conceptofijo as ccfijo","ccfijo.fkEmpleado", "=", "e.idempleado")
+            ->join("nomina as n","n.idNomina", "=","e.fkNomina")
+            ->where("n.fkEmpresa","=",$req->empresa)
+            ->where("e.fkEstado","=","1")
+            ->whereIn("ccfijo.fkConcepto",["1","2","53","54"])
+            ->get();
 
-        ob_start();?>
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <meta charset='utf-8'>
-                    <style>
-                        /** 
-                            Set the margins of the page to 0, so the footer and the header
-                            can be of the full height and width !
-                        **/
-                        @page {
-                            margin: 0cm 0cm;
-                        }
+            $base64 = "";
+            if(is_file($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresa->logoEmpresa)){
+                $imagedata = file_get_contents($this->rutaBaseImagenes.'storage/logosEmpresas/'.$empresa->logoEmpresa);
+                        // alternatively specify an URL, if PHP settings allow
+                $base64 = base64_encode($imagedata);
+            }
+            else{
+                unset($empresa->logoEmpresa);
+            }
 
-                        /** Define now the real margins of every page in the PDF **/
-                        body {
-                            margin-top: 3.5cm;
-                            margin-left: 1cm;
-                            margin-right: 1cm;
-                            margin-bottom: 1cm;
-                            font-family: sans-serif;
-                            font-size: 12px;
-                        }
+            $dompdf = new Dompdf();
+            $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
+            $dompdf->getOptions()->setIsPhpEnabled(true);
 
-                        /** Define the header rules **/
-                        header {
-                            position: fixed;
-                            top: 0.5cm;
-                            left: 0cm;
-                            right: 0cm;
-                            height: 3cm;
-                        }
-                        .logoEmpresa{
-                            max-width: 3cm;
-                            max-height: 3cm;
-                        }
-                        .tablaHeader th, .tablaHeader td{
-                            text-align: left;
+            ob_start();?>
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset='utf-8'>
+                        <style>
+                            /** 
+                                Set the margins of the page to 0, so the footer and the header
+                                can be of the full height and width !
+                            **/
+                            @page {
+                                margin: 0cm 0cm;
+                            }
+
+                            /** Define now the real margins of every page in the PDF **/
+                            body {
+                                margin-top: 3.5cm;
+                                margin-left: 1cm;
+                                margin-right: 1cm;
+                                margin-bottom: 1cm;
+                                font-family: sans-serif;
+                                font-size: 12px;
+                            }
+
+                            /** Define the header rules **/
+                            header {
+                                position: fixed;
+                                top: 0.5cm;
+                                left: 0cm;
+                                right: 0cm;
+                                height: 3cm;
+                            }
+                            .logoEmpresa{
+                                max-width: 3cm;
+                                max-height: 3cm;
+                            }
+                            .tablaHeader th, .tablaHeader td{
+                                text-align: left;
+                                
+                                padding-left: 20px;
+                                
+                            }
+                            .tablaDatos{
+                                border-collapse: collapse;
+                                width: 100%
+                            }
+                            .tablaDatos td{
+                                text-align: right;
+                                font-size: 9px;
+                            }
+                            .tablaDatos th{
+                                font-size: 9px;
+                            }
+                            .tablaDatos td.left{
+                                text-align: left;
+                            }
+                            .tablaDatos td.arriba *, .tablaDatos td.arriba{
+                                vertical-align: top;
+                                padding: 0 5px;
+                            }
+                            .azul1{
+                                background: #afeeee;
+                            }
+                            .azul2{
+                                background: #add8e6;
+                            }
                             
-                            padding-left: 20px;
-                            
-                        }
-                        .tablaDatos{
-                            border-collapse: collapse;
-                            width: 100%
-                        }
-                        .tablaDatos td{
-                            text-align: right;
-                            font-size: 9px;
-                        }
-                        .tablaDatos th{
-                            font-size: 9px;
-                        }
-                        .tablaDatos td.left{
-                            text-align: left;
-                        }
-                        .tablaDatos td.arriba *, .tablaDatos td.arriba{
-                            vertical-align: top;
-                            padding: 0 5px;
-                        }
-                        .azul1{
-                            background: #afeeee;
-                        }
-                        .azul2{
-                            background: #add8e6;
-                        }
-                        
-                    </style>
-                    <title>Reporte vacaciones</title>
-                </head>
-                <body>
-                    <header>
-                        <table class="tablaHeader">
-                            <tr>
-                                <td rowspan="4" width="5cm" height="2cm">
-                                    <img src="<?php if(isset($empresa->logoEmpresa)){ echo $this->rutaBaseImagenes; ?>storage/logosEmpresas/<?php echo $empresa->logoEmpresa; } ?>" class="logoEmpresa" />
-                                    
-                                </td>
-                                <th width="8.1cm">LIBRO DE VACACIONES</th>
-                                <th width="2cm">Fecha:</th>
-                                <td width="4cm"><?php echo date("Y-m-d H:i:s"); ?></td>
-                            </tr>
-                            <tr>
-                                <th><?php echo $empresa->razonSocial; ?></th>
-                                <th>Usuario:</th>
-                                <td><?php echo $dataUsu->username; ?></td>
-                            </tr>
-                            <tr>
-                                <th><?php echo number_format($empresa->documento,0)." - ".$empresa->digitoVerificacion; ?></th>
-                                <th>Reporte:</th>
-                                <td>NOM_U_713</td>
-                            </tr>
-                            <tr>
-                                <th>FECHA DE CORTE: <?php echo date("t/m/Y",strtotime($req->fechaFin)); ?></th>
-                                <th>Página:</th>
-                                <td>
-                                    <script type="text/php">
-                                    $text = '{PAGE_NUM} / {PAGE_COUNT}';
-                                    $font = $fontMetrics->getFont("helvetica", "bold");
-                                    $pdf->page_text(500, 70, $text, $font, 9);
-                                    echo $text;
-                                    </script>
-                                </td>
-                            </tr>
-                        </table>
-                    </header>
-                    <main>
-                        <table class="tablaDatos" border="1">
-                            <tr>
-                                <th rowspan="2">ID</th>
-                                <th rowspan="2"width="180">NOMBRE</th>
-                                <th rowspan="2" width="45">F ING</th>
-                                <th rowspan="2">SUELDO</th>
-                                <th rowspan="2">D TRA</th>
-                                <th rowspan="2">D LNR</th>
-                                <th rowspan="2">D NET</th>
-                                <th rowspan="2">D VAC</th>
-                                <th rowspan="2">D TOM</th>
-                                <th rowspan="2" width="30">D PEN</th>
-                                <th class="azul1" colspan="6">CAUSACIÓN</th>
-                                <th class="azul2" colspan="3">DISFRUTE</th>
-                            </tr>
-                            <tr>
-                                <th class="azul1">PER</th>
-                                <th class="azul1" width="40">P INI</th>
-                                <th class="azul1" width="40">P FIN</th>
-                                <th class="azul1">D CAU</th>
-                                <th class="azul1">D TOM</th>
-                                <th class="azul1" width="25">D PEN</th>
-                                <th class="azul2" width="40">INI</th>
-                                <th class="azul2" width="40">FIN</th>
-                                <th class="azul2">DÍAS</th>
-                            </tr>
+                        </style>
+                        <title>Reporte vacaciones</title>
+                    </head>
+                    <body>
+                        <header>
+                            <table class="tablaHeader">
+                                <tr> 
+                                    <td rowspan="4" width="5cm" height="2cm">
+                                    <?php if(isset($empresa->logoEmpresa)){ echo '<img src="data:image/png;base64,'.$base64.'" class="logoEmpresa" style="max-width: 50px; max-height: 50px; "/>'; } ?>
+                                    </td>
+                                    <th width="8.1cm">LIBRO DE VACACIONES</th>
+                                    <th width="2cm">Fecha:</th>
+                                    <td width="4cm"><?php echo date("Y-m-d H:i:s"); ?></td>
+                                </tr>
+                                <tr>
+                                    <th><?php echo $empresa->razonSocial; ?></th>
+                                    <th>Usuario:</th>
+                                    <td><?php echo $dataUsu->username; ?></td>
+                                </tr>
+                                <tr>
+                                    <th><?php echo number_format($empresa->documento,0)." - ".$empresa->digitoVerificacion; ?></th>
+                                    <th>Reporte:</th>
+                                    <td>NOM_U_713</td>
+                                </tr>
+                                <tr>
+                                    <th>FECHA DE CORTE: <?php echo date("t/m/Y",strtotime($req->fechaFin)); ?></th>
+                                    <th>Página:</th>
+                                    <td>
+                                        <script type="text/php">
+                                        $text = '{PAGE_NUM} / {PAGE_COUNT}';
+                                        $font = $fontMetrics->getFont("helvetica", "bold");
+                                        $pdf->page_text(500, 70, $text, $font, 9);
+                                        echo $text;
+                                        </script>
+                                    </td>
+                                </tr>
+                            </table>
+                        </header>
+                        <main>
+                            <table class="tablaDatos" border="1">
+                                <tr>
+                                    <th rowspan="2">ID</th>
+                                    <th rowspan="2"width="180">NOMBRE</th>
+                                    <th rowspan="2" width="45">F ING</th>
+                                    <th rowspan="2">SUELDO</th>
+                                    <th rowspan="2">D TRA</th>
+                                    <th rowspan="2">D LNR</th>
+                                    <th rowspan="2">D NET</th>
+                                    <th rowspan="2">D VAC</th>
+                                    <th rowspan="2">D TOM</th>
+                                    <th rowspan="2" width="30">D PEN</th>
+                                    <th class="azul1" colspan="6">CAUSACIÓN</th>
+                                    <th class="azul2" colspan="3">DISFRUTE</th>
+                                </tr>
+                                <tr>
+                                    <th class="azul1">PER</th>
+                                    <th class="azul1" width="40">P INI</th>
+                                    <th class="azul1" width="40">P FIN</th>
+                                    <th class="azul1">D CAU</th>
+                                    <th class="azul1">D TOM</th>
+                                    <th class="azul1" width="25">D PEN</th>
+                                    <th class="azul2" width="40">INI</th>
+                                    <th class="azul2" width="40">FIN</th>
+                                    <th class="azul2">DÍAS</th>
+                                </tr>
 
-                        <?php 
-                            foreach($empleados as $empleado){
-                            
-                                $periodoActivoReintegro = DB::table("periodo")
-                                ->where("fkEstado","=","1")
-                                ->where("fkEmpleado", "=", $empleado->idempleado)->first();
+                            <?php 
+                                foreach($empleados as $empleado){
+                                
+                                    $periodoActivoReintegro = DB::table("periodo")
+                                    ->where("fkEstado","=","1")
+                                    ->where("fkEmpleado", "=", $empleado->idempleado)->first();
 
-                                $fechaInicio = $empleado->fechaIngreso;
-                                $fechaFinGen = date("Y-m-t",strtotime($req->fechaFin));
-                                if(substr($fechaFinGen, 8, 2) == "31" || (substr($fechaFinGen, 8, 2) == "28" && substr($fechaFinGen, 5, 2) == "02") || (substr($fechaFinGen, 8, 2) == "29" && substr($fechaFinGen, 5, 2) == "02")  ){
-                                    $fechaFinGen = substr($fechaFinGen,0,8)."30";
-                                }
-                                $entrar=true;
-                                $periodo = 1;
-                    
-                                //Dias trabajados en este periodo
-                    
-                    
-                                //Obtener la primera liquidacion de nomina de la persona 
-                                $primeraLiquidacion = DB::table("liquidacionnomina", "ln")
-                                ->selectRaw("min(ln.fechaInicio) as primeraFecha")
-                                ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")   
-                                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
-                                ->where("bp.fkEmpleado","=",$empleado->idempleado)->first();
-                    
-                                $minimaFecha = date("Y-m-d");
-                                
-                                if(isset($primeraLiquidacion)){
-                                    $minimaFecha = $primeraLiquidacion->primeraFecha;
-                                }
-                                $diasAgregar = 0;
-                                //Verificar si dicha nomina es menor a la fecha de ingreso
-                                if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha)){
-                                    $diasAgregar = $this->days_360($empleado->fechaIngreso, $minimaFecha);
-                                }
-                                $liquidacionesMesesAnterioresCompleta = DB::table("liquidacionnomina", "ln")
-                                ->selectRaw("sum(bp.periodoPago) as periodPago, sum(bp.salarioPeriodoPago) as salarioPago")
-                                ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")                
-                                ->where("bp.fkEmpleado","=",$empleado->idempleado)
-                                ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
-                                ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])         
-                                ->first();
-
-                                
-                                $diasTrabajados = $this->days_360($fechaInicio, $fechaFinGen);
-                                //$diasTrabajados = $diasAgregar + (isset($liquidacionesMesesAnterioresCompleta->periodPago) ? $liquidacionesMesesAnterioresCompleta->periodPago : 0);
-                                
-
-                                $novedadesLIC = DB::table("novedad","n")
-                                ->selectRaw("sum(a.cantidadDias) as suma")
-                                ->join("ausencia as a","a.idAusencia","=","n.fkAusencia")
-                                ->where("n.fkEmpleado","=",$empleado->idempleado)
-                                ->whereRaw("n.fkPeriodoActivo in(
-                                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
-                                )")
-                                ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
-                                ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinGen])
-                                ->where("a.cantidadDias",">","0")
-                                ->whereNotNull("n.fkAusencia")
-                                ->first();
-
-                                $diasNeto = ($diasTrabajados - (isset($novedadesLIC->suma) ? $novedadesLIC->suma : 0));
-                                
-                                
-                                $diasVacGen = $diasNeto * 15 / 360;
-                            
-
-
-                                $novedadesVacacionGen = DB::table("novedad","n")
-                                ->selectRaw("sum(v.diasCompletos) as suma")
-                                ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
-                                ->where("n.fkEmpleado","=",$empleado->idempleado)
-                                ->whereRaw("n.fkPeriodoActivo in(
-                                    SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
-                                )")
-                                ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
-                                ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinGen])
-                                ->whereNotNull("n.fkVacaciones")
-                                ->first();
-                                
-                                
-                                $arrDatos = array();
-                                $rowspan = 1;
-                                while($entrar){
-                                    $arrFila = array();
-                                    $fechaFinInt = date("Y-m-d",strtotime($fechaInicio." +1 year"));
-                                    if(strtotime($fechaFinGen) < strtotime($fechaFinInt)){
-                                        $fechaFinInt = $fechaFinGen;
+                                    $fechaInicio = $empleado->fechaIngreso;
+                                    $fechaFinGen = date("Y-m-t",strtotime($req->fechaFin));
+                                    if(substr($fechaFinGen, 8, 2) == "31" || (substr($fechaFinGen, 8, 2) == "28" && substr($fechaFinGen, 5, 2) == "02") || (substr($fechaFinGen, 8, 2) == "29" && substr($fechaFinGen, 5, 2) == "02")  ){
+                                        $fechaFinGen = substr($fechaFinGen,0,8)."30";
                                     }
-                                    $periodoPagoVac = $this->days_360($fechaInicio, $fechaFinInt);
+                                    $entrar=true;
+                                    $periodo = 1;
+                        
+                                    //Dias trabajados en este periodo
+                        
+                        
+                                    //Obtener la primera liquidacion de nomina de la persona 
+                                    $primeraLiquidacion = DB::table("liquidacionnomina", "ln")
+                                    ->selectRaw("min(ln.fechaInicio) as primeraFecha")
+                                    ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")   
+                                    ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                                    ->where("bp.fkEmpleado","=",$empleado->idempleado)->first();
+                        
+                                    $minimaFecha = date("Y-m-d");
                                     
-                                    //Proceso de vacaciones
-                                    //Con esos dias calcular los que me pertenecen en vacaciones
-                                    $diasVac = $periodoPagoVac * 15 / 360;
-                                    //Cargar en este periodo las vacaciones tomadas
-                                    $novedadesVacacion = DB::table("novedad","n")
+                                    if(isset($primeraLiquidacion)){
+                                        $minimaFecha = $primeraLiquidacion->primeraFecha;
+                                    }
+                                    $diasAgregar = 0;
+                                    //Verificar si dicha nomina es menor a la fecha de ingreso
+                                    if(strtotime($empleado->fechaIngreso) < strtotime($minimaFecha)){
+                                        $diasAgregar = $this->days_360($empleado->fechaIngreso, $minimaFecha);
+                                    }
+                                    $liquidacionesMesesAnterioresCompleta = DB::table("liquidacionnomina", "ln")
+                                    ->selectRaw("sum(bp.periodoPago) as periodPago, sum(bp.salarioPeriodoPago) as salarioPago")
+                                    ->join("boucherpago as bp","bp.fkLiquidacion","=","ln.idLiquidacionNomina")                
+                                    ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                                    ->where("bp.fkPeriodoActivo","=",$periodoActivoReintegro->idPeriodo)
+                                    ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6"])         
+                                    ->first();
+
+                                    
+                                    $diasTrabajados = $this->days_360($fechaInicio, $fechaFinGen);
+                                    //$diasTrabajados = $diasAgregar + (isset($liquidacionesMesesAnterioresCompleta->periodPago) ? $liquidacionesMesesAnterioresCompleta->periodPago : 0);
+                                    
+
+                                    $novedadesLIC = DB::table("novedad","n")
+                                    ->selectRaw("sum(a.cantidadDias) as suma")
+                                    ->join("ausencia as a","a.idAusencia","=","n.fkAusencia")
+                                    ->where("n.fkEmpleado","=",$empleado->idempleado)
+                                    ->whereRaw("n.fkPeriodoActivo in(
+                                        SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                                    )")
+                                    ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
+                                    ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinGen])
+                                    ->where("a.cantidadDias",">","0")
+                                    ->whereNotNull("n.fkAusencia")
+                                    ->first();
+
+                                    $diasNeto = ($diasTrabajados - (isset($novedadesLIC->suma) ? $novedadesLIC->suma : 0));
+                                    
+                                    
+                                    $diasVacGen = $diasNeto * 15 / 360;
+                                
+
+
+                                    $novedadesVacacionGen = DB::table("novedad","n")
+                                    ->selectRaw("sum(v.diasCompletos) as suma")
                                     ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
                                     ->where("n.fkEmpleado","=",$empleado->idempleado)
                                     ->whereRaw("n.fkPeriodoActivo in(
                                         SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
                                     )")
                                     ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
-                                    ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinInt])
+                                    ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinGen])
                                     ->whereNotNull("n.fkVacaciones")
-                                    ->get();
-                                    $diasTomadosPeriodo = 0;
-                                    $arrFila['disfrute'] = array();
-                                    foreach($novedadesVacacion as $novedadVacacion){
-                                        $arrFilaInt = array();
-                                        $arrFilaInt['diaIni'] = (isset($novedadVacacion->fechaInicio) ? date("d/m/Y",strtotime($novedadVacacion->fechaInicio)) : "");
-                                        $arrFilaInt['diaFin'] = (isset($novedadVacacion->fechaFin) ? date("d/m/Y",strtotime($novedadVacacion->fechaFin)) : "");
-                                        $arrFilaInt['diaTom'] = $novedadVacacion->diasCompletos;
-                                        array_push($arrFila['disfrute'], $arrFilaInt);
-                                        $diasTomadosPeriodo = $diasTomadosPeriodo + $novedadVacacion->diasCompletos;    
-                                    }
-                                    $rowspan = $rowspan + (sizeof($novedadesVacacion) > 0 ? (sizeof($novedadesVacacion) - 1) : 0);
-                                    $diasPendientesPeriodo = $diasVac - $diasTomadosPeriodo;                
-                                    $arrFila['periodo'] = $periodo;
-                                    $arrFila['fechaInicio'] = $fechaInicio;
-                                    $arrFila['fechaFinInt'] = $fechaFinInt;
-                                    $arrFila['diaCau'] = $diasVac;
-                                    $arrFila['diaTom'] = $diasTomadosPeriodo;
-                                    $arrFila['diaPen'] = $diasPendientesPeriodo;
-                                    array_push($arrDatos, $arrFila);
-                                    //Restar dias que estuvo en vacacion en ese periodo y colocar los dias pendientes en el periodo
-                    
-                                    if(strtotime($fechaFinGen) == strtotime($fechaFinInt)){
-                                        $entrar=false;
-                                    }
-                                    else{
-                                        $fechaInicio = $fechaFinInt;
-                                        $periodo++;
-                                        $rowspan++;
-                    
-                                    }
-                                }
-
-                                
-                                echo '<tr>
-                                <td class="arriba" rowspan="'.$rowspan.'">'.$empleado->numeroIdentificacion.'</td>
-                                <td class="arriba left"rowspan="'.$rowspan.'">'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
-                                <td class="arriba" rowspan="'.$rowspan.'">'.$empleado->fechaIngreso.'</td>
-                                <td class="arriba" rowspan="'.$rowspan.'">'.number_format($empleado->valorSalario,0,",", ".").'</td>';                            
-                                echo '<td class="arriba" rowspan="'.$rowspan.'">'.$diasTrabajados.'</td>';
-                                echo '<td class="arriba" rowspan="'.$rowspan.'">'.(isset($novedadesLIC->suma) ? $novedadesLIC->suma : 0).'</td>';
-                                echo '<td class="arriba" rowspan="'.$rowspan.'">'.$diasNeto.'</td>';
-                                echo '<td class="arriba" rowspan="'.$rowspan.'">'.round($diasVacGen,2).'</td>';
-                                echo '<td class="arriba" rowspan="'.$rowspan.'">'.(isset($novedadesVacacionGen->suma) ? $novedadesVacacionGen->suma : 0).'</td>';
-                                echo '<td class="arriba" rowspan="'.$rowspan.'">'.round($diasVacGen - (isset($novedadesVacacionGen->suma) ? $novedadesVacacionGen->suma : 0), 2).'</td>';
-                                $aplico = 0;
-                                foreach($arrDatos as $datoCau){
-                                    $rowspanInt = 1;
+                                    ->first();
                                     
-                                    if(sizeof($datoCau['disfrute'])>0){
-                                        $rowspanInt =  $rowspanInt + sizeof($datoCau['disfrute']) - 1;
-                                    }
-                                    if($aplico == 1){
-                                        echo '<tr>';
-                                    }
-                                    echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['periodo'].'</td>';
-                                    echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['fechaInicio'].'</td>';
-                                    echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['fechaFinInt'].'</td>';
-                                    echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.round($datoCau['diaCau'],2).'</td>';
-                                    echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['diaTom'].'</td>';
-                                    echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.round($datoCau['diaPen'],2).'</td>';
                                     
-                                    if(sizeof($datoCau['disfrute'])>0){
-                                        $aplico2 = 0;
-                                        foreach($datoCau['disfrute'] as $disf){
-                                            if($aplico2 == 1){
-                                                echo '<tr>';
-                                            }
-
-                                            echo '<td class="azul2">'.$disf['diaIni'].'</td>';
-                                            echo '<td class="azul2">'.$disf['diaFin'].'</td>';
-                                            echo '<td class="azul2">'.$disf['diaTom'].'</td>';
-                                            echo "</tr>";
-                                            $aplico2 = 1;
+                                    $arrDatos = array();
+                                    $rowspan = 1;
+                                    while($entrar){
+                                        $arrFila = array();
+                                        $fechaFinInt = date("Y-m-d",strtotime($fechaInicio." +1 year"));
+                                        if(strtotime($fechaFinGen) < strtotime($fechaFinInt)){
+                                            $fechaFinInt = $fechaFinGen;
+                                        }
+                                        $periodoPagoVac = $this->days_360($fechaInicio, $fechaFinInt);
+                                        
+                                        //Proceso de vacaciones
+                                        //Con esos dias calcular los que me pertenecen en vacaciones
+                                        $diasVac = $periodoPagoVac * 15 / 360;
+                                        //Cargar en este periodo las vacaciones tomadas
+                                        $novedadesVacacion = DB::table("novedad","n")
+                                        ->join("vacaciones as v","v.idVacaciones","=","n.fkVacaciones")
+                                        ->where("n.fkEmpleado","=",$empleado->idempleado)
+                                        ->whereRaw("n.fkPeriodoActivo in(
+                                            SELECT p.idPeriodo from periodo as p where p.fkEmpleado = '".$empleado->idempleado."' and p.fkEstado = '1'
+                                        )")
+                                        ->whereIn("n.fkEstado",["8"]) // Pagada -> no que este eliminada
+                                        ->whereBetween("n.fechaRegistro",[$fechaInicio, $fechaFinInt])
+                                        ->whereNotNull("n.fkVacaciones")
+                                        ->get();
+                                        $diasTomadosPeriodo = 0;
+                                        $arrFila['disfrute'] = array();
+                                        foreach($novedadesVacacion as $novedadVacacion){
+                                            $arrFilaInt = array();
+                                            $arrFilaInt['diaIni'] = (isset($novedadVacacion->fechaInicio) ? date("d/m/Y",strtotime($novedadVacacion->fechaInicio)) : "");
+                                            $arrFilaInt['diaFin'] = (isset($novedadVacacion->fechaFin) ? date("d/m/Y",strtotime($novedadVacacion->fechaFin)) : "");
+                                            $arrFilaInt['diaTom'] = $novedadVacacion->diasCompletos;
+                                            array_push($arrFila['disfrute'], $arrFilaInt);
+                                            $diasTomadosPeriodo = $diasTomadosPeriodo + $novedadVacacion->diasCompletos;    
+                                        }
+                                        $rowspan = $rowspan + (sizeof($novedadesVacacion) > 0 ? (sizeof($novedadesVacacion) - 1) : 0);
+                                        $diasPendientesPeriodo = $diasVac - $diasTomadosPeriodo;                
+                                        $arrFila['periodo'] = $periodo;
+                                        $arrFila['fechaInicio'] = $fechaInicio;
+                                        $arrFila['fechaFinInt'] = $fechaFinInt;
+                                        $arrFila['diaCau'] = $diasVac;
+                                        $arrFila['diaTom'] = $diasTomadosPeriodo;
+                                        $arrFila['diaPen'] = $diasPendientesPeriodo;
+                                        array_push($arrDatos, $arrFila);
+                                        //Restar dias que estuvo en vacacion en ese periodo y colocar los dias pendientes en el periodo
+                        
+                                        if(strtotime($fechaFinGen) == strtotime($fechaFinInt)){
+                                            $entrar=false;
+                                        }
+                                        else{
+                                            $fechaInicio = $fechaFinInt;
+                                            $periodo++;
+                                            $rowspan++;
+                        
                                         }
                                     }
-                                    else{
-                                        echo '<td class="azul2"></td>';
-                                        echo '<td class="azul2"></td>';
-                                        echo '<td class="azul2">0</td>';
-                                        echo "</tr>";
+
+                                    
+                                    echo '<tr>
+                                    <td class="arriba" rowspan="'.$rowspan.'">'.$empleado->numeroIdentificacion.'</td>
+                                    <td class="arriba left"rowspan="'.$rowspan.'">'.$empleado->primerApellido." ".$empleado->segundoApellido." ".$empleado->primerNombre." ".$empleado->segundoNombre.'</td>
+                                    <td class="arriba" rowspan="'.$rowspan.'">'.$empleado->fechaIngreso.'</td>
+                                    <td class="arriba" rowspan="'.$rowspan.'">'.number_format($empleado->valorSalario,0,",", ".").'</td>';                            
+                                    echo '<td class="arriba" rowspan="'.$rowspan.'">'.$diasTrabajados.'</td>';
+                                    echo '<td class="arriba" rowspan="'.$rowspan.'">'.(isset($novedadesLIC->suma) ? $novedadesLIC->suma : 0).'</td>';
+                                    echo '<td class="arriba" rowspan="'.$rowspan.'">'.$diasNeto.'</td>';
+                                    echo '<td class="arriba" rowspan="'.$rowspan.'">'.round($diasVacGen,2).'</td>';
+                                    echo '<td class="arriba" rowspan="'.$rowspan.'">'.(isset($novedadesVacacionGen->suma) ? $novedadesVacacionGen->suma : 0).'</td>';
+                                    echo '<td class="arriba" rowspan="'.$rowspan.'">'.round($diasVacGen - (isset($novedadesVacacionGen->suma) ? $novedadesVacacionGen->suma : 0), 2).'</td>';
+                                    $aplico = 0;
+                                    foreach($arrDatos as $datoCau){
+                                        $rowspanInt = 1;
+                                        
+                                        if(sizeof($datoCau['disfrute'])>0){
+                                            $rowspanInt =  $rowspanInt + sizeof($datoCau['disfrute']) - 1;
+                                        }
+                                        if($aplico == 1){
+                                            echo '<tr>';
+                                        }
+                                        echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['periodo'].'</td>';
+                                        echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['fechaInicio'].'</td>';
+                                        echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['fechaFinInt'].'</td>';
+                                        echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.round($datoCau['diaCau'],2).'</td>';
+                                        echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.$datoCau['diaTom'].'</td>';
+                                        echo '<td rowspan="'.$rowspanInt.'" class="azul1">'.round($datoCau['diaPen'],2).'</td>';
+                                        
+                                        if(sizeof($datoCau['disfrute'])>0){
+                                            $aplico2 = 0;
+                                            foreach($datoCau['disfrute'] as $disf){
+                                                if($aplico2 == 1){
+                                                    echo '<tr>';
+                                                }
+
+                                                echo '<td class="azul2">'.$disf['diaIni'].'</td>';
+                                                echo '<td class="azul2">'.$disf['diaFin'].'</td>';
+                                                echo '<td class="azul2">'.$disf['diaTom'].'</td>';
+                                                echo "</tr>";
+                                                $aplico2 = 1;
+                                            }
+                                        }
+                                        else{
+                                            echo '<td class="azul2"></td>';
+                                            echo '<td class="azul2"></td>';
+                                            echo '<td class="azul2">0</td>';
+                                            echo "</tr>";
+                                        }
+                                        $aplico = 1;
                                     }
-                                    $aplico = 1;
+
+
+                                    
+                                    
                                 }
-
-
-                                
-                                
-                            }
-                        ?>
-                        </table>
-                    </main>
-                </body>
-            </html>
-        <?php
-        $html = ob_get_clean();
+                            ?>
+                            </table>
+                        </main>
+                    </body>
+                </html>
+            <?php
+            $html = ob_get_clean();
+            
+            $dompdf->loadHtml($html ,'UTF-8');
         
-        $dompdf->loadHtml($html ,'UTF-8');
+            // (Optional) Setup the paper size and orientation
+            $dompdf->setPaper('legal', 'landscape');
+            // Render the HTML as PDF
+            $dompdf->render();
+
+            // Output the generated PDF to Browser
+            $dompdf->stream("Reporte vacaciones.pdf", array('compress' => 1, 'Attachment' => 1));
+            
+        }
+        else if($req->tipoReporte == "EXCEL"){
+
+            $novedades = DB::table("novedad","n")
+            ->select("dp.numeroIdentificacion", 
+                     "c.nombre as nombreConcepto", "a.cantidadDias as ausDias", "a.fechaInicio as ausFechaInicio", "a.fechaFin as ausFechaFin",
+                     "i.numDias as incDias","i.fechaInicial as incFechaInicio", "i.fechaFinal as incFechaFin", "l.numDias as licDias", "l.fechaInicial as licFechaInicio",
+                     "l.fechaFinal as licFechaFin", "v.diasCompletos as vacDias", "v.fechaInicio as vacFechaInicio", "v.fechaFin as vacFechaFin",
+                     "n.*","car.nombreCargo as nombreCargoPeriodo", "car2.nombreCargo as nombreCargoEmp","emp.razonSocial as nombreEmpresa",
+                     "nom.nombre as nombreNomina","est.nombre as estado","est.idestado")
+            ->selectRaw('(select cc2.nombre from centrocosto as cc2 where cc2.idcentroCosto 
+                     in(Select ecc.fkCentroCosto from empleado_centrocosto as ecc where 
+                     ecc.fkEmpleado = e.idempleado)
+                     limit 0,1) as centroCosto,CONCAT(dp.primerApellido," ",dp.segundoApellido," ",dp.primerNombre," ",dp.segundoNombre) 
+                     as nombreEmpleado')
+            ->join("empleado as e","e.idempleado", "=","n.fkEmpleado")
+            ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
+            ->join("periodo as p","p.fkEmpleado", "=","e.idempleado")
+            ->join("concepto as c","c.idconcepto", "=","n.fkConcepto")
+            ->join("ausencia as a","a.idAusencia","=", "n.fkAusencia", "left")
+            ->join("incapacidad as i","i.idIncapacidad","=", "n.fkIncapacidad", "left")
+            ->join("licencia as l","l.idLicencia","=", "n.fkLicencia", "left")
+            ->join("vacaciones as v","v.idVacaciones","=", "n.fkVacaciones", "left")
+            ->join("nomina as nom","nom.idNomina", "=","p.fkNomina")
+            ->join("empresa as emp","emp.idempresa", "=","nom.fkEmpresa")
+            ->join("cargo as car","car.idCargo", "=","p.fkCargo","left")
+            ->join("cargo as car2","car2.idCargo", "=","e.fkCargo","left")
+            ->join("estado as est","est.idestado", "=","p.fkEstado","left")
+            ->whereIn("n.fkEstado",["8"])
+            ->where("n.fechaRegistro","<=", $req->fechaFin)
+            ->where(function($query) use($req){
+                $query->where("emp.idempresa","=",$req->empresa);                
+            })
+            ->where(function($query){
+                $query->whereNotNull("n.fkAusencia")
+                ->orWhereNotNull("n.fkIncapacidad")
+                ->orWhereNotNull("n.fkLicencia")
+                ->orWhereNotNull("n.fkVacaciones");
+            })
+            ->get();
+
+
+            $arrDef = array([
+                "Fecha Novedad",
+                "Empresa",
+                "Nomina",
+                "Cargo",
+                "Estado",
+                "Documento",
+                "Empleado",
+                "Concepto",
+                "Tipo",
+                "Días",                
+                "Fecha Inicio",
+                "Fecha Fin"
+            ]);
+
+            foreach($novedades as $novedad){
+                $tipo = "";
+                $dias = "";
+                $fechaInicio = "";
+                $fechaFin = "";
+                $cargo = $novedad->nombreCargoEmp;
+
+                if($novedad->idestado == "2"){
+                    $cargo = $novedad->nombreCargoPeriodo;
+                }
+
+                if($novedad->fkTipoNovedad == "1"){
+                    $tipo = "AUS";
+                    $dias = $novedad->ausDias;
+                    $fechaInicio = $novedad->ausFechaInicio;
+                    $fechaFin = $novedad->ausFechaFin;
+                }
+                if($novedad->fkTipoNovedad == "2"){
+                    $tipo = "INC";
+                    $dias = $novedad->incDias;
+                    $fechaInicio = $novedad->incFechaInicio;
+                    $fechaFin = $novedad->incFechaFin;
+                }
+                if($novedad->fkTipoNovedad == "3"){
+                    $tipo = "LIC";
+                    $dias = $novedad->licDias;
+                    $fechaInicio = $novedad->licFechaInicio;
+                    $fechaFin = $novedad->licFechaFin;
+                }
+                if($novedad->fkTipoNovedad == "6"){
+                    $tipo = "VAC";
+                    $dias = $novedad->vacDias;
+                    $fechaInicio = $novedad->vacFechaInicio;
+                    $fechaFin = $novedad->vacFechaFin;
+                }
+
+
+                array_push($arrDef, [
+                    $novedad->fechaRegistro,
+                    $novedad->nombreEmpresa,
+                    $novedad->nombreNomina,
+                    $cargo,
+                    $novedad->estado,
+                    $novedad->numeroIdentificacion,
+                    $novedad->nombreEmpleado,
+                    $novedad->nombreConcepto,
+                    $tipo,
+                    floatval($dias),                    
+                    $fechaInicio,
+                    $fechaFin
+                ]);
+            }
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Description: File Transfer');
+            header('Content-Disposition: attachment; filename=Vacaciones.csv');
     
-        // (Optional) Setup the paper size and orientation
-        $dompdf->setPaper('letter', 'landscape');
-        // Render the HTML as PDF
-        $dompdf->render();
+            $csv = Writer::createFromFileObject(new SplTempFileObject());
+            $csv->setDelimiter(';');
+            $csv->insertAll($arrDef);
+            $csv->setOutputBOM(Reader::BOM_UTF8);
+            $csv->output('Vacaciones.csv');
+            
 
-        // Output the generated PDF to Browser
-        $dompdf->stream("Reporte vacaciones.pdf", array('compress' => 1, 'Attachment' => 1));
-
-
-        
+        }
     }
     public function indexFormulario220(){
         $dataUsu = UsuarioController::dataAdminLogueado();
@@ -7494,8 +8986,7 @@ class ReportesNominaController extends Controller
 
         $formulario =  DB::table("formulario220")->where("idFormulario220","=",$req->anio)->first();
         $req->anio =  $formulario->anio + 1;
-    
-        
+        $req->fechaExp =  "30-03-".$req->anio;
         if($req->reporte == "PDF"){
             $dompdf = new Dompdf();
             $dompdf->getOptions()->setChroot($this->rutaBaseImagenes);
@@ -7567,8 +9058,8 @@ class ReportesNominaController extends Controller
                         ->where("fkEstado","=","1")
                         ->where("fkEmpleado", "=", $empleado->idempleado)->first();
 
-                        $fechaPeriodoCer = $req->anio."-01-01";
-                        if(strtotime($fechaPeriodoCer) < strtotime($empleado->fechaIngreso)){
+                        $fechaPeriodoCer = $formulario->anio."-01-01";
+                        if(strtotime($fechaPeriodoCer) < strtotime($empleado->fechaIngreso) && date("Y", strtotime($fechaPeriodoCer)) == date("Y", strtotime($empleado->fechaIngreso))){
                             $fechaPeriodoCer = $empleado->fechaIngreso;
                         }
                         $datosPersonales = DB::table("datospersonales", "dp")
@@ -7970,7 +9461,7 @@ class ReportesNominaController extends Controller
             $dompdf->render();
 
             // Output the generated PDF to Browser
-            $dompdf->stream("Formulario 220.pdf", array('compress' => 1, 'Attachment' => 1));
+            $dompdf->stream("Formulario 220.pdf", array('compress' => 1, 'Attachment' => 0));
 
         }
         else{
@@ -8299,12 +9790,16 @@ class ReportesNominaController extends Controller
     }
     public function generarNovedades(Request $req){
         $novedades = DB::table("novedad","n")
-        ->select("*","c.nombre as nombreConcepto","nom.nombre as nombreNomina", 
+        ->select("*","a.cantidadDias","c.nombre as nombreConcepto","nom.nombre as nombreNomina", 
                 "ti.nombre as tipoidentificacion", "ta.nombre as tipoAfiliacion", 
                 "t.razonSocial as nombreTercero", "l.fechaInicial as licenciaFechaInicial"
                 , "l.fechaFinal as licenciaFechaFinal", "l.numDias as licenciaNumDias", 
                 "h.cantidadHoras as horasCantidadHoras", "mr.nombre as motivoRetiro", 
                 "v.fechaInicio as vacacionesFechaInicio", "v.fechaFin as vacacionesFechaFin", "emp.razonSocial as razonSocialEmp")
+        ->selectRaw("(select cc2.nombre from centrocosto as cc2 where cc2.idcentroCosto 
+        in(Select ecc.fkCentroCosto from empleado_centrocosto as ecc where 
+        ecc.fkEmpleado = e.idempleado)
+        limit 0,1) as centroCosto")
         ->join("ausencia as a","a.idAusencia","=", "n.fkAusencia","left")
         ->join("incapacidad as i","i.idIncapacidad","=", "n.fkIncapacidad","left")
         ->join("tipoafilicacion as ta","ta.idTipoAfiliacion","=", "i.fkTipoAfilicacion","left")
@@ -8321,26 +9816,36 @@ class ReportesNominaController extends Controller
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales", "left")
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
         ->join("empresa as emp","emp.idEmpresa","=", "nom.fkEmpresa","left")
+        ->join("cargo","cargo.idCargo","=", "e.fkCargo","left")
         ->whereBetween("n.fechaRegistro",[$req->fechaIni, $req->fechaFin])
         ->where("n.fkEstado","=","8")
         ->whereRaw("n.fkPeriodoActivo in(
             SELECT p.idPeriodo from periodo as p where p.fkEstado = '1'
-        )")
-        ->where("nom.fkEmpresa", "=",$req->empresa)->get();
+        )");
+        if(isset($req->nomina)){
+            $novedades = $novedades->where("nom.idNomina", "=",$req->nomina);
+        }
+        if(isset($req->empresa)){
+            $novedades = $novedades->where("nom.fkEmpresa", "=",$req->empresa);
+        }
+        $novedades = $novedades->get();
 
         
         $arrFila1=  [
-            "empresa",
-            "nomina",
-            "tipoNovedad",
-            "tipoReporte",
-            "fechaRegistro",
+            "Fecha Registro",
+            "Empresa",
+            "Nomina",
+            "Centro Costo",
+            "Cargo",
+            "Tipo Documento",
+            "Documento",
+            "Empleado",
+            "Tipo Novedad",
+            "Tipo Reporte",            
             "concepto",
-            "tipoDocumento",
-            "documento",
-            "empleado",
             "fechaAusenciaInicial",
             "fechaAusenciaFinal",
+            "diasAusencia",
             "diasIncapacidad",
             "fechaIncapacidadInicial",
             "fechaIncapacidadFinal",
@@ -8376,17 +9881,20 @@ class ReportesNominaController extends Controller
         foreach($novedades as $novedad){
 
             $arrFila=  [
+                $novedad->fechaRegistro,
                 $novedad->razonSocialEmp,
                 $novedad->nombreNomina,
-                $novedad->fkTipoNovedad,
-                $novedad->fkTipoReporte,
-                $novedad->fechaRegistro,
-                $novedad->nombreConcepto,
+                $novedad->centroCosto,
+                $novedad->nombreCargo,
                 $novedad->tipoidentificacion,
                 $novedad->numeroIdentificacion,
                 $novedad->primerApellido." ".$novedad->segundoApellido." ".$novedad->primerNombre." ".$novedad->segundoNombre,
+                $novedad->fkTipoNovedad,
+                $novedad->fkTipoReporte,                
+                $novedad->nombreConcepto,                
                 $novedad->fechaInicio,
                 $novedad->fechaFin,
+                $novedad->cantidadDias,                
                 $novedad->numDias,
                 $novedad->fechaInicial,
                 $novedad->fechaFinal,
@@ -8628,6 +10136,7 @@ class ReportesNominaController extends Controller
             foreach($itemsReporte as $itemReporte){
                 if($itemReporte->tipo == "bool"){
                     array_push($arrSelect, "IF(".$itemReporte->campo."='1','SI','NO') as '".$itemReporte->nombre."'");
+                    //IF(periodo.fkEstado='2',cargoPeriodo.nombreCargo, cargo.nombreCargo)
                 }
                 else{
                     array_push($arrSelect, $itemReporte->campo." as '".$itemReporte->nombre."'");
@@ -8637,21 +10146,22 @@ class ReportesNominaController extends Controller
             $sql = implode(",",$arrSelect);
             $consulta = $consulta->selectRaw($sql);
             $consulta = $consulta
-            /*->joinSub("(
-                SELECT    MAX(idPeriodo) max_id, fkEmpleado 
-                FROM      periodo 
+            ->joinSub("(
+                SELECT    MAX(idCambioSalario) max_id, fechaCambio, valorNuevo,valorAnterior, fkEmpleado 
+                FROM      cambiosalario 
                 GROUP BY  fkEmpleado
-            )","ultimo_p","ultimo_p.fkEmpleado", "=","e.idempleado","left")*/
+            )","cambio_salario_nuevo","cambio_salario_nuevo.fkEmpleado", "=","e.idempleado","left")
             ->join("periodo","periodo.fkEmpleado", "=","e.idempleado","left")
             ->join("cargo","cargo.idCargo", "=","e.fkCargo","left")
+            ->join("cargo as cargoPeriodo","cargoPeriodo.idCargo", "=","periodo.fkCargo","left")
             ->join("tipoidentificacion as tio","tio.idtipoIdentificacion", "=", "e.fkTipoOtroDocumento","left")
             ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales","left")
             ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion","left")
             ->join("genero as g","g.idGenero", "=", "dp.fkGenero","left")
             ->join("estadocivil as estCiv","estCiv.idEstadoCivil", "=", "dp.fkEstadoCivil","left")
             ->join("tipo_vivienda","tipo_vivienda.idTipoVivienda", "=", "dp.fkTipoVivienda","left")       
-            ->join("nomina as n","n.idNomina", "=","e.fkNomina","left")
-            ->join("empresa as emp","emp.idempresa", "=","e.fkEmpresa","left")
+            ->join("nomina as n","n.idNomina", "=","periodo.fkNomina","left")
+            ->join("empresa as emp","emp.idempresa", "=","n.fkEmpresa","left")
             //->join('centrocosto AS cc','cc.fkEmpresa', '=', 'n.fkEmpresa',"left")
             ->join('estado AS est','est.idestado', '=', 'periodo.fkEstado', "left")
             ->join('ubicacion AS uLabora','uLabora.idubicacion', '=', 'e.fkUbicacionLabora',"left")

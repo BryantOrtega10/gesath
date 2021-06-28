@@ -234,7 +234,38 @@ $(document).ready(function() {
         $("#excluirEmpleados").val($("#excluirEmpleados").val() + dataId + ",");
         $(".empleadoFila[data-id='" + dataId + "']").remove();
         console.log();
+    });
+
+    $("body").on("change", "#empresa", function(e) {
+        e.preventDefault();
+        const idEmpresa = $(this).val();
+        $("#nomina").html('<option value=""></option>');
+        $("#nomina").trigger("change");
+        if (idEmpresa != "") {
+            cargando();
+            $.ajax({
+                type: 'GET',
+                url: "/empleado/cargarDatosPorEmpresa/" + idEmpresa,
+                success: function(data) {
+                    $("#cargando").css("display", "none");
+                    $("#nomina").html(data.opcionesNomina);
+                },
+                error: function(data) {
+                    $("#cargando").css("display", "none");
+                    retornarAlerta(
+                        data.responseJSON.exception,
+                        data.responseJSON.message + ", en la linea: " + data.responseJSON.line,
+                        'error',
+                        'Aceptar'
+                    );
+                    console.log("error");
+                    console.log(data);
+                }
+            });
+        }
     })
+
+
 
     $("body").on("submit", "#formAgregarSolicitud", function(e) {
         e.preventDefault();

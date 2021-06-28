@@ -781,20 +781,28 @@ class CatalogoContableController extends Controller
                  "dp.segundoNombre",
                  "dp.segundoApellido", 
                  "dp.numeroIdentificacion", 
-                 "ti.nombre as tipoidentificacion"
+                 "ti.nombre as tipoidentificacion",
+                 "p.idPeriodo",
+                 "p.fkNomina",
+                 "n.fkEmpresa"
                 )
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
-        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","dp.fkTipoIdentificacion")
-        ->join("nomina as n", "n.idNomina", "=","e.fkNomina")
-        ->join("boucherpago as bp", "bp.fkEmpleado", "=","e.idempleado")
-        ->join("liquidacionnomina as ln", "ln.idLiquidacionNomina", "=","bp.fkLiquidacion")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","dp.fkTipoIdentificacion")        
+        ->join("periodo as p","p.fkEmpleado", "=","e.idempleado")
+        ->join("nomina as n", "n.idNomina", "=","p.fkNomina")
+        ->leftJoin('boucherpago as bp', function ($join) {
+            $join->on('bp.fkEmpleado', '=', 'e.idempleado')
+                ->on('bp.fkPeriodoActivo', '=', 'p.idPeriodo');                
+        })
+        ->join("liquidacionnomina as ln", "ln.idLiquidacionNomina", "=","bp.fkLiquidacion")        
         ->where("n.fkEmpresa","=",$req->empresa)
         ->whereBetween("ln.fechaLiquida",[$fechaInicioMes, $fechaFinMes])
         ->distinct()
         ->get();
+        //dd($empleados, $req->empresa, $fechaInicioMes, $fechaFinMes);
         $arrSalida = array();
         
-
+        //dd($empleados);
         foreach($empleados as $empleado){
             $arrayInt = array();
             $centrosCostoEmpleado = DB::table("distri_centro_costo_centrocosto", "ddc")
@@ -804,6 +812,8 @@ class CatalogoContableController extends Controller
             ->whereRaw("'".$fechaInicioMes."' BETWEEN dc.fechaInicio and dc.fechaFin")
             ->whereRaw("'".$fechaFinMes."' BETWEEN dc.fechaInicio and dc.fechaFin")
             ->get();
+            
+            
             $arrCentrosCosto = array();
 
             if(sizeof($centrosCostoEmpleado) > 0){
@@ -824,8 +834,8 @@ class CatalogoContableController extends Controller
             else{
                 $centrosCosto = DB::table("empleado_centrocosto", "ecc")
                 ->join("centrocosto as cec", "cec.idcentroCosto", "=","ecc.fkCentroCosto")
-                ->where("ecc.fkEmpleado", "=",$empleado->idempleado)
-
+                ->where("ecc.fkEmpleado", "=",$req->empresa)
+                ->where("cec.fkEmpresa", "=",$empleado->idempleado)
                 ->get();
                 foreach($centrosCosto as $centroCosto){
                     array_push($arrCentrosCosto, [
@@ -885,6 +895,7 @@ class CatalogoContableController extends Controller
                     ->join("concepto as con","con.idConcepto","=","ibp.fkConcepto") 
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->where("bp.fkPeriodoActivo","=",$empleado->idPeriodo)
                     ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
                     ->where("gcc.fkGrupoConcepto","=",$datoCuentaTipo1->fkGrupoConcepto) 
                     ->get();
@@ -1169,6 +1180,7 @@ class CatalogoContableController extends Controller
                     ->join("boucherpago as bp","bp.idBoucherPago","=","para.fkBoucherPago")
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->where("bp.fkPeriodoActivo","=",$empleado->idPeriodo)
                     ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
                     ->whereIn("ln.fkTipoLiquidacion",["1","2","4","5","6","9"]) 
                     ->orderBy("idParafiscales","desc")
@@ -1181,6 +1193,7 @@ class CatalogoContableController extends Controller
                         ->join("boucherpago as bp","bp.idBoucherPago","=","para.fkBoucherPago")
                         ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                         ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                        ->where("bp.fkPeriodoActivo","=",$empleado->idPeriodo)
                         ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
                         ->whereIn("ln.fkTipoLiquidacion",["3"]) 
                         ->orderBy("idParafiscales","desc")
@@ -1706,8 +1719,9 @@ class CatalogoContableController extends Controller
                     ->join("concepto as con","con.idConcepto","=","ibp.fkConcepto") 
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->where("bp.fkPeriodoActivo","=",$empleado->idPeriodo)
                     ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
-                    ->where("ibp.fkConcepto","=",$datoCuentaTipo4->fkConcepto) 
+                    ->where("ibp.fkConcepto","=",$datoCuentaTipo4->fkConcepto)
                     ->get();
             
                     $itemsBoucherFueraNomina = DB::table("item_boucher_pago_fuera_nomina", "ibp")
@@ -1716,6 +1730,7 @@ class CatalogoContableController extends Controller
                     ->join("concepto as con","con.idConcepto","=","ibp.fkConcepto") 
                     ->join("liquidacionnomina as ln","ln.idLiquidacionNomina","=","bp.fkLiquidacion")
                     ->where("bp.fkEmpleado","=",$empleado->idempleado)
+                    ->where("bp.fkPeriodoActivo","=",$empleado->idPeriodo)
                     ->whereRaw("(MONTH(ln.fechaInicio) = MONTH('".$req->fechaReporte."') and YEAR(ln.fechaInicio) = YEAR('".$req->fechaReporte."'))")
                     ->where("ibp.fkConcepto","=",$datoCuentaTipo4->fkConcepto) 
                     ->where("ln.fkTipoLiquidacion","=","11")

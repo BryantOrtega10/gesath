@@ -8,12 +8,17 @@
 
 @section('contenido')
 <div class="row">
-    <div class="col-9">
+    <div class="col-8">
         <h1 class="granAzul">Empresas</h1>
     </div>
+    @if (in_array("146",$dataUsu->permisosUsuario))
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="/empresa/exportar" id="exportarEmpresa"><i class="fas fa-download"></i> Exportar</a>
+    </div>
+    @endif
     @if (in_array("103",$dataUsu->permisosUsuario))
-    <div class="col-3 text-right">
-        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addEmpresa">Agregar empresa</a>
+    <div class="col-2 text-right">
+        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addEmpresa">Agregar</a>
     </div>
     @endif
 </div>

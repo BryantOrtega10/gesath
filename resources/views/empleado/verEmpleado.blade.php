@@ -25,12 +25,7 @@
                 <div class="col-3">
                     <div class="form-group @isset($empleado->tEmpleado) hasText @endif">
                         <label for="tEmpleado" class="control-label">Tipo de empleado</label>
-                        <select disabled class="form-control" id="tEmpleado" name="tEmpleado">
-                            <option value=""></option>
-                            <option value="empleado" @if($empleado->tEmpleado == "empleado") selected @endif>Empleado</option>
-                            <option value="contratista" @if($empleado->tEmpleado == "contratista") selected @endif>Contratista</option>
-                            <option value="aspirante" @if($empleado->tEmpleado == "aspirante") selected @endif>Aspirante</option>
-                        </select>
+                        <input type="text" readonly class="form-control" value="{{$empleado->tEmpleado}}" />
                     </div>
                 </div>
        
@@ -77,12 +72,11 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkTipoIdentificacion) hasText @endif">
                             <label for="tIdentificacion" class="control-label">Tipo Identificación</label>
-                            <select disabled class="form-control" id="tIdentificacion" name="tIdentificacion">
-                                <option value=""></option>
-                                @foreach ($tipoidentificacion as $tipoidentificacio)
-                                    <option value="{{$tipoidentificacio->idtipoIdentificacion}}" @if($tipoidentificacio->idtipoIdentificacion == $empleado->fkTipoIdentificacion) selected @endif>{{$tipoidentificacio->nombre}}</option>
-                                @endforeach
-                            </select>
+                            @foreach ($tipoidentificacion as $tipoidentificacio)
+                                @if($tipoidentificacio->idtipoIdentificacion == $empleado->fkTipoIdentificacion) 
+                                <input type="text" readonlyclass="form-control" value="{{$tipoidentificacio->nombre}}" >
+                                @endif
+                            @endforeach
                         </div>
                         <input type="hidden" id="tIdentificacionAnt" value="{{$empleado->fkTipoIdentificacion}}" name="tIdentificacionAnt" /> 
                     </div>
@@ -96,23 +90,23 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->ubi_pais_exp) hasText @endif">
                             <label for="paisExpedicion" class="control-label">País Expedición</label>
-                            <select disabled class="form-control" id="paisExpedicion" name="paisExpedicion">
-                                <option value=""></option>
-                                @foreach ($paises as $pais)
-                                    <option value="{{$pais->idubicacion}}" @if($pais->idubicacion == $empleado->ubi_pais_exp) selected @endif>{{$pais->nombre}}</option>
-                                @endforeach
-                            </select>
+                
+                            @foreach ($paises as $pais)
+                                @if($pais->idubicacion == $empleado->ubi_pais_exp)
+                                <input type="text" readonly class="form-control" value="{{$pais->nombre}}" />
+                                @endif
+                            @endforeach
+                            
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->ubi_depto_exp) hasText @endif">
                         <label for="deptoExpedicion" class="control-label">Departamento Expedición</label>
-                            <select disabled class="form-control" id="deptoExpedicion" name="deptoExpedicion">
-                                <option value=""></option>   
-                                @foreach ($deptosExp as $deptoExp)
-                                    <option value="{{$deptoExp->idubicacion}}" @if($deptoExp->idubicacion == $empleado->ubi_depto_exp) selected @endif>{{$deptoExp->nombre}}</option>
-                                @endforeach                         
-                            </select>
+                        @foreach ($deptosExp as $deptoExp)
+                            @if($deptoExp->idubicacion == $empleado->ubi_depto_exp)
+                                <input type="text" readonly class="form-control" value="{{$deptoExp->nombre}}" />
+                            @endif
+                        @endforeach                         
                         </div>
                     </div>
                 </div>
@@ -120,12 +114,11 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkUbicacionExpedicion) hasText @endif">
                             <label for="lugarExpedicion" class="control-label">Lugar Expedición</label>
-                            <select disabled class="form-control" id="lugarExpedicion" name="lugarExpedicion">
-                                <option value=""></option>  
-                                @foreach ($ciudadesExp as $ciudadExp)
-                                    <option value="{{$ciudadExp->idubicacion}}" @if($ciudadExp->idubicacion == $empleado->fkUbicacionExpedicion) selected @endif>{{$ciudadExp->nombre}}</option>
-                                @endforeach                             
-                            </select>
+                            @foreach ($ciudadesExp as $ciudadExp)
+                                @if($ciudadExp->idubicacion == $empleado->fkUbicacionExpedicion)
+                                <input type="text" class="form-control" value="{{$ciudadExp->nombre}}" />
+                                @endif
+                            @endforeach                            
                         </div>
                     </div>
                     <div class="col-3">
@@ -137,23 +130,21 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkGenero) hasText @endif">
                             <label for="genero" class="control-label">Genero</label>
-                            <select disabled class="form-control" id="genero" name="genero">
-                                <option value=""></option>
-                                @foreach ($generos as $genero)
-                                    <option value="{{$genero->idGenero}}" @if($genero->idGenero == $empleado->fkGenero) selected @endif>{{$genero->nombre}}</option>
-                                @endforeach
-                            </select>
+                            @foreach ($generos as $genero)
+                                @if($genero->idGenero == $empleado->fkGenero)
+                                    <input type="text" readonly class="form-control" value="{{$genero->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkEstadoCivil) hasText @endif">
                             <label for="estadoCivil" class="control-label">Estado Civil</label>
-                            <select disabled class="form-control" id="estadoCivil" name="estadoCivil">
-                                <option value=""></option>
-                                @foreach ($estadosCivil as $estadoCivil)
-                                    <option value="{{$estadoCivil->idEstadoCivil}}" @if($estadoCivil->idEstadoCivil == $empleado->fkEstadoCivil) selected @endif>{{$estadoCivil->nombre}}</option>
-                                @endforeach
-                            </select>
+                            @foreach ($estadosCivil as $estadoCivil)
+                                @if($estadoCivil->idEstadoCivil == $empleado->fkEstadoCivil)
+                                <input type="text" readonly class="form-control" value="{{$estadoCivil->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -173,23 +164,22 @@
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkNivelEstudio) hasText @endisset">
-                            <label for="nivelEstudio" class="control-label">Nivel estudios</label>
-                            <select disabled class="form-control" id="nivelEstudio" name="nivelEstudio">
-                                <option value=""></option>
-                                @foreach ($nivelesEstudios as $nivelEstudio)
-                                    <option value="{{$nivelEstudio->idNivelEstudio}}" @if($nivelEstudio->idNivelEstudio == $empleado->fkNivelEstudio) selected @endif>{{$nivelEstudio->nombre}}</option>
-                                @endforeach
-                            </select>
+                            <label for="nivelEstudio" class="control-label">Nivel estudios</label>                        
+                            @foreach ($nivelesEstudios as $nivelEstudio)
+                                @if($nivelEstudio->idNivelEstudio == $empleado->fkNivelEstudio)
+                                    <input type="text" readonly class="form-control" value="{{$nivelEstudio->nombre}}" />
+                                @endif
+                            @endforeach                        
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group hasText">
                             <label for="etnia" class="control-label">Etnia</label>
-                            <select disabled class="form-control" id="etnia" name="etnia">
-                                @foreach ($etnias as $etnia)
-                                    <option value="{{$etnia->idEtnia}}" @if($etnia->idEtnia == $empleado->fkEtnia) selected @endif>{{$etnia->nombre}}</option>
-                                @endforeach
-                            </select>
+                            @foreach ($etnias as $etnia)
+                                @if($etnia->idEtnia == $empleado->fkEtnia)
+                                    <input type="text" readonly class="form-control" value="{{$etnia->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -209,35 +199,34 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->ubi_pais_nac) hasText @endisset">
                             <label for="paisNacimiento" class="control-label">País Nacimiento</label>
-                            <select disabled class="form-control" id="paisNacimiento" name="paisNacimiento">
-                                <option value=""></option>
-                                @foreach ($paises as $pais)
-                                    <option value="{{$pais->idubicacion}}" @if($pais->idubicacion == $empleado->ubi_pais_nac) selected @endif>{{$pais->nombre}}</option>
-                                @endforeach
-                                
-                            </select>
+                            @foreach ($paises as $pais)
+                                @if($pais->idubicacion == $empleado->ubi_pais_nac) 
+                                    <input type="text" readonly class="form-control" value="{{$pais->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->ubi_depto_nac) hasText @endisset">
                             <label for="deptoNacimiento" class="control-label">Departamento Nacimiento</label>
-                            <select disabled class="form-control" id="deptoNacimiento" name="deptoNacimiento">
-                                <option value=""></option>
-                                @foreach ($deptosNac as $deptoNac)
-                                    <option value="{{$deptoNac->idubicacion}}" @if($deptoNac->idubicacion == $empleado->ubi_depto_nac) selected @endif>{{$deptoNac->nombre}}</option>
-                                @endforeach
-                            </select>
+                            
+                            
+                            @foreach ($deptosNac as $deptoNac)
+                                @if($deptoNac->idubicacion == $empleado->ubi_depto_nac)
+                                <input type="text" readonly class="form-control" value="{{$deptoNac->nombre}}" />
+                                @endif
+                            @endforeach
+                            
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkUbicacionNacimiento) hasText @endisset">
                             <label for="lugarNacimiento" class="control-label">Lugar Nacimiento</label>
-                            <select disabled class="form-control" id="lugarNacimiento" name="lugarNacimiento">
-                                <option value=""></option>
-                                @foreach ($ciudadesNac as $ciudadNac)
-                                    <option value="{{$ciudadNac->idubicacion}}" @if($ciudadNac->idubicacion == $empleado->fkUbicacionNacimiento) selected @endif>{{$ciudadNac->nombre}}</option>
-                                @endforeach
-                            </select>
+                            @foreach ($ciudadesNac as $ciudadNac)
+                                @if($ciudadNac->idubicacion == $empleado->fkUbicacionNacimiento)
+                                    <input type="text" readonly class="form-control" value="{{$ciudadNac->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -257,34 +246,31 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->ubi_pais_res) hasText @endisset">
                             <label for="paisResidencia" class="control-label">País</label>
-                            <select disabled class="form-control" id="paisResidencia" name="paisResidencia">
-                                <option value=""></option>
-                                @foreach ($paises as $pais)
-                                    <option value="{{$pais->idubicacion}}" @if($pais->idubicacion == $empleado->ubi_pais_res) selected @endif>{{$pais->nombre}}</option>
-                                @endforeach
-                            </select>
+                            @foreach ($paises as $pais)
+                                @if($pais->idubicacion == $empleado->ubi_pais_res)
+                                    <input type="text" readonly class="form-control" value="{{$pais->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->ubi_depto_res) hasText @endisset">
                             <label for="deptoResidencia" class="control-label">Departamento</label>
-                            <select disabled class="form-control" id="deptoResidencia" name="deptoResidencia">
-                                <option value=""></option>
-                                @foreach ($deptosRes as $deptoRes)
-                                    <option value="{{$deptoRes->idubicacion}}" @if($deptoRes->idubicacion == $empleado->ubi_depto_res) selected @endif>{{$deptoRes->nombre}}</option>
-                                @endforeach
-                            </select>
+                            @foreach ($deptosRes as $deptoRes)
+                                @if($deptoRes->idubicacion == $empleado->ubi_depto_res)
+                                    <input type="text" readonly class="form-control" value="{{$deptoRes->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkUbicacionResidencia) hasText @endisset">
                             <label for="lugarResidencia" class="control-label">Lugar</label>
-                            <select disabled class="form-control" id="lugarResidencia" name="lugarResidencia">
-                                <option value=""></option>     
-                                @foreach ($ciudadesRes as $ciudadRes)
-                                    <option value="{{$ciudadRes->idubicacion}}" @if($ciudadRes->idubicacion == $empleado->fkUbicacionResidencia) selected @endif>{{$ciudadRes->nombre}}</option>
-                                @endforeach                       
-                            </select>
+                            @foreach ($ciudadesRes as $ciudadRes)
+                                @if($ciudadRes->idubicacion == $empleado->fkUbicacionResidencia)
+                                    <input type="text" readonly class="form-control" value="{{$ciudadRes->nombre}}" />
+                                @endif
+                            @endforeach                       
                         </div>
                     </div>
                 </div>
@@ -304,12 +290,11 @@
                     <div class="col-3">
                         <div class="form-group  @isset($empleado->fkTipoVivienda) hasText @endisset">
                             <label for="tipoVivienda" class="control-label">Tipo vivienda</label>
-                            <select disabled class="form-control" id="tipoVivienda" name="tipoVivienda">
-                                <option value=""></option>        
-                                @foreach ($tipo_vivienda as $tipo_viv)
-                                    <option value="{{$tipo_viv->idTipoVivienda}}" @if($tipo_viv->idTipoVivienda == $empleado->fkTipoVivienda) selected @endif >{{$tipo_viv->nombre}}</option>
-                                @endforeach                    
-                            </select>
+                            @foreach ($tipo_vivienda as $tipo_viv)
+                                @if($tipo_viv->idTipoVivienda == $empleado->fkTipoVivienda)
+                                <input type="text" readonly class="form-control" value="{{$tipo_viv->nombre}}" />
+                                @endif
+                            @endforeach                    
                         </div>
                     </div>
                     <div class="col-3">
@@ -354,23 +339,21 @@
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkGrupoSanguineo) hasText @endisset">
                             <label for="grupoSanguineo" class="control-label">Grupo Sanguineo</label>
-                            <select disabled class="form-control" id="grupoSanguineo" name="grupoSanguineo">
-                                <option value=""></option>        
-                                @foreach ($grupoSanguineo as $grupoSang)
-                                    <option value="{{$grupoSang->idGrupoSanguineo}}" @if($grupoSang->idGrupoSanguineo == $empleado->fkGrupoSanguineo) selected @endif>{{$grupoSang->nombre}}</option>
-                                @endforeach                    
-                            </select>
+                            @foreach ($grupoSanguineo as $grupoSang)
+                                @if($grupoSang->idGrupoSanguineo == $empleado->fkGrupoSanguineo)
+                                <input type="text" readonly class="form-control" value="{{$grupoSang->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-group @isset($empleado->fkRh) hasText @endisset">
                             <label for="rh" class="control-label">RH</label>
-                            <select disabled class="form-control" id="rh" name="rh">
-                                <option value=""></option>        
-                                @foreach ($rhs as $rh)
-                                    <option value="{{$rh->idRh}}" @if($rh->idRh == $empleado->fkRh) selected @endif>{{$rh->nombre}}</option>
-                                @endforeach                    
-                            </select>
+                            @foreach ($rhs as $rh)
+                                @if($rh->idRh == $empleado->fkRh)
+                                <input type="text" readonly class="form-control" value="{{$rh->nombre}}" />
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                     <div class="col-3">
@@ -446,12 +429,11 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($contactosEmergencia[$i-1]->ubi_pais_emer) hasText @endisset">
                                         <label for="paisEmergencia{{$i}}" class="control-label">País</label>
-                                        <select disabled class="form-control paisEmergencia" id="paisEmergencia{{$i}}" data-id="{{$i}}" name="paisEmergencia[]" >
-                                            <option value=""></option>
-                                            @foreach ($paises as $pais)
-                                                <option value="{{$pais->idubicacion}}" @if($pais->idubicacion == $contactosEmergencia[$i-1]->ubi_pais_emer) selected @endif>{{$pais->nombre}}</option>
-                                            @endforeach
-                                        </select>
+                                        @foreach ($paises as $pais)
+                                            @if($pais->idubicacion == $contactosEmergencia[$i-1]->ubi_pais_emer)
+                                            <input type="text" readonly class="form-control" value="{{$pais->nombre}}" />
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
@@ -459,31 +441,26 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($contactosEmergencia[$i-1]->ubi_depto_emer) hasText @endisset">
                                         <label for="deptoEmergencia{{$i}}" class="control-label">Departamento</label>
-                                        <select disabled class="form-control deptoEmergencia" id="deptoEmergencia{{$i}}" data-id="{{$i}}" name="deptoEmergencia[]">
-                                            <option value=""></option>
-                                            @foreach ($deptosContactosEmergencia[$i-1] as $deptoCon)
-                                                <option value="{{$deptoCon->idubicacion}}" @if($deptoCon->idubicacion == $contactosEmergencia[$i-1]->ubi_depto_emer) selected @endif>{{$deptoCon->nombre}}</option>
-                                            @endforeach
-                                        </select>
+                                        @foreach ($deptosContactosEmergencia[$i-1] as $deptoCon)
+                                            @if($deptoCon->idubicacion == $contactosEmergencia[$i-1]->ubi_depto_emer)
+                                            <input type="text" readonly class="form-control" value="{{$deptoCon->nombre}}" />
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($contactosEmergencia[$i-1]->fkUbicacion) hasText @endisset">
                                         <label for="lugarEmergencia{{$i}}" class="control-label">Lugar</label>
-                                        <select disabled class="form-control lugarEmergencia" id="lugarEmergencia{{$i}}"  data-id="{{$i}}" name="lugarEmergencia[]">
-                                            <option value=""></option>     
-                                            @foreach ($ciudadesContactosEmergencia[$i-1] as $ciudadCon)
-                                                <option value="{{$ciudadCon->idubicacion}}" @if($ciudadCon->idubicacion == $contactosEmergencia[$i-1]->fkUbicacion) selected @endif>{{$ciudadCon->nombre}}</option>
-                                            @endforeach                       
-                                        </select>
+                                        @foreach ($ciudadesContactosEmergencia[$i-1] as $ciudadCon)
+                                            @if($ciudadCon->idubicacion == $contactosEmergencia[$i-1]->fkUbicacion)
+                                            <input type="text" readonly class="form-control" value="{{$ciudadCon->nombre}}" />
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @endfor
-
-
-                   
                 </div>
                 <div class="row">
                     <div class="col-12">
@@ -518,23 +495,23 @@
                                 <div class="col-3">
                                     <div class="form-group @isset($nucleo->fkEscolaridad) hasText  @endisset">
                                         <label for="escolaridadPersonaV{{$idRow}}" class="control-label">Escolaridad</label>
-                                        <select disabled class="form-control" id="escolaridadPersonaV{{$idRow}}" data-id="{{$idRow}}" name="escolaridadPersonaV[]">
-                                            <option value=""></option>
-                                            @foreach ($escolaridades as $escolaridad)
-                                                <option value="{{$escolaridad->idEscolaridad}}" @if($escolaridad->idEscolaridad == $nucleo->fkEscolaridad) selected @endif>{{$escolaridad->nombre}}</option>
-                                            @endforeach                                                 
-                                        </select>
+                                    
+                                        @foreach ($escolaridades as $escolaridad)
+                                            @if($escolaridad->idEscolaridad == $nucleo->fkEscolaridad)
+                                            <input type="text" readonly class="form-control" value="{{$escolaridad->nombre}}" />
+                                            @endif
+                                        @endforeach                                                 
+                                        
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($nucleo->fkParentesco) hasText  @endisset">
-                                        <label for="parentescoPersonaV{{$idRow}}" class="control-label">Parentesco</label>
-                                        <select disabled class="form-control" id="parentescoPersonaV{{$idRow}}" data-id="{{$idRow}}" name="parentescoPersonaV[]">
-                                            <option value=""></option> 
-                                            @foreach ($parentescos as $parentesco)
-                                                <option value="{{$parentesco->idParentesco}}" @if($parentesco->idParentesco == $nucleo->fkParentesco) selected @endif>{{$parentesco->nombre}}</option>
-                                            @endforeach                                                                   
-                                        </select>
+                                        <label for="parentescoPersonaV{{$idRow}}" class="control-label">Parentesco</label>                                        
+                                        @foreach ($parentescos as $parentesco)
+                                            @if($parentesco->idParentesco == $nucleo->fkParentesco)
+                                            <input type="text" readonly class="form-control" value="{{$parentesco->nombre}}" />
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
@@ -589,13 +566,11 @@
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->fkTipoIdentificacion) hasText @endisset">
                                     <label for="tIdentificacionUpc{{$idRow}}" class="control-label">Tipo Identificación</label>
-                                    <select disabled class="form-control" id="tIdentificacionUpc{{$idRow}}" name="tIdentificacionUpc[]">
-                                        <option value=""></option>
-                                        @foreach ($tipoidentificacion as $tipoidentificacio)
-                                            <option value="{{$tipoidentificacio->idtipoIdentificacion}}" 
-                                                @if($tipoidentificacio->idtipoIdentificacion == $upcAdic->fkTipoIdentificacion) selected @endif>{{$tipoidentificacio->nombre}}</option>
-                                        @endforeach
-                                    </select>
+                                    @foreach ($tipoidentificacion as $tipoidentificacio)                                        
+                                            @if($tipoidentificacio->idtipoIdentificacion == $upcAdic->fkTipoIdentificacion)
+                                            <input type="text" readonly class="form-control" value="{{$tipoidentificacio->nombre}}" />
+                                            @endif
+                                    @endforeach                                    
                                 </div>
                             </div>
                             <div class="col-3">
@@ -613,12 +588,11 @@
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->fkGenero) hasText @endisset">
                                     <label for="generoUpc{{$idRow}}" class="control-label">Genero</label>
-                                    <select disabled class="form-control" id="generoUpc{{$idRow}}" name="generoUpc[]">
-                                        <option value=""></option>
-                                        @foreach ($generosBen as $genero)
-                                            <option value="{{$genero->idGenero}}" @if($genero->idGenero == $upcAdic->fkGenero) selected @endif>{{$genero->nombre}}</option>
-                                        @endforeach
-                                    </select>
+                                    @foreach ($generosBen as $genero)
+                                        @if($genero->idGenero == $upcAdic->fkGenero)
+                                            <input type="text" readonly class="form-control" value="{{$genero->nombre}}" />
+                                        @endif>
+                                    @endforeach                                    
                                 </div>
                             </div>
                             
@@ -627,58 +601,48 @@
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->ubi_pais_upc) hasText @endisset">
                                     <label for="paisUpc{{$idRow}}" class="control-label">País</label>
-                                    <select disabled class="form-control paisUpc" id="paisUpc{{$idRow}}" data-id="{{$idRow}}" name="paisUpc[]" >
-                                        <option value=""></option>
-                                        @foreach ($paises as $pais)
-                                            <option value="{{$pais->idubicacion}}" @if($pais->idubicacion == $upcAdic->ubi_pais_upc) selected @endif>{{$pais->nombre}}</option>
-                                        @endforeach
-                                    </select>
+                                    @foreach ($paises as $pais)
+                                        @if($pais->idubicacion == $upcAdic->ubi_pais_upc)
+                                        <input type="text" readonly class="form-control" value="{{$pais->nombre}}" />
+                                        @endif
+                                    @endforeach                                    
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->ubi_depto_upc) hasText @endisset">
                                     <label for="deptoUpc{{$idRow}}" class="control-label">Departamento</label>
-                                    <select disabled class="form-control deptoUpc" id="deptoUpc{{$idRow}}" data-id="{{$idRow}}" name="deptoUpc[]">
-                                        <option value=""></option>
-                                        @foreach ($deptosUpc[$idRow] as $deptoUpc)
-                                            <option value="{{$deptoUpc->idubicacion}}" @if($deptoUpc->idubicacion == $upcAdic->ubi_depto_upc) selected @endif>{{$deptoUpc->nombre}}</option>
-                                        @endforeach
-                                    </select>
+                                    @foreach ($deptosUpc[$idRow] as $deptoUpc)
+                                        @if($deptoUpc->idubicacion == $upcAdic->ubi_depto_upc)
+                                        <input type="text" readonly class="form-control" value="{{$deptoUpc->nombre}}" />
+                                        @endif
+                                    @endforeach                                    
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="form-group @isset($upcAdic->fkUbicacion) hasText @endisset">
                                     <label for="lugarUpc{{$idRow}}" class="control-label">Lugar</label>
-                                    <select disabled class="form-control lugarUpc" id="lugarUpc{{$idRow}}"  data-id="{{$idRow}}" name="lugarUpc[]">
-                                        <option value=""></option>     
-                                        @foreach ($ciudadesUpc[$idRow] as $ciudadUpc)
-                                            <option value="{{$ciudadUpc->idubicacion}}" @if($ciudadUpc->idubicacion == $upcAdic->fkUbicacion) selected @endif>{{$ciudadUpc->nombre}}</option>
-                                        @endforeach                       
-                                    </select>
+                                    @foreach ($ciudadesUpc[$idRow] as $ciudadUpc)
+                                        @if($ciudadUpc->idubicacion == $upcAdic->fkUbicacion)
+                                        <input type="text" readonly class="form-control" value="{{$ciudadUpc->nombre}}" />
+                                        @endif
+                                    @endforeach                                
                                 </div>
                             </div>
                             @if (isset($periodo) && $periodo=="15")
                                 <div class="col-3">
                                     <div class="form-group hasText">
                                         <label for="periocidad{{$idRow}}" class="control-label">Periocidad</label>
-                                        <select disabled class="form-control periocidad" required id="periocidad{{$idRow}}"  data-id="{{$idRow}}" name="periocidad[]">
-                                            @foreach ($periocidad as $perio)
-                                                <option value="{{$perio->per_id}}" @if ($upcAdic->fkPeriocidad == $perio->per_id)
-                                                    selected
-                                                @endif>{{$perio->per_upc}}</option>
-                                            @endforeach                                      
-                                        </select>
+                                        @foreach ($periocidad as $perio)
+                                            @if ($upcAdic->fkPeriocidad == $perio->per_id)
+                                                <input type="text" readonly class="form-control" value="{{$perio->per_upc}}" />
+                                            @endif
+                                        @endforeach                                        
                                     </div>
                                 </div>
                             @else
                                 <input type="hidden" name="periocidad[]" value="1" />
                             @endif
-
-
                         </div>
-
-
-
                     </div>
                     @endforeach
                 </div>
@@ -705,23 +669,21 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkEmpresa) hasText @endisset">
                                 <label for="infoEmpresa" class="control-label">Empresa</label>
-                                <select disabled class="form-control" id="infoEmpresa" name="infoEmpresa">
-                                    <option value=""></option>        
-                                    @foreach ($empresas as $empresa)
-                                        <option value="{{$empresa->idempresa}}" @if($empresa->idempresa == $empleado->fkEmpresa) selected @endif>{{$empresa->razonSocial}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($empresas as $empresa)
+                                    @if($empresa->idempresa == $empleado->fkEmpresa)
+                                    <input type="text" readonly class="form-control" value="{{$empresa->razonSocial}}" />
+                                    @endif
+                                @endforeach                                
                             </div>
                         </div>
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkNomina) hasText @endisset">
                                 <label for="infoNomina" class="control-label">N&oacute;mina</label>
-                                <select disabled class="form-control" id="infoNomina" name="infoNomina">
-                                    <option value=""></option>
-                                    @foreach ($nominas as $nomina)
-                                        <option value="{{$nomina->idNomina}}" @if($nomina->idNomina == $empleado->fkNomina) selected @endif>{{$nomina->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($nominas as $nomina)
+                                    @if($nomina->idNomina == $empleado->fkNomina)
+                                        <input type="text" readonly class="form-control" value="{{$nomina->nombre}}" />
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                         <div class="col-3">
@@ -733,11 +695,7 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->tipoRegimen) hasText @endisset">
                                 <label for="infoTipoRegimen" class="control-label">Tipo regimen</label>
-                                <select disabled class="form-control" id="infoTipoRegimen" name="infoTipoRegimen">
-                                    <option value=""></option>        
-                                    <option value="Ley 50" @if($empleado->tipoRegimen == "Ley 50") selected @endif>Ley 50</option>        
-                                    <option value="Salario Integral" @if($empleado->tipoRegimen == "Salario Integral") selected @endif>Salario Integral</option>        
-                                </select>
+                                <input type="text" readonly class="form-control" value="{{$empleado->tipoRegimen}}" />
                             </div>
                         </div>
                     </div>
@@ -745,45 +703,39 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->ubi_pais_tra) hasText @endisset">
                                 <label for="infoPaisLabora" class="control-label">País</label>
-                                <select disabled class="form-control" id="infoPaisLabora" name="infoPaisLabora">
-                                    <option value=""></option>
-                                    @foreach ($paises as $pais)
-                                        <option value="{{$pais->idubicacion}}" @if($pais->idubicacion == $empleado->ubi_pais_tra) selected @endif>{{$pais->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($paises as $pais)
+                                    @if($pais->idubicacion == $empleado->ubi_pais_tra)
+                                        <input type="text" readonly class="form-control" value="{{$pais->nombre}}" />
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                         <div class="col-3">
                             
                             <div class="form-group @isset($empleado->ubi_depto_tra) hasText @endisset">
                                 <label for="infoDeptoLabora" class="control-label">Departamento</label>
-                                <select disabled class="form-control" id="infoDeptoLabora" name="infoDeptoLabora">
-                                    <option value=""></option>
-                                    @foreach ($deptosTra as $deptoTra)
-                                        <option value="{{$deptoTra->idubicacion}}" @if($deptoTra->idubicacion == $empleado->ubi_depto_tra) selected @endif>{{$deptoTra->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($deptosTra as $deptoTra)
+                                    @if($deptoTra->idubicacion == $empleado->ubi_depto_tra)
+                                        <input type="text" readonly class="form-control" value="{{$deptoTra->nombre}}" />
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkUbicacionLabora) hasText @endisset">
                                 <label for="infoLugarLabora" class="control-label">Lugar</label>
-                                <select disabled class="form-control" id="infoLugarLabora" name="infoLugarLabora">
-                                    <option value=""></option>     
-                                    @foreach ($ciudadesTra as $ciudadTra)
-                                        <option value="{{$ciudadTra->idubicacion}}" @if($ciudadTra->idubicacion == $empleado->fkUbicacionLabora) selected @endif>{{$ciudadTra->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($ciudadesTra as $ciudadTra)
+                                    @if($ciudadTra->idubicacion == $empleado->fkUbicacionLabora)
+                                    <input type="text" readonly class="form-control" value="{{$ciudadTra->nombre}}" />
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                         <div class="col-3">
                             <div class="form-group @isset($empleado->sabadoLaborable) hasText @endisset">
                                 <label for="infoSabadoLabora" class="control-label">Sabado laborable?</label>
-                                <select disabled class="form-control" id="infoSabadoLabora" name="infoSabadoLabora">
-                                    <option value=""></option>
-                                    <option value="1" @if ("1" == $empleado->sabadoLaborable) selected @endif>SI</option>    
-                                    <option value="0" @if ("0" == $empleado->sabadoLaborable) selected @endif>NO</option>    
-                                </select>
+                                @if ("1" == $empleado->sabadoLaborable) <input type="text" readonly class="form-control" value="SI" /> @endif
+                                @if ("0" == $empleado->sabadoLaborable) <input type="text" readonly class="form-control" value="NO" /> @endif
                             </div>
                         </div>
                     </div>
@@ -791,12 +743,11 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkCargo) hasText @endisset">
                                 <label for="infoCargo" class="control-label">Cargo</label>
-                                <select disabled class="form-control" id="infoCargo" name="infoCargo">
-                                    <option value=""></option>
-                                    @foreach ($cargos as $cargo)
-                                        <option value="{{$cargo->idCargo}}" @if ($cargo->idCargo == $empleado->fkCargo) selected @endif>{{$cargo->nombreCargo}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($cargos as $cargo)
+                                    @if ($cargo->idCargo == $empleado->fkCargo) 
+                                    <input type="text" readonly class="form-control" value="{{$cargo->nombreCargo}}" />
+                                    @endif
+                                @endforeach                                
                             </div>
                         </div>
                         <div class="col-3">
@@ -817,11 +768,11 @@
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoTipoCotizante" class="control-label">Tipo cotizante</label>
-                                <select disabled class="form-control" id="infoTipoCotizante" name="infoTipoCotizante">
-                                    @foreach ($tiposcotizante as $tipocotizante)
-                                        <option value="{{$tipocotizante->idTipoCotizante}}" @if ($tipocotizante->idTipoCotizante == $empleado->fkTipoCotizante) selected @endif>{{$tipocotizante->codigo." - ".$tipocotizante->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($tiposcotizante as $tipocotizante)
+                                    @if ($tipocotizante->idTipoCotizante == $empleado->fkTipoCotizante) 
+                                        <input type="text" readonly class="form-control" value="{{$tipocotizante->codigo." - ".$tipocotizante->nombre}}" />
+                                    @endif
+                                @endforeach                                
                             </div>
                         </div>
                     </div>
@@ -829,20 +780,18 @@
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoSubTipoCotizante" class="control-label">Subtipo cotizante</label>
-                                <select disabled class="form-control" id="infoSubTipoCotizante" name="infoSubTipoCotizante">
-                                    @foreach ($subtiposcotizante as $subtipocotizante)
-                                        <option value="{{$subtipocotizante->idSubtipoCotizante}}" @if ($subtipocotizante->idSubtipoCotizante == $empleado->esPensionado) selected @endif>{{$subtipocotizante->codigo." - ".$subtipocotizante->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($subtiposcotizante as $subtipocotizante)
+                                    @if ($subtipocotizante->idSubtipoCotizante == $empleado->esPensionado) 
+                                    <input type="text" readonly class="form-control" value="{{$subtipocotizante->codigo." - ".$subtipocotizante->nombre}}" />
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                         <div class="col-3">
                             <div class="form-group hasText">
                                 <label for="infoAplicaSubsidio" class="control-label">Aplica Subsidio</label>
-                                <select disabled class="form-control" id="infoAplicaSubsidio" name="infoAplicaSubsidio">
-                                    <option value="1" @if ($empleado->aplicaSubsidio == "1") selected @endif >SI</option>
-                                    <option value="0" @if ($empleado->aplicaSubsidio == "0") selected @endif >NO</option>
-                                </select>
+                                @if ("1" == $empleado->aplicaSubsidio) <input type="text" readonly class="form-control" value="SI" /> @endif
+                                @if ("0" == $empleado->aplicaSubsidio) <input type="text" readonly class="form-control" value="NO" /> @endif
                             </div>
                         </div>
                         @if (isset($periodoActivo->fechaFin))
@@ -877,12 +826,11 @@
                                     <div class="col-3">
                                         <div class="form-group hasText">
                                             <label for="infoCentroCosto{{$i}}" class="control-label">Centro de costo</label>
-                                            <select disabled class="form-control" id="infoCentroCosto{{$i}}" name="infoCentroCosto[]">
-                                                <option value=""></option>
-                                                @foreach ($centrosCostos as $centroCostos)
-                                                    <option value="{{$centroCostos->idcentroCosto}}" @if ($centroCostos->idcentroCosto == $centrosCostoxEmpleado[$i-1]->fkCentroCosto) selected @endif>{{$centroCostos->nombre}}</option>
-                                                @endforeach
-                                            </select>
+                                            @foreach ($centrosCostos as $centroCostos)
+                                                @if ($centroCostos->idcentroCosto == $centrosCostoxEmpleado[$i-1]->fkCentroCosto)
+                                                    <input type="text" readonly class="form-control" value="{{$centroCostos->nombre}}" />
+                                                @endif
+                                            @endforeach                                            
                                         </div>
                                     </div>
                                     <div class="col-3">
@@ -908,23 +856,17 @@
                         <div class="col-3">
                             <div class="form-group @isset($contratoActivo->fkTipoContrato) hasText @endisset">
                                 <label for="infoTipoContrato" class="control-label">Tipo Contrato</label>
-                                <select disabled class="form-control" id="infoTipoContrato" name="infoTipoContrato">
-                                    <option value=""></option>
-                                    @foreach ($tipoContratos as $tipoContrato)
-                                        <option value="{{$tipoContrato->idtipoContrato}}" @if($contratoActivo->fkTipoContrato == $tipoContrato->idtipoContrato) selected @endif >{{$tipoContrato->nombre}}</option>
-                                    @endforeach 
-                                </select>
+                                @foreach ($tipoContratos as $tipoContrato)
+                                    @if($contratoActivo->fkTipoContrato == $tipoContrato->idtipoContrato) 
+                                    <input type="text" readonly class="form-control" value="{{$tipoContrato->nombre}}" />
+                                    @endif
+                                @endforeach 
                             </div>
                         </div>
                         <div class="col-3">
                             <div class="form-group  @isset($contratoActivo->tipoDuracionContrato) hasText @endisset">
                                 <label for="infoTipoDuracionContrato" class="control-label">Tipo duración</label>
-                                <select disabled class="form-control" id="infoTipoDuracionContrato" name="infoTipoDuracionContrato">
-                                    <option value=""></option>
-                                    <option value="MES" @if($contratoActivo->tipoDuracionContrato == "MES") selected @endif>MES</option>
-                                    <option value="DÍA" @if($contratoActivo->tipoDuracionContrato == "DÍA") selected @endif>DÍA</option>
-                                </select>
-
+                                <input type="text" readonly class="form-control" value="{{$contratoActivo->tipoDuracionContrato}}" />
                             </div>
                         </div>
                         <div class="col-3">
@@ -1003,13 +945,7 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->formaPago) hasText @endisset">
                                 <label for="infoFormaPago" class="control-label">Forma Pago</label>
-                                <select disabled class="form-control" id="infoFormaPago" name="infoFormaPago">
-                                    <option value=""></option>
-                                    <option value="Cheque" @if ($empleado->formaPago == "Cheque") selected @endif>Cheque</option>
-                                    <option value="Efectivo" @if ($empleado->formaPago == "Efectivo") selected @endif>Efectivo</option>
-                                    <option value="Otra forma pago" @if ($empleado->formaPago == "Otra forma pago") selected @endif>Otra forma pago</option>
-                                    <option value="Transferencia" @if ($empleado->formaPago == "Transferencia") selected @endif>Transferencia</option>                                    
-                                </select>
+                                <input type="text" readonly class="form-control" value="{{$empleado->formaPago}}" />
                             </div>
                         </div>
                     </div>
@@ -1017,14 +953,11 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkEntidad) hasText @endisset">
                                 <label for="infoEntidadFinanciera" class="control-label">Entidad financiera</label>
-                                <select disabled class="form-control" id="infoEntidadFinanciera" name="infoEntidadFinanciera">
-                                    <option value=""></option>
-                                    @foreach ($entidadesFinancieras as $entidadesFinanciera)
-                                        <option value="{{$entidadesFinanciera->idTercero}}"
-                                            @if ($empleado->fkEntidad == $entidadesFinanciera->idTercero) selected @endif   
-                                        >{{$entidadesFinanciera->razonSocial}}</option>
-                                    @endforeach 
-                                </select>
+                                @foreach ($entidadesFinancieras as $entidadesFinanciera)
+                                    @if ($empleado->fkEntidad == $entidadesFinanciera->idTercero) 
+                                    <input type="text" readonly class="form-control" value="{{$entidadesFinanciera->razonSocial}}" />
+                                    @endif   
+                                @endforeach 
                             </div>
                         </div>
                         <div class="col-3">
@@ -1036,24 +969,17 @@
                         <div class="col-2">
                             <div class="form-group @isset($empleado->tipoCuenta) hasText @endisset">
                                 <label for="infoTipoCuenta" class="control-label">Tipo cuenta:</label>
-                                <select disabled class="form-control" id="infoTipoCuenta" name="infoTipoCuenta">
-                                    <option value=""></option>
-                                    <option value="AHORROS" @if ($empleado->tipoCuenta == "AHORROS") selected @endif>AHORROS</option>
-                                    <option value="CORRIENTE" @if ($empleado->tipoCuenta == "CORRIENTE") selected @endif>CORRIENTE</option>
-                                    <option value="DAVIPLATA" @if ($empleado->tipoCuenta == "DAVIPLATA") selected @endif>DAVIPLATA</option>
-                                    <option value="TARJETA PREPAGO MAESTRO" @if ($empleado->tipoCuenta == "TARJETA PREPAGO MAESTRO") selected @endif>TARJETA PREPAGO MAESTRO</option>                                    
-                                </select>
+                                <input type="text" readonly class="form-control" value="{{$empleado->tipoCuenta}}" />
                             </div>
                         </div>
                         <div class="col-2">
                             <div class="form-group @isset($empleado->fkTipoIdentificacion) hasText @endif">
                                 <label for="infoOtroTIdentificacion" class="control-label">Tipo Identificación</label>
-                                <select disabled class="form-control" id="infoOtroTIdentificacion" name="infoOtroTIdentificacion">
-                                    <option value=""></option>
-                                    @foreach ($tipoidentificacion as $tipoidentificacio)
-                                        <option value="{{$tipoidentificacio->idtipoIdentificacion}}" @if($tipoidentificacio->idtipoIdentificacion == $empleado->fkTipoOtroDocumento) selected @endif>{{$tipoidentificacio->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($tipoidentificacion as $tipoidentificacio)
+                                    @if($tipoidentificacio->idtipoIdentificacion == $empleado->fkTipoOtroDocumento) 
+                                    <input type="text" readonly class="form-control" value="{{$tipoidentificacio->nombre}}" />
+                                    @endif
+                                @endforeach                                
                             </div>
                         </div>
                         <div class="col-2">
@@ -1081,11 +1007,7 @@
                         <div class="col-3">
                             <div class="form-group @isset($empleado->procedimientoRetencion) hasText @endisset">
                                 <label for="infoProcedimientoRetencion" class="control-label">Procedimiento retencion:</label>
-                                <select disabled class="form-control" id="infoProcedimientoRetencion" name="infoProcedimientoRetencion">
-                                    <option value=""></option>
-                                    <option value="TABLA" @if ($empleado->procedimientoRetencion == "TABLA") selected @endif>TABLA</option>
-                                    <option value="PORCENTAJE" @if ($empleado->procedimientoRetencion == "PORCENTAJE") selected @endif>PORCENTAJE</option>
-                                </select>
+                                <input type="text" readonly class="form-control" value="{{$empleado->procedimientoRetencion}}" />
                             </div>
                         </div>
                         <div class="col-3 porcentajeRetencion @if ($empleado->procedimientoRetencion == "PORCENTAJE") activo @endif">
@@ -1114,12 +1036,11 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($beneficiosTributarios[$i-1]->fkTipoBeneficio) hasText @endisset">
                                             <label for="infoTipoBeneficio{{$i}}" class="control-label">Tipo Beneficio</label>
-                                            <select disabled class="form-control infoTipoBeneficio" id="infoTipoBeneficio{{$i}}" name="infoTipoBeneficio[]" data-id="{{$i}}">
-                                                <option value=""></option>
-                                                @foreach ($tipobeneficio as $tipobene)
-                                                    <option value="{{$tipobene->idTipoBeneficio}}" @if($tipobene->idTipoBeneficio == $beneficiosTributarios[$i-1]->fkTipoBeneficio) selected @endif>{{$tipobene->nombre}}</option>
-                                                @endforeach
-                                            </select>
+                                            @foreach ($tipobeneficio as $tipobene)
+                                                @if($tipobene->idTipoBeneficio == $beneficiosTributarios[$i-1]->fkTipoBeneficio) 
+                                                    <input type="text" readonly class="form-control" value="{{$tipobene->nombre}}" />
+                                                @endif
+                                            @endforeach                                            
                                         </div>
                                     </div>
                                     <div class="col-3">
@@ -1138,12 +1059,11 @@
                                         <div class="infoPersonaBeneficio1 @if($beneficiosTributarios[$i-1]->fkTipoBeneficio == "4") activo @endif" data-id="{{$i}}">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->fkNucleoFamiliar) hasText @endisset">
                                                 <label for="infoPersonaVive{{$i}}" class="control-label">Persona</label>
-                                                <select disabled class="form-control" id="infoPersonaVive{{$i}}" name="infoPersonaVive[]">
-                                                    <option value=""></option>
-                                                    @foreach ($nucleofamiliar as $nucleofam)
-                                                        <option value="{{$nucleofam->idNucleoFamiliar}}" @if($nucleofam->idNucleoFamiliar == $beneficiosTributarios[$i-1]->fkNucleoFamiliar) selected @endif>{{$nucleofam->nombre}}</option>
-                                                    @endforeach
-                                                </select>
+                                                @foreach ($nucleofamiliar as $nucleofam)
+                                                    @if($nucleofam->idNucleoFamiliar == $beneficiosTributarios[$i-1]->fkNucleoFamiliar)
+                                                        <input type="text" readonly class="form-control" value="{{$nucleofam->nombre}}" />
+                                                    @endif
+                                                @endforeach                                                
                                             </div>
                                         </div>
                                     </div>
@@ -1157,13 +1077,11 @@
                                         <div class="infoPersonaBeneficio1 @if($beneficiosTributarios[$i-1]->fkTipoBeneficio == "4") activo @endif" data-id="{{$i}}">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->fkTipoIdentificacion) hasText @endisset">
                                                 <label for="infoTIdentificacion{{$i}}" class="control-label">Tipo Identificación</label>
-                                                <select disabled class="form-control" id="infoTIdentificacion{{$i}}" name="infoTIdentificacion[]">
-                                                    <option value=""></option>
-                                                    @foreach ($tipoidentificacion as $tipoidentificacio)
-                                                        <option value="{{$tipoidentificacio->idtipoIdentificacion}}" 
-                                                            @if($tipoidentificacio->idtipoIdentificacion == $beneficiosTributarios[$i-1]->fkTipoIdentificacion) selected @endif>{{$tipoidentificacio->nombre}}</option>
-                                                    @endforeach
-                                                </select>
+                                                @foreach ($tipoidentificacion as $tipoidentificacio)
+                                                    @if($tipoidentificacio->idtipoIdentificacion == $beneficiosTributarios[$i-1]->fkTipoIdentificacion) 
+                                                    <input type="text" readonly class="form-control" value="{{$tipoidentificacio->nombre}}" />
+                                                    @endif
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
@@ -1187,23 +1105,21 @@
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->fkNucleoFamiliar) hasText @endisset">
                                                 <label for="info2PersonaVive{{$i}}" class="control-label">Persona</label>
-                                                <select disabled class="form-control" id="info2PersonaVive{{$i}}" name="info2PersonaVive[]">
-                                                    <option value=""></option>
-                                                    @foreach ($nucleofamiliar as $nucleofam)
-                                                        <option value="{{$nucleofam->idNucleoFamiliar}}" @if($nucleofam->idNucleoFamiliar == $beneficiosTributarios[$i-1]->fkNucleoFamiliar) selected @endif>{{$nucleofam->nombre}}</option>
-                                                    @endforeach
-                                                </select>
+                                                @foreach ($nucleofamiliar as $nucleofam)
+                                                    @if($nucleofam->idNucleoFamiliar == $beneficiosTributarios[$i-1]->fkNucleoFamiliar)
+                                                    <input type="text" readonly class="form-control" value="{{$nucleofam->nombre}}" />
+                                                    @endif
+                                                @endforeach
                                             </div>
                                         </div>
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->fkTipoIdentificacion) hasText @endisset">
                                                 <label for="info2TIdentificacion{{$i}}" class="control-label">Tipo Identificación</label>
-                                                <select disabled class="form-control" id="info2TIdentificacion{{$i}}" name="info2TIdentificacion[]">
-                                                    <option value=""></option>
-                                                    @foreach ($tipoidentificacion as $tipoidentificacio)
-                                                        <option value="{{$tipoidentificacio->idtipoIdentificacion}}" @if($tipoidentificacio->idtipoIdentificacion == $beneficiosTributarios[$i-1]->fkTipoIdentificacion) selected @endif>{{$tipoidentificacio->nombre}}</option>
-                                                    @endforeach
-                                                </select>
+                                                @foreach ($tipoidentificacion as $tipoidentificacio)
+                                                    @if($tipoidentificacio->idtipoIdentificacion == $beneficiosTributarios[$i-1]->fkTipoIdentificacion)
+                                                        <input type="text" readonly class="form-control" value="{{$tipoidentificacio->nombre}}" />
+                                                    @endif
+                                                @endforeach
                                             </div>
                                         </div>
                                         <div class="col-3">
@@ -1215,12 +1131,11 @@
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->fkGenero) hasText @endisset">
                                                 <label for="info2Genero{{$i}}" class="control-label">Genero</label>
-                                                <select disabled class="form-control" id="info2Genero{{$i}}" name="info2Genero[]">
-                                                    <option value=""></option>
-                                                    @foreach ($generosBen as $genero)
-                                                        <option value="{{$genero->idGenero}}" @if($genero->idGenero == $beneficiosTributarios[$i-1]->fkGenero) selected @endif>{{$genero->nombre}}</option>
-                                                    @endforeach
-                                                </select>
+                                                @foreach ($generosBen as $genero)
+                                                    @if($genero->idGenero == $beneficiosTributarios[$i-1]->fkGenero)
+                                                    <input type="text" readonly class="form-control" value="{{$genero->nombre}}" />
+                                                    @endif
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
@@ -1234,34 +1149,31 @@
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->ubi_pais_benef) hasText @endisset">
                                                 <label for="info2PaisPersona{{$i}}" class="control-label">País</label>
-                                                <select disabled class="form-control infoPaisPersona" id="info2PaisPersona{{$i}}" data-id="{{$i}}" name="info2PaisPersona[]">
-                                                    <option value=""></option>
-                                                    @foreach ($paises as $pais)
-                                                        <option value="{{$pais->idubicacion}}" @if($pais->idubicacion == $beneficiosTributarios[$i-1]->ubi_pais_benef) selected @endif>{{$pais->nombre}}</option>
-                                                    @endforeach
-                                                </select>
+                                                @foreach ($paises as $pais)
+                                                    @if($pais->idubicacion == $beneficiosTributarios[$i-1]->ubi_pais_benef)
+                                                        <input type="text" readonly class="form-control" value="{{$pais->nombre}}" />
+                                                    @endif
+                                                @endforeach                                                
                                             </div>
                                         </div>
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->ubi_depto_benef) hasText @endisset">
                                                 <label for="info2DeptoPersona{{$i}}" class="control-label">Departamento</label>
-                                                <select disabled class="form-control infoDeptoPersona" id="info2DeptoPersona{{$i}}" data-id="{{$i}}" name="info2DeptoPersona[]">
-                                                    <option value=""></option>    
                                                     @foreach ($deptosBeneficiosTributarios[$i-1] as $deptoBen)
-                                                        <option value="{{$deptoBen->idubicacion}}" @if($deptoBen->idubicacion == $beneficiosTributarios[$i-1]->ubi_depto_benef) selected @endif>{{$deptoBen->nombre}}</option>
+                                                       @if($deptoBen->idubicacion == $beneficiosTributarios[$i-1]->ubi_depto_benef)
+                                                            <input type="text" readonly class="form-control" value="{{$deptoBen->nombre}}" />
+                                                       @endif
                                                     @endforeach
-                                                </select>
-                                            </div>
+                                                </div>
                                         </div>
                                         <div class="col-3">
                                             <div class="form-group @isset($beneficiosTributarios[$i-1]->fkUbicacion) hasText @endisset">
                                                 <label for="info2LugarPersona{{$i}}" class="control-label">Lugar</label>
-                                                <select disabled class="form-control infoLugarPersona" id="info2LugarPersona{{$i}}"  data-id="{{$i}}" name="info2LugarPersona[]">
-                                                    <option value=""></option>            
-                                                    @foreach ($ciudadesBeneficiosTributarios[$i-1] as $ciudadBen)
-                                                        <option value="{{$ciudadBen->idubicacion}}" @if($ciudadBen->idubicacion == $beneficiosTributarios[$i-1]->fkUbicacion) selected @endif>{{$ciudadBen->nombre}}</option>
-                                                    @endforeach                
-                                                </select>
+                                                @foreach ($ciudadesBeneficiosTributarios[$i-1] as $ciudadBen)
+                                                    @if($ciudadBen->idubicacion == $beneficiosTributarios[$i-1]->fkUbicacion)
+                                                    <input type="text" readonly class="form-control" value="{{$ciudadBen->nombre}}" />
+                                                    @endif
+                                                @endforeach                
                                             </div>
                                         </div>
                                     </div>
@@ -1589,28 +1501,22 @@
                             <div class="col-3">
                                 <div class="form-group @isset($empleado->fkNivelArl) hasText @endisset">
                                     <label for="afiliacionLvArl" class="control-label">Nivel arl *</label>
-                                    <select disabled class="form-control" id="afiliacionLvArl" name="afiliacionLvArl">
-                                        <option value=""></option>
-                                        @foreach ($nivelesArl as $nivelArl)
-                                            <option value="{{$nivelArl->idnivel_arl}}" @if($empleado->fkNivelArl == $nivelArl->idnivel_arl)
-                                                selected
-                                            @endif  >{{$nivelArl->nombre}}</option>
-                                        @endforeach
-                                    </select>
+                                    @foreach ($nivelesArl as $nivelArl)
+                                            @if($empleado->fkNivelArl == $nivelArl->idnivel_arl)
+                                            <input type="text" readonly class="form-control" value="{{$nivelArl->nombre}}" />
+                                        @endif
+                                    @endforeach                                    
                                 </div>
                             </div>
                         @endif                       
                         <div class="col-3">
                             <div class="form-group @isset($empleado->fkCentroTrabajo) hasText @endisset">
                                 <label for="afiliacionCentroTrabajo" class="control-label">Centro trabajo *</label>
-                                <select disabled class="form-control" id="afiliacionCentroTrabajo" name="afiliacionCentroTrabajo">
-                                    <option value=""></option>
-                                    @foreach ($centrosTrabajo as $centroTrabajo)
-                                        <option value="{{$centroTrabajo->idCentroTrabajo}}" @if($empleado->fkCentroTrabajo == $centroTrabajo->idCentroTrabajo)
-                                            selected
-                                        @endif  >{{$centroTrabajo->codigo}} - {{$centroTrabajo->nombre}}</option>
-                                    @endforeach
-                                </select>
+                                @foreach ($centrosTrabajo as $centroTrabajo)
+                                    @if($empleado->fkCentroTrabajo == $centroTrabajo->idCentroTrabajo)
+                                        <input type="text" readonly class="form-control" value="{{$centroTrabajo->codigo}} - {{$centroTrabajo->nombre}}" />
+                                    @endif
+                                @endforeach                                
                             </div>
                         </div>
                     </div>
@@ -1653,16 +1559,12 @@
                                             
                                             
                                             @if ($num>4)
-                                                <select disabled class="form-control afiliacionTipoAfilicacion nuevoRegistro"
-                                                id="afiliacionTipoAfilicacion{{$num}}" data-id="{{$num}}"
-                                                name="afiliacionTipoAfilicacion[]">
-                                                    <option value=""></option>
-                                                    @foreach ($tipoafilicaciones as $tipoafilicacion)
-                                                        <option value="{{$tipoafilicacion->idTipoAfiliacion}}" @if ($afiliaciones[$num - 1]->fkTipoAfilicacion == $tipoafilicacion->idTipoAfiliacion)
-                                                            selected
-                                                        @endif>{{$tipoafilicacion->nombre}}</option>
-                                                    @endforeach
-                                                </select>
+                                                @foreach ($tipoafilicaciones as $tipoafilicacion)
+                                                    @if ($afiliaciones[$num - 1]->fkTipoAfilicacion == $tipoafilicacion->idTipoAfiliacion)
+                                                        <input type="text" readonly class="form-control" value="{{$tipoafilicacion->nombre}}" />
+                                                    @endif
+                                                @endforeach
+                                                
                                             @else
                                                 @foreach ($tipoafilicaciones as $tipoafilicacion)
                                                     @if ($afiliaciones[$num - 1]->fkTipoAfilicacion == $tipoafilicacion->idTipoAfiliacion)
@@ -1677,15 +1579,11 @@
                                     <div class="col-3">
                                         <div class="form-group @isset($afiliaciones[$num - 1]->fkTercero) hasText @endisset">
                                             <label for="afiliacionEntidad{{$num}}" class="control-label">Entidad *</label>
-                                            <select disabled class="form-control" id="afiliacionEntidad{{$num}}" name="afiliacionEntidad[]">
-                                                <option value=""></option>
-                                                @foreach ($entidadesAfiliacion[$afiliaciones[$num - 1]->idAfiliacion] as $entidad)
-                                                    <option value="{{$entidad->idTercero}}" @if ($afiliaciones[$num - 1]->fkTercero == $entidad->idTercero)
-                                                        selected
-                                                    @endif>{{$entidad->razonSocial}}</option>
-                                                @endforeach
-                                                                                                
-                                            </select>
+                                            @foreach ($entidadesAfiliacion[$afiliaciones[$num - 1]->idAfiliacion] as $entidad)
+                                                @if ($afiliaciones[$num - 1]->fkTercero == $entidad->idTercero)
+                                                    <input type="text" readonly class="form-control" value="{{$entidad->razonSocial}}" />
+                                                @endif
+                                            @endforeach
                                         </div>
                                     </div>
                                     <div class="col-3">
@@ -1705,24 +1603,20 @@
                                             <input type="date" readonly class="form-control" id="afiliaFechaInicioCambio{{$num}}" name="afiliaFechaInicioCambio[]" 
                                             @if (isset($afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]))
                                                 value="{{ $afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]->fechaCambio }}"
-                                            @endif
-                                            
+                                            @endif                                            
                                             />
                                         </div>
                                     </div>
                                     <div class="col-3">
                                         <div class="form-group @isset($afiliaciones[$num - 1]->fkTercero) hasText @endisset">
                                             <label for="afiliacionEntidadNueva{{$num}}" class="control-label">Entidad *</label>
-                                            <select disabled class="form-control" id="afiliacionEntidadNueva{{$num}}" name="afiliacionEntidadNueva[]">
-                                                <option value=""></option>
-                                                @foreach ($entidadesAfiliacion[$afiliaciones[$num - 1]->idAfiliacion] as $entidad)
-                                                    <option value="{{$entidad->idTercero}}" 
-                                                            @if (isset($afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]) and $afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]->fkTerceroNuevo == $entidad->idTercero)
-                                                                selected
-                                                            @endif
-                                                    >{{$entidad->razonSocial}}</option>
-                                                @endforeach
-                                                                                                
+                                        
+                                            @foreach ($entidadesAfiliacion[$afiliaciones[$num - 1]->idAfiliacion] as $entidad)
+                                                @if (isset($afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]) and $afiliacionesNuevas[$afiliaciones[$num - 1]->idAfiliacion]->fkTerceroNuevo == $entidad->idTercero)
+                                                <input type="text" readonly class="form-control" value="{{$entidad->razonSocial}}" />
+                                                @endif
+                                            @endforeach
+                                                                                            
                                             </select>
                                         </div>
                                     </div>
@@ -1980,28 +1874,24 @@
                                 <div class="col-3">
                                     <div class="form-group hasText">
                                         <label for="conFiConcepto{{$i}}" class="control-label">Concepto</label>
-                                        <select disabled class="form-control" id="conFiConcepto{{$i}}" name="conFiConcepto[]">                                            
-                                            @if ($i == 1)
-                                                <option value="{{$conceptosFijos[$i-1]->fkConcepto}}">{{$conceptosFijos[$i-1]->nombreConcepto}}</option>
-                                            @else
-                                                <option value=""></option>
+                                            @if ($i==1)
+                                                <input type="text" readonly class="form-control" value="{{$conceptosFijos[$i-1]->nombreConcepto}}" />
+                                                @else
                                                 @foreach ($conceptos as $concepto)
-                                                    <option value="{{$concepto->idconcepto}}" @if ($conceptosFijos[$i-1]->fkConcepto==$concepto->idconcepto) selected @endif>{{$concepto->nombre}}</option>
+                                                    @if ($conceptosFijos[$i-1]->fkConcepto==$concepto->idconcepto)
+                                                    <input type="text" readonly class="form-control" value="{{$concepto->nombre}}" />
+                                                    @endif
                                                 @endforeach
                                             @endif
+                                           
+                                            
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="form-group @isset($conceptosFijos[$i-1]->unidad) hasText @endisset">
                                         <label for="conFiUnidad{{$i}}" class="control-label">Unidad</label>
-                                        <select disabled class="form-control" id="conFiUnidad{{$i}}" name="conFiUnidad[]">
-                                            <option value=""></option>                                            
-                                            <option value="DIA" @if (isset($conceptosFijos[$i-1]->unidad) && $conceptosFijos[$i-1]->unidad == "DIA") selected @endif>DIA</option>
-                                            <option value="HORA" @if (isset($conceptosFijos[$i-1]->unidad) && $conceptosFijos[$i-1]->unidad == "HORA") selected @endif>HORA</option>
-                                            <option value="MES" @if (isset($conceptosFijos[$i-1]->unidad) && $conceptosFijos[$i-1]->unidad == "MES") selected @endif>MES</option>
-                                            <option value="UNIDAD" @if (isset($conceptosFijos[$i-1]->unidad) && $conceptosFijos[$i-1]->unidad == "UNIDAD") selected @endif>UNIDAD</option>                                        
-                                        </select>
+                                        <input type="text" readonly class="form-control" value="{{$conceptosFijos[$i-1]->unidad}}" />                    
                                     </div>
                                 </div>
                                 <div class="col-3">
@@ -2067,17 +1957,13 @@
                                     <div class="col-3">
                                         @if ($empleado->tipoRegimen == "Ley 50")
                                             <div class="form-group hasText">
-                                                <label for="conFiConcepto1" class="control-label">Concepto</label>                                        
-                                                <select disabled class="form-control" id="conFiConcepto1" name="conFiConcepto[]" >
-                                                    <option value="1">SALARIO BASICO</option>
-                                                </select>                                       
+                                                <label for="conFiConcepto1" class="control-label">Concepto</label>       
+                                                <input type="text" readonly class="form-control" value="SALARIO BASICO" />                                 
                                             </div>
                                         @else
                                         <div class="form-group hasText">
                                                 <label for="conFiConcepto1" class="control-label">Concepto</label>
-                                                <select disabled class="form-control" id="conFiConcepto1" name="conFiConcepto[]">
-                                                    <option value="2">SALARIO INTEGRAL</option>
-                                                </select>
+                                                <input type="text" readonly class="form-control" value="SALARIO INTEGRAL" />
                                             </div>
                                         @endif
                                     </div>
@@ -2174,14 +2060,7 @@
                                             hasText
                                         @endisset">
                                             <label for="conFiUnidad1" class="control-label">Unidad</label>
-                                            <select disabled class="form-control" id="conFiUnidad1" name="conFiUnidad[]">
-                                                <option value=""></option>
-                                                
-                                                <option value="DIA" @if (isset($contratoActivo->tipoDuracionContrato) && $contratoActivo->tipoDuracionContrato == "DIA") selected @endif>DIA</option>
-                                                <option value="HORA" @if (isset($contratoActivo->tipoDuracionContrato) && $contratoActivo->tipoDuracionContrato == "HORA") selected @endif>HORA</option>
-                                                <option value="MES" @if (isset($contratoActivo->tipoDuracionContrato) && $contratoActivo->tipoDuracionContrato == "MES") selected @endif>MES</option>
-                                                <option value="UNIDAD" @if (isset($contratoActivo->tipoDuracionContrato) && $contratoActivo->tipoDuracionContrato == "UNIDAD") selected @endif>UNIDAD</option>                                        
-                                            </select>
+                                            <input type="text" readonly class="form-control" value="{{$contratoActivo->tipoDuracionContrato}}" />                    
                                         </div>
                                     </div>
                                     <div class="col-3">
@@ -2219,6 +2098,28 @@
                             
                         @endif
                     
+                    @endif
+
+                    @if (isset($cambioSalarioFin) && sizeof($cambioSalarioFin) > 0)
+                   
+                        <br><br><br><br>
+                        <h1>Salarios anteriores</h1>
+                        @foreach ($cambioSalarioFin as $cambioSalarioF)
+                            <div class="row">
+                                <div class="col-3">
+                                    <div class="form-group hasText">
+                                        <label for="cambioSalarioFecha{{$cambioSalarioF->idCambioSalario}}" class="control-label">Fecha cambio</label>
+                                        <input type="date" readonly class="form-control" id="cambioSalarioFecha{{$cambioSalarioF->idCambioSalario}}" value="{{$cambioSalarioF->fechaCambio}}" />
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group hasText">
+                                        <label for="cambioSalarioValor{{$cambioSalarioF->idCambioSalario}}" class="control-label">Valor</label>
+                                        <input type="text" readonly class="form-control separadorMiles" id="cambioSalarioValor{{$cambioSalarioF->idCambioSalario}}" value="{{$cambioSalarioF->valorAnterior}}" />
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach                        
                     @endif
                 </div>
             </section>

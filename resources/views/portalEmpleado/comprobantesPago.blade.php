@@ -68,6 +68,7 @@
             responsive: true,
             "deferRender": true,
             "searching": false,
+            "order": [[ 1, "desc" ]],
             columns: [{
                 'data': 'idBoucherPago',
                 "orderable": false,
@@ -86,7 +87,7 @@
                 'searchable': false,
                 "render": (data, type, full, meta) => {
                     return `
-                        <form method = "GET" target="_blank" action = "/reportes/comprobantePdf/${data}">
+                        <form method = "GET" target="_blank" action = "/reportes/comprobantePdfPass/${data}">
                             <button class "btn btn-link">Descargar&nbsp;<i class="fas fa-download"></i></button>
                         </form>
                     `;
@@ -99,6 +100,7 @@
             const formData = new FormData($('.buscarComprobantesPorFecha')[0]);
             solicitudAjax(`/portal/buscarComprobantes/${ {{ $idEmple }} }`, 'POST', formData,
                 (data) => {
+                    
                     tabla.clear().draw();
                     tabla.rows.add(data);
                     tabla.columns.adjust().draw();

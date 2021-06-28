@@ -15,6 +15,10 @@ use App\Ubicacion;
 use App\CentroCostoEmpresaModel;
 use App\TercerosModel;
 use App\NominaEmpresaModel;
+use League\Csv\Reader;
+use League\Csv\Writer;
+use SplTempFileObject;
+
 class EmpresaController extends Controller
 {
     public function index() {
@@ -31,6 +35,64 @@ class EmpresaController extends Controller
             'dataUsu' => $usu
         ]);
     }
+
+    public function exportar(){
+        $empresas = DB::table("empresa","e")
+        ->select("e.idempresa", "e.razonSocial", "e.dominio", "ti.nombre as tipoidentificacion",
+         "e.documento","e.digitoVerificacion","ter_arl.razonSocial as arl","e.direccion","e.paginaWeb", "e.telefonoFijo", "e.celular", 
+         "e.email1", "e.representanteLegal")
+        ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=","e.fkTipoIdentificacion")
+        ->join("tercero as ter_arl","ter_arl.idTercero", "=","e.fkTercero_ARL");
+        if(isset($usu) && $usu->fkRol == 2){            
+            $empresas = $empresas->whereIn("e.idempresa", $usu->empresaUsuario);
+        }
+        $empresas = $empresas->get();
+
+        $arrDef = array([
+            "idEmpresa",
+            "Razon Social",
+            "Dominio",
+            "Tipo Identificación",
+            "Documento",
+            "Digito verificación",
+            "ARL",
+            "Dirección",
+            "Pagina Web",
+            "Telefono Fijo",
+            "Celular",
+            "Correo",
+            "Representante Legal"
+        ]);
+        foreach ($empresas as $empresa){
+            array_push($arrDef, [
+                $empresa->idempresa,
+                $empresa->razonSocial,
+                $empresa->dominio,
+                $empresa->tipoidentificacion,
+                $empresa->documento,
+                $empresa->digitoVerificacion,
+                $empresa->arl,
+                $empresa->direccion,
+                $empresa->paginaWeb,
+                $empresa->telefonoFijo,
+                $empresa->celular,
+                $empresa->email1,
+                $empresa->representanteLegal
+            ]);
+        }
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename=conceptos.csv');
+
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->setDelimiter(';');
+        $csv->insertAll($arrDef);
+        $csv->setOutputBOM(Reader::BOM_UTF8);
+        $csv->output('empresas.csv');
+    }
+
+
     public function indexPermisos($idEmpresa) {
 
         $empresas = DB::table("empresa")->where("idEmpresa","=",$idEmpresa)->first();

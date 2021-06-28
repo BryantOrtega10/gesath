@@ -32,17 +32,20 @@
         <div class="row">
             <div class="col-3 font-weight-bold">N&uacute;mero</div>
             <div class="col-3 font-weight-bold">Tipo Documento</div>
-            <div class="col-6 font-weight-bold">Nombre</div>
+            <div class="col-3 font-weight-bold">Nombre</div>
+            <div class="col-3 font-weight-bold">Estado</div>
         </div>
         @foreach ($empleados as $empleado)
             <div class="row">
                 <div class="col-3 font-weight-bold">{{$empleado->numeroIdentificacion}}</div>
                 <div class="col-3 font-weight-bold">{{$empleado->nombre}}</div>
-                <div class="col-6 text-left">
+                
+                <div class="col-3 text-left">
                     <a href="#" class="seleccionarEmpleado" data-id="{{$empleado->idempleado}}">
                     {{$empleado->primerNombre." ".$empleado->segundoNombre." ".$empleado->primerApellido." ".$empleado->segundoApellido}}
                     </a>
                 </div>
+                <div class="col-3 font-weight-bold">{{$empleado->estado}}</div>
             </div>
         @endforeach
     </div><br>

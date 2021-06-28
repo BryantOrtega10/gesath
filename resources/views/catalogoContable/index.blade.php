@@ -9,9 +9,9 @@
 @section('contenido')
 <div class="cajaGeneral">
     <div class="row">
-        <div class="col-7"><h1 class="granAzul">Catalogo contable</h1></div>
+        <div class="col-10"><h1 class="granAzul">Catalogo contable</h1></div>
         @if (in_array("79",$dataUsu->permisosUsuario))
-            <div class="col-5 text-right"><a  class="btnGeneral btnAzulGen btnGrande text-center" href="/catalogo-contable/descargarPlano"><i class="fas fa-download"></i> Descargar plano</a></div>
+            <div class="col-2 text-right"><a  class="btnGeneral btnAzulGen btnGrande text-center" href="/catalogo-contable/descargarPlano"><i class="fas fa-download"></i> Descargar plano</a></div>
         @endif
     </div>
     <form autocomplete="off" action="/catalogo-contable/" method="GET"  class="formGeneral" id="filtrar">
@@ -50,12 +50,15 @@
     </form>
 
     <div class="text-left">
-        @if (in_array("80",$dataUsu->permisosUsuario))
-        <a class="btn btnAzulGen" href="#" id="addCuenta">Agregar cuenta</a>
-        @endif
-        @if (in_array("81",$dataUsu->permisosUsuario))
-        <a class="btn btnAzulGen" href="/catalogo-contable/subirPlano" >Agregar por archivo plano</a>
-        @endif
+        <div class="row">
+            @if (in_array("80",$dataUsu->permisosUsuario))
+            <div class="col-2"><a class="btn btnAzulGen" href="#" id="addCuenta">Agregar cuenta</a></div>
+            @endif
+            @if (in_array("81",$dataUsu->permisosUsuario))
+            <div class="col-2"><a class="btn btnAzulGen" href="/catalogo-contable/subirPlano" >Agregar por archivo plano</a></div>
+            @endif
+        </div>
+        
     </div>
     <br>
     <div class="table-responsive">
@@ -111,6 +114,9 @@
                             @endif
                             @if($cata["fkTipoAporteEmpleador"] == "6")    
                                 SENA
+                            @endif
+                            @if($cata["fkTipoAporteEmpleador"] == "7")    
+                                APORTE FONDO DE SOLIDARIDAD
                             @endif
                         @endif
                         @if ($cata["tablaConsulta"] == "4")

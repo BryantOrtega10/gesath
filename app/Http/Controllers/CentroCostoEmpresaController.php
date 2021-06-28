@@ -31,6 +31,7 @@ class CentroCostoEmpresaController extends Controller
         $centroCosto->nombre = $request->nombre;
         $centroCosto->fkEmpresa = $request->fkEmpresa;
         $centroCosto->id_uni_centro = $request->id_uni_centro;
+        $centroCosto->diasCesantias = (empty($request->dias_cesantias) ? null : $request->dias_cesantias);
         $save = $centroCosto->save();
         if ($save) {
             $success = true;
@@ -76,6 +77,7 @@ class CentroCostoEmpresaController extends Controller
             $centroCosto->nombre = $request->nombre;
             $centroCosto->fkEmpresa = $request->fkEmpresa;
             $centroCosto->id_uni_centro = $request->id_uni_centro;
+            $centroCosto->diasCesantias = (empty($request->dias_cesantias) ? null : $request->dias_cesantias);
             $save = $centroCosto->save();
             if ($save) {
                 $success = true;

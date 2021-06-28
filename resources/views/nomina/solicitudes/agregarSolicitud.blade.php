@@ -17,12 +17,21 @@
             <div class="row">
                 <div class="col-3">
                     <div class="form-group">
+                        <label for="empresa" class="control-label">Empresa:</label>
+                        <select class="form-control" id="empresa" name="empresa">
+                            <option value=""></option>
+                            @foreach ($empresas as $empresa)
+                                <option value="{{$empresa->idempresa}}">{{$empresa->razonSocial}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="form-group">
                         <label for="nomina" class="control-label">N&oacute;mina:</label>
                         <select class="form-control" id="nomina" name="nomina">
                             <option value=""></option>
-                            @foreach ($nominas as $nomina)
-                                <option value="{{$nomina->idNomina}}">{{$nomina->nombre}}</option>
-                            @endforeach
+                            
                         </select>
                     </div>
                     <div class="respTipoNomina"></div>

@@ -15,16 +15,16 @@ class NovedadesController extends Controller
 {
     public function index(){
         $dataUsu = UsuarioController::dataAdminLogueado();
-        $nominas = DB::table("nomina");
-        if(isset($dataUsu) && $dataUsu->fkRol == 2){
-            $nominas->whereIn("fkEmpresa", $dataUsu->empresaUsuario);
-        } 
-        $nominas = $nominas->get();
+        $empresas = DB::table("empresa", "e");
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){            
+            $empresas = $empresas->whereIn("idempresa", $dataUsu->empresaUsuario);
+        }
+        $empresas = $empresas->orderBy("razonSocial")->get();
         $tipos_novedades = DB::table("tiponovedad")->get();
         
         
         return view('/novedades.cargarNovedad',[
-            'nominas' => $nominas,
+            'empresas' => $empresas,
             'tipos_novedades' => $tipos_novedades,
             'dataUsu' => $dataUsu
         ]);
@@ -378,6 +378,14 @@ class NovedadesController extends Controller
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
+        foreach($req->concepto as $row => $concepto){
+            $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial[$row], $req->fechaFinal[$row], $req->idEmpleado[$row]);
+            if(sizeof($valFechas) > 0){
+                return response()->json(['error'=>$valFechas]);
+            }
+        }
+        
+
 
         foreach($req->concepto as $row => $concepto){
             $tipoAfiliacion = null;
@@ -435,6 +443,14 @@ class NovedadesController extends Controller
             return response()->json(['error'=>$validator->errors()->all()]);
         }
         foreach($req->concepto as $row => $concepto){
+            $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial[$row], $req->fechaFinal[$row], $req->idEmpleado[$row]);
+            if(sizeof($valFechas) > 0){
+                return response()->json(['error'=>$valFechas]);
+            }
+        }
+
+
+        foreach($req->concepto as $row => $concepto){
             $idLicencia = DB::table('licencia')->insertGetId([
                 "numDias" => $req->dias[$row], 
                 "fechaInicial" => $req->fechaInicial[$row], 
@@ -475,6 +491,14 @@ class NovedadesController extends Controller
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
+        
+        foreach($req->concepto as $row => $concepto){
+            $valFechas = $this->validar_fechas_otras_novedades($req->fechaAusenciaInicial[$row], $req->fechaAusenciaFinal[$row], $req->idEmpleado[$row]);
+            if(sizeof($valFechas) > 0){
+                return response()->json(['error'=>$valFechas]);
+            }
+        }
+
         foreach($req->concepto as $row => $concepto){
             $fechaAusInicial = date("Y-m-d", strtotime($req->fechaAusenciaInicial[$row]));
             $fechaAusFinal = date("Y-m-d", strtotime($req->fechaAusenciaFinal[$row]));
@@ -807,6 +831,13 @@ class NovedadesController extends Controller
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
+        }
+
+        foreach($req->concepto as $row => $concepto){
+            $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial[$row], $req->fechaFinal[$row], $req->idEmpleado[$row]);
+            if(sizeof($valFechas) > 0){
+                return response()->json(['error'=>$valFechas]);
+            }
         }
 
         foreach($req->concepto as $row => $concepto){
@@ -1145,6 +1176,14 @@ class NovedadesController extends Controller
             return response()->json(['error'=>$validator->errors()->all()]);
         }
 
+        
+        $valFechas = $this->validar_fechas_otras_novedades($req->fechaAusenciaInicial, $req->fechaAusenciaFinal, $req->idEmpleado, $req->idNovedad);
+        if(sizeof($valFechas) > 0){
+            return response()->json(['error'=>$valFechas]);
+        }
+        
+
+
         $fechaAusInicial = date("Y-m-d", strtotime($req->fechaAusenciaInicial));
         $fechaAusFinal = date("Y-m-d", strtotime($req->fechaAusenciaFinal));
 
@@ -1275,6 +1314,12 @@ class NovedadesController extends Controller
             return response()->json(['error'=>$validator->errors()->all()]);
         }
 
+        $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial, $req->fechaFinal, $req->idEmpleado, $req->idNovedad);
+        if(sizeof($valFechas) > 0){
+            return response()->json(['error'=>$valFechas]);
+        }
+
+
         $arrLicencia = [
             "numDias" => $req->dias, 
             "fechaInicial" => $req->fechaInicial, 
@@ -1329,6 +1374,13 @@ class NovedadesController extends Controller
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
+
+        $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial, $req->fechaFinal, $req->idEmpleado, $req->idNovedad);
+        if(sizeof($valFechas) > 0){
+            return response()->json(['error'=>$valFechas]);
+        }
+
+
         $tipoAfiliacion = null;
         if($req->tipoAfiliacion != "-1"){
             $tipoAfiliacion = $req->tipoAfiliacion;
@@ -1535,7 +1587,10 @@ class NovedadesController extends Controller
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
-      
+        $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial, $req->fechaFinal, $req->idEmpleado, $req->idNovedad);
+        if(sizeof($valFechas) > 0){
+            return response()->json(['error'=>$valFechas]);
+        }
         $arrVacaciones = [
             "fechaInicio" => $req->fechaInicial, 
             "fechaFin" => $req->fechaFinal,
@@ -1682,7 +1737,7 @@ class NovedadesController extends Controller
         }
         $nominas = $nominas->orderBy("nombre")->get();
 
-        $cargas = DB::table("carganovedad")->where("fkEstado", "=","3")->get();
+        $cargas = DB::table("carganovedad")->where("fkEstado", "=","3")->orderBy("fechaHora","desc")->get();
 
         return view('/novedades.subirNovedades',[
             'nominas' => $nominas,
@@ -1693,26 +1748,25 @@ class NovedadesController extends Controller
     public function cargaMasivaNovedades(Request $req){
         //3 en estadoEnCreacion
         $csvRuta = "";
-        try{        
-            if(!isset($req->fkNomina)){
-                echo "<script>alert('Selecciona una nomina');
-                window.history.back();</script>";
-                exit;
+               
+        if(!isset($req->fkNomina)){
+            echo "<script>alert('Selecciona una nomina');
+            window.history.back();</script>";
+            exit;
 
-            }
+        }
 
-            if ($req->hasFile('archivoCSV')) {
-                $file = $req->file('archivoCSV');
-                $reader = Reader::createFromFileObject($file->openFile());
-                $reader->setDelimiter(';');
-                
-                
-                $idCargaNovedad = DB::table('carganovedad')->insertGetId([
-                    "fkEstado" => "3"
-                ], "idCargaNovedad");
+        if ($req->hasFile('archivoCSV')) {
+            $file = $req->file('archivoCSV');
+            $reader = Reader::createFromFileObject($file->openFile());
+            $reader->setDelimiter(';');    
+            $idCargaNovedad = DB::table('carganovedad')->insertGetId([
+                "fkEstado" => "3"
+            ], "idCargaNovedad");
 
-                // Create a customer from each row in the CSV file
-                foreach ($reader as $index => $row) {
+            // Create a customer from each row in the CSV file
+            foreach ($reader as $index => $row) {
+                try{
                     foreach($row as $key =>$valor){
                         if($valor==""){
                             $row[$key]=null;
@@ -1756,7 +1810,7 @@ class NovedadesController extends Controller
                     else{
                         DB::table('carga_novedad_error')
                         ->insert([
-                            "linea" => $index,
+                            "linea" => ($index + 1),
                             "fkCargaNovedad" => $idCargaNovedad,
                             "error" => "El empleado no existe"
                             ]
@@ -1768,20 +1822,21 @@ class NovedadesController extends Controller
                     }
 
                     
+                    if($row[0]!="5"){
+                        $concepto = DB::table("concepto")
+                            ->where("idconcepto", "=", $req->concepto )
+                            ->first();
 
-                    $concepto = DB::table("concepto")
-                        ->where("idconcepto", "=", $req->concepto )
-                        ->first();
-
-                    if(!isset($concepto)){
-                        DB::table('carga_novedad_error')
-                        ->insert([                       
-                            "linea" => $index,
-                            "fkCargaNovedad" => $idCargaNovedad,
-                            "error" => "El concepto no existe"
-                            ]
-                        );
-                        continue;
+                        if(!isset($concepto)){
+                            DB::table('carga_novedad_error')
+                            ->insert([                       
+                                "linea" => ($index + 1),
+                                "fkCargaNovedad" => $idCargaNovedad,
+                                "error" => "El concepto no existe"
+                                ]
+                            );
+                            continue;
+                        }
                     }
                     
                     $tiponovedad = DB::table("tiponovedad")
@@ -1792,21 +1847,29 @@ class NovedadesController extends Controller
                     if(!isset($tiponovedad)){
                         DB::table('carga_novedad_error')
                         ->insert([                       
-                            "linea" => $index,
+                            "linea" => ($index + 1),
                             "fkCargaNovedad" => $idCargaNovedad,
                             "error" => "El tipo de novedad no existe"
                             ]
                         );
                         continue;
                     }
-                    
-
-
-
                     if($row[0]=="1"){
                         
                         $req->fechaAusenciaInicial = $row[5];
                         $req->fechaAusenciaFinal = $row[6];
+
+                        $valFechas = $this->validar_fechas_otras_novedades($req->fechaAusenciaInicial, $req->fechaAusenciaFinal, $req->idEmpleado);
+                        if(sizeof($valFechas) > 0){
+                            DB::table('carga_novedad_error')
+                            ->insert([                       
+                                "linea" => ($index + 1),
+                                "fkCargaNovedad" => $idCargaNovedad,
+                                "error" => $valFechas[0]
+                                ]
+                            );
+                            continue;
+                        }
                         
                         $fechaAusInicial = date("Y-m-d", strtotime($req->fechaAusenciaInicial));
                         $fechaAusFinal = date("Y-m-d", strtotime($req->fechaAusenciaFinal));
@@ -1896,7 +1959,8 @@ class NovedadesController extends Controller
                             "fechaFin" => $req->fechaAusenciaFinal, 
                             "cantidadDias" => $dias, 
                             "cantidadHoras" => $horas,
-                            "fechasAdicionales" => $textoDias
+                            "fechasAdicionales" => $textoDias,
+                            "domingoAplica" => $req->domingoAplica
                         );
                         
                         
@@ -2026,7 +2090,17 @@ class NovedadesController extends Controller
                             );
                             continue;
                         }
-                        
+                        $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial, $req->fechaFinal, $req->idEmpleado);
+                        if(sizeof($valFechas) > 0){
+                            DB::table('carga_novedad_error')
+                            ->insert([                       
+                                "linea" => ($index + 1),
+                                "fkCargaNovedad" => $idCargaNovedad,
+                                "error" => $valFechas[0]
+                                ]
+                            );
+                            continue;
+                        }
                         $idIncapacidad = DB::table('incapacidad')->insertGetId([
                             "numDias" => $req->dias, 
                             "fechaInicial" => $req->fechaInicial, 
@@ -2069,6 +2143,17 @@ class NovedadesController extends Controller
                         $req->fechaInicial = $row[20];
                         $req->fechaFinal = $row[21];
 
+                        $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial, $req->fechaFinal, $req->idEmpleado);
+                        if(sizeof($valFechas) > 0){
+                            DB::table('carga_novedad_error')
+                            ->insert([                       
+                                "linea" => ($index + 1),
+                                "fkCargaNovedad" => $idCargaNovedad,
+                                "error" => $valFechas[0]
+                                ]
+                            );
+                            continue;
+                        }
 
                         $idLicencia = DB::table('licencia')->insertGetId([
                             "numDias" => $req->dias, 
@@ -2239,6 +2324,18 @@ class NovedadesController extends Controller
 
 
                         $req->pagoAnticipado = $row[32];
+                        
+                        $valFechas = $this->validar_fechas_otras_novedades($req->fechaInicial, $req->fechaFinal, $req->idEmpleado);
+                        if(sizeof($valFechas) > 0){
+                            DB::table('carga_novedad_error')
+                            ->insert([                       
+                                "linea" => ($index + 1),
+                                "fkCargaNovedad" => $idCargaNovedad,
+                                "error" => $valFechas[0]
+                                ]
+                            );
+                            continue;
+                        }
 
 
                         $idVacaciones = DB::table('vacaciones')->insertGetId([
@@ -2270,6 +2367,18 @@ class NovedadesController extends Controller
                         }
                     }
                     else if($row[0]=="7"){
+                        if(!isset($row[34]) || empty($row[34])){
+                            DB::table('carga_novedad_error')
+                            ->insert([                       
+                                "linea" => ($index+1),
+                                "fkCargaNovedad" => $idCargaNovedad,
+                                "error" => "Falta especificar si es suma o resta"
+                                ]
+                            );
+                            continue;
+    
+                        }
+                        
 
                         if(strpos($row[33],".")){
                             $row[33] = str_replace(".","",$row[33]);
@@ -2312,19 +2421,23 @@ class NovedadesController extends Controller
                         
                     
                     }
-                    
+                }
+                catch(Exception $e){
+                    DB::table('carga_novedad_error')
+                    ->insert([                       
+                        "linea" => ($index+1),
+                        "fkCargaNovedad" => $idCargaNovedad,
+                        "error" => $e->getMessage()
+                        ]
+                    );
+                    continue;
+                }     
 
                     
-                }                
-                return redirect('novedades/verCarga/'.$idCargaNovedad);
-            }
-        }catch(Exception $e){
-            return response()->json([
-                "success" => false,
-                "error" => $e->getMessage(),
-                "linea" => $e->getLine()
-            ]);
+            }  
+            return redirect('novedades/verCarga/'.$idCargaNovedad);
         }
+        
     }
 
     public function verCarga($idCarga){
@@ -2349,12 +2462,18 @@ class NovedadesController extends Controller
         ->join("empleado as e","e.idempleado", "=", "n.fkEmpleado")
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales")
         ->join("tipoidentificacion as ti","ti.idtipoIdentificacion", "=", "dp.fkTipoIdentificacion")
-        ->where("n.fkCargaNovedad","=",$idCarga)
-        ->get();
+        ->where("n.fkCargaNovedad","=",$idCarga);
+        $dataUsu = UsuarioController::dataAdminLogueado();
+        if(isset($dataUsu) && $dataUsu->fkRol == 2){
+            $novedades = $novedades->whereIn("e.fkEmpresa",$dataUsu->empresaUsuario);
+        }
+
+
+        $novedades = $novedades->get();
 
         $errores = DB::table("carga_novedad_error","cne")->where("fkCargaNovedad","=",$idCarga)->get();
         
-        $dataUsu = UsuarioController::dataAdminLogueado();
+        
 
         return view('/novedades.listaNovedadesCarga',[
             'novedades' => $novedades,
@@ -2563,4 +2682,92 @@ class NovedadesController extends Controller
         
     }
 
+    public function validar_fechas_otras_novedades($fechaInicial, $fechaFinal, $id_empleado, $idNovedad = null){
+        //Consultar ausencias
+
+        $sqlWhereAus = "( 
+            ('".$fechaInicial."' BETWEEN aus.fechaInicio AND aus.fechaFin) OR
+            ('".$fechaFinal."' BETWEEN aus.fechaInicio AND aus.fechaFin) OR
+            (aus.fechaInicio BETWEEN '".$fechaInicial."' AND '".$fechaFinal."') OR
+            (aus.fechaFin BETWEEN '".$fechaInicial."' AND '".$fechaFinal."')
+        )";
+        $novedadAus = DB::table("novedad","n")
+        ->join("ausencia as aus","aus.idAusencia","=","n.fkAusencia")
+        ->where("n.fkEmpleado","=",$id_empleado)
+        ->whereRaw($sqlWhereAus)
+        ->whereIn("n.fkEstado",["7", "8"]);
+        if(isset($idNovedad) && !empty($idNovedad)){
+            $novedadAus = $novedadAus->where("n.idNovedad","<>",$idNovedad);
+        }
+
+        $novedadAus = $novedadAus->first();
+        
+        $sqlWhereInc = "( 
+            ('".$fechaInicial."' BETWEEN inc.fechaInicial AND inc.fechaFinal) OR
+            ('".$fechaFinal."' BETWEEN inc.fechaInicial AND inc.fechaFinal) OR
+            (inc.fechaInicial BETWEEN '".$fechaInicial."' AND '".$fechaFinal."') OR
+            (inc.fechaFinal BETWEEN '".$fechaInicial."' AND '".$fechaFinal."')
+        )";
+
+        $novedadInc = DB::table("novedad","n")
+        ->join("incapacidad as inc","inc.idIncapacidad","=","n.fkIncapacidad")
+        ->where("n.fkEmpleado","=",$id_empleado)
+        ->whereRaw($sqlWhereInc)
+        ->whereIn("n.fkEstado",["7", "8"]);
+        if(isset($idNovedad) && !empty($idNovedad)){
+            $novedadInc = $novedadInc->where("n.idNovedad","<>",$idNovedad);
+        }
+        $novedadInc = $novedadInc->first();
+
+        $sqlWhereLic = "( 
+            ('".$fechaInicial."' BETWEEN lic.fechaInicial AND lic.fechaFinal) OR
+            ('".$fechaFinal."' BETWEEN lic.fechaInicial AND lic.fechaFinal) OR
+            (lic.fechaInicial BETWEEN '".$fechaInicial."' AND '".$fechaFinal."') OR
+            (lic.fechaFinal BETWEEN '".$fechaInicial."' AND '".$fechaFinal."')
+        )";
+
+        $novedadLic = DB::table("novedad","n")
+        ->join("licencia as lic","lic.idLicencia","=","n.fkLicencia")
+        ->where("n.fkEmpleado","=",$id_empleado)
+        ->whereRaw($sqlWhereLic)
+        ->whereIn("n.fkEstado",["7", "8"]);
+        if(isset($idNovedad) && !empty($idNovedad)){
+            $novedadLic = $novedadLic->where("n.idNovedad","<>",$idNovedad);
+        }
+        $novedadLic = $novedadLic->first();
+
+        $sqlWhereVac = "( 
+            ('".$fechaInicial."' BETWEEN vac.fechaInicio AND vac.fechaFin) OR
+            ('".$fechaFinal."' BETWEEN vac.fechaInicio AND vac.fechaFin) OR
+            (vac.fechaInicio BETWEEN '".$fechaInicial."' AND '".$fechaFinal."') OR
+            (vac.fechaFin BETWEEN '".$fechaInicial."' AND '".$fechaFinal."')
+        )";
+
+        $novedadVac = DB::table("novedad","n")
+        ->join("vacaciones as vac","vac.idVacaciones","=","n.fkVacaciones")
+        ->where("n.fkEmpleado","=",$id_empleado)
+        ->whereIn("n.fkEstado",["7", "8"])
+        ->whereRaw($sqlWhereVac);
+        if(isset($idNovedad) && !empty($idNovedad)){
+            $novedadVac = $novedadVac->where("n.idNovedad","<>",$idNovedad);
+        }
+        $novedadVac = $novedadVac->first();
+        
+        $errores = array();
+
+        if(isset($novedadAus)){
+            array_push($errores, "Se comparten fechas con una novedad de ausencia");
+        }
+        if(isset($novedadInc)){
+            array_push($errores, "Se comparten fechas con una novedad de incapacidad");   
+        }
+        if(isset($novedadLic)){
+            array_push($errores, "Se comparten fechas con una novedad de licencia");
+        }
+        if(isset($novedadVac)){
+            array_push($errores, "Se comparten fechas con una novedad de vacaciones");
+        }
+        return $errores;
+
+    }
 }

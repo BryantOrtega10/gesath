@@ -269,8 +269,13 @@ class UsuarioController extends Controller
 		}
     }
 
-    public function update(CrearUsuarioAdminRequest $request, $id) {
+    public function update(Request $request, $id) {
         try {
+
+            if(!isset($request->fkRol)){
+                $request->fkRol = "1";
+            }
+
             if($request->fkRol == "2"){
                 if(!isset($request->empresa)){
                     return response()->json([
@@ -321,11 +326,12 @@ class UsuarioController extends Controller
             }
             
             $usuario->fkRol = $request->fkRol;
-            $usuario->primerNombreUser = $request->primerNombre;
-            $usuario->primerApellidoUser = $request->primerApellido;
+            $usuario->primerNombreUser = ($request->primerNombre ?? "");
+            $usuario->primerApellidoUser = ($request->primerApellido ?? "");
             $usuario->fotoUser = $name;
             $usuario->updated_at = date("Y-m-d H:i:s");
             $save = $usuario->save();
+            
             DB::table("user_empresa")->where("fkUser", "=", $usuario->id)->delete();
             if(isset($request->empresa)){
                 foreach($request->empresa as $empresa){

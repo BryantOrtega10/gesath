@@ -26,6 +26,12 @@ class EmpleadoController extends Controller
     public function index(Request $req){
         $usu = UsuarioController::dataAdminLogueado();
         
+        $select = "";
+        if(isset($usu) && $usu->fkRol == 2){
+            $select = " and p2.fkNomina in(Select idNomina from nomina where fkEmpresa in (".implode(",",$usu->empresaUsuario)."))";
+        }
+
+        
         $empleados = DB::table('empleado')->select( 'empleado.idempleado',
                                                     'empleado.tEmpleado',
                                                     'est.nombre AS estado',
@@ -39,7 +45,7 @@ class EmpleadoController extends Controller
                                                         in(Select ecc.fkCentroCosto from empleado_centrocosto as ecc where 
                                                         ecc.fkEmpleado = empleado.idempleado)
                                                         limit 0,1) as centroCosto,
-                                                        (SELECT count(idperiodo) FROM periodo p2 WHERE p2.fkEmpleado = empleado.idempleado and p2.fkEstado = 2)
+                                                        (SELECT count(idperiodo) FROM periodo p2 WHERE p2.fkEmpleado = empleado.idempleado and p2.fkEstado = 2 '.$select.')
                                                         as reintegros
                                                         ')
                                         ->join('datospersonales AS dp','empleado.fkDatosPersonales', '=', 'dp.idDatosPersonales')
@@ -49,25 +55,30 @@ class EmpleadoController extends Controller
                                         ->join('ubicacion AS u','u.idubicacion', '=', 'empleado.fkUbicacionLabora',"left")
                                         ->join('estado AS est','empleado.fkEstado', '=', 'est.idestado');
         $arrConsulta = array();
-
-        if(isset($req->nombre)){
+        $apFiltro = false;
+        if(isset($req->numDocNombre)){
             $empleados->where(function($query) use($req){
-                $query->where("dp.primerNombre","LIKE","%".$req->nombre."%")
-                ->orWhere("dp.segundoNombre","LIKE","%".$req->nombre."%")
-                ->orWhere("dp.primerApellido","LIKE","%".$req->nombre."%")
-                ->orWhere("dp.segundoApellido","LIKE","%".$req->nombre."%")
-                ->orWhereRaw("CONCAT(dp.primerApellido,' ',dp.segundoApellido,' ',dp.primerNombre,' ',dp.segundoNombre) LIKE '%".$req->nombre."%'");
+                $query->where("dp.primerNombre","LIKE","%".$req->numDocNombre."%")
+                ->orWhere("dp.segundoNombre","LIKE","%".$req->numDocNombre."%")
+                ->orWhere("dp.primerApellido","LIKE","%".$req->numDocNombre."%")
+                ->orWhere("dp.segundoApellido","LIKE","%".$req->numDocNombre."%")
+                ->orWhere("dp.numeroIdentificacion", "LIKE", $req->numDocNombre."%")
+                ->orWhereRaw("CONCAT(dp.primerApellido,' ',dp.segundoApellido,' ',dp.primerNombre,' ',dp.segundoNombre) LIKE '%".$req->numDocNombre."%'");
             });
-            $arrConsulta["nombre"] = $req->nombre;
+            $arrConsulta["numDocNombre"] = $req->numDocNombre;
+            $apFiltro = true;
         }
-        if(isset($req->numDoc)){
-            $empleados->where("dp.numeroIdentificacion", "LIKE", $req->numDoc."%");
-            $arrConsulta["numDoc"] = $req->numDoc;
+        
+        if(isset($req->nomina)){
+            $empleados->where("empleado.fkNomina", "=", $req->nomina);
+            $arrConsulta["nomina"] = $req->nomina;
+            $apFiltro = true;
         }
-
+        
         if(isset($req->empresa)){
             $empleados->where("empleado.fkEmpresa", "=", $req->empresa);
             $arrConsulta["empresa"] = $req->empresa;
+            $apFiltro = true;
         }
         else{
             $req->centroCosto = NULL;
@@ -80,32 +91,48 @@ class EmpleadoController extends Controller
         if(isset($req->centroCosto)){
             $empleados->where("cc.idcentroCosto", "=", $req->centroCosto);
             $arrConsulta["centroCosto"] = $req->centroCosto;
+            $apFiltro = true;
         }
 
 
         if(isset($req->tipoPersona)){
             $empleados->where("empleado.tipoPersona", "=", $req->tipoPersona);
             $arrConsulta["tipoPersona"] = $req->tipoPersona;
+            $apFiltro = true;
         }
         if(isset($req->ciudad)){
             $empleados->where("empleado.fkUbicacionLabora", "=", $req->ciudad);
             $arrConsulta["ciudad"] = $req->ciudad;
+            $apFiltro = true;
         }
-        if(isset($req->estado)){
-            $empleados->where("empleado.fkEstado", "=", $req->estado);
-            $arrConsulta["estado"] = $req->estado;
-        }
-        else{
-            $empleados->whereIn("empleado.fkEstado", ["1","3"]);
-        }
+        
         
         if(isset($req->centroCosto)){
             $empleados->join("empleado_centrocosto AS ec", "ec.fkEmpleado","=","empleado.idempleado");
             $empleados->where("ec.fkCentroCosto","=",$req->centroCosto);
             $arrConsulta["centroCosto"] = $req->centroCosto;
+            $apFiltro = true;
         }
 
-        $empleados = $empleados->distinct()->get();
+        if(isset($req->estado)){
+            $empleados->where("empleado.fkEstado", "=", $req->estado);
+            $arrConsulta["estado"] = $req->estado;
+            $apFiltro = true;
+            
+        }
+        
+        if(!$apFiltro){
+            $empleados->whereIn("empleado.fkEstado", ["1","3"]);
+        }
+        
+        $empleados = $empleados->distinct()
+        //->orderBy("empleado.fkEmpresa")
+        //->orderBy("empleado.fkNomina")
+        ->orderBy("dp.primerApellido")
+        ->orderBy("dp.segundoApellido")
+        ->orderBy("dp.primerNombre")
+        ->orderBy("dp.segundoNombre")
+        ->get();
         $numResultados = sizeof($empleados);
         $empleados = $this->paginate($empleados, 15);
         $empleados->withPath("empleado");
@@ -113,11 +140,12 @@ class EmpleadoController extends Controller
         
         
         $empresas = DB::table("empresa","e")->orderBy("razonSocial")->get();
-
+        $nominas = array();        
         $centrosDeCosto = array();
         
         if(isset($req->empresa)){
             $centrosDeCosto = DB::table("centrocosto")->where("fkEmpresa","=",$req->empresa)->orderBy("nombre")->get();
+            $nominas = DB::table("nomina")->where("fkEmpresa","=",$req->empresa)->orderBy("nombre")->get();
         }
         
         $ciudades = DB::table("ubicacion")->where("fkTipoUbicacion","=","3")->orderBy("nombre")->get();
@@ -133,7 +161,8 @@ class EmpleadoController extends Controller
          "numResultados" => $numResultados,
          "empresas" => $empresas,
          "centrosDeCosto" => $centrosDeCosto,
-         'dataUsu' => $usu
+         'dataUsu' => $usu,
+         "nominas" => $nominas
         ]);
     }
 
@@ -497,7 +526,9 @@ class EmpleadoController extends Controller
             if($afiliacion->fkTipoAfilicacion=="4"){
                 $afiliacionesEnt = $afiliacionesEnt->whereNotIn("tercero.idTercero",["120"]);
             }
-            $afiliacionesEnt = $afiliacionesEnt->get();
+            $afiliacionesEnt = $afiliacionesEnt
+            ->orderBy("razonSocial")
+            ->get();
 
             $entidadesAfiliacion[$afiliacion->idAfiliacion] = $afiliacionesEnt;
         }
@@ -509,18 +540,25 @@ class EmpleadoController extends Controller
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '1')
                     ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
+                    ->orderBy("razonSocial")
                     ->get();
 
      
         $afiliacionesEnt2 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '2')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '2')
+                    ->orderBy("razonSocial")
+                    ->get();
         $afiliacionesEnt3 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '3')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '3')
+                    ->orderBy("razonSocial")
+                    ->get();
         $afiliacionesEnt4 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '4')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '4')
+                    ->orderBy("razonSocial")
+                    ->get();
                     
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
@@ -858,7 +896,7 @@ class EmpleadoController extends Controller
         foreach($afiliaciones as $afiliacion){
             $afiliacionesEnt = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->get();
+                    ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->orderBy("razonSocial")->get();
 
             $entidadesAfiliacion[$afiliacion->idAfiliacion] = $afiliacionesEnt;
         }
@@ -870,17 +908,20 @@ class EmpleadoController extends Controller
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '1')
                     ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
+                    ->orderBy("razonSocial")
                     ->get();
 
         $afiliacionesEnt2 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '2')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '2')
+                    ->orderBy("razonSocial")
+                    ->get();
         $afiliacionesEnt3 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '3')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '3')->orderBy("razonSocial")->get();
         $afiliacionesEnt4 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '4')->whereNotIn("tercero.idTercero",["120"])->get();
+                    ->where("ta.idTipoAfiliacion", "=", '4')->whereNotIn("tercero.idTercero",["120"])->orderBy("razonSocial")->get();
 
                
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
@@ -890,7 +931,7 @@ class EmpleadoController extends Controller
         $contratoActivo = DB::table('contrato')
         ->where("fkEmpleado","=",$idEmpleado)
         ->where("fkPeriodoActivo","=",$periodoActivo->idPeriodo)
-        ->whereIn("fkEstado",array("1","4"))
+        //->whereIn("fkEstado",array("1","4"))
         ->first();
 
         $conceptos = DB::table("concepto")->whereNotIn("idconcepto", [1,2])->orderBy("nombre")->get();
@@ -989,8 +1030,14 @@ class EmpleadoController extends Controller
         ->where("fkEmpleado", "=", $idEmpleado)
         ->orderBy("idPeriodo","desc")
         ->first();
-        return view('/empleado.verEmpleado', [
 
+        $cambioSalarioFin = DB::table("cambiosalario","cs")
+        ->where('cs.fkEmpleado', "=", $empleado->idempleado)
+        ->where('cs.fkEstado', "=", "5")
+        ->orderBy("idCambioSalario","desc")->get();
+
+        return view('/empleado.verEmpleado', [
+            'cambioSalarioFin' => $cambioSalarioFin,
             'paises'=>$paises,
             'dataUsu' => $usu,
             'usuExiste' => $existe,
@@ -1208,10 +1255,13 @@ class EmpleadoController extends Controller
               ->update($updateEmpleado);
         
         foreach ($req->infoCentroCosto as $key => $idCentroCosto) {
-            $insertContactoEmergencia = array(  "fkEmpleado" => $req->idEmpleado, 
-                                                "fkCentroCosto" => $idCentroCosto,
-                                                "porcentajeTiempoTrabajado" => substr($req->infoPorcentaje[$key],0,-1));
-            DB::table('empleado_centrocosto')->insert($insertContactoEmergencia);
+            if($idCentroCosto != ""){
+                $insertContactoEmergencia = array(  "fkEmpleado" => $req->idEmpleado, 
+                "fkCentroCosto" => $idCentroCosto,
+                "porcentajeTiempoTrabajado" => substr($req->infoPorcentaje[$key],0,-1));
+                DB::table('empleado_centrocosto')->insert($insertContactoEmergencia);
+            }
+           
         }
 
 
@@ -1457,12 +1507,14 @@ class EmpleadoController extends Controller
         
         
         foreach ($req->infoCentroCosto as $key => $idCentroCosto) {
+            if($idCentroCosto != ""){
+                $insertEmpleadoCentroCosto = array("fkEmpleado" => $req->idEmpleado, 
+                "fkCentroCosto" => $idCentroCosto,
+                "porcentajeTiempoTrabajado" => substr($req->infoPorcentaje[$key],0,-1));
 
-            $insertEmpleadoCentroCosto = array("fkEmpleado" => $req->idEmpleado, 
-                    "fkCentroCosto" => $idCentroCosto,
-                    "porcentajeTiempoTrabajado" => substr($req->infoPorcentaje[$key],0,-1));
-
-            DB::table('empleado_centrocosto')->insert($insertEmpleadoCentroCosto);    
+                DB::table('empleado_centrocosto')->insert($insertEmpleadoCentroCosto);    
+            }
+            
             
             /*if($req->idEmpleadoCentroCosto[$key]=="-1"){
                 
@@ -2851,7 +2903,7 @@ class EmpleadoController extends Controller
         DB::table("empleado")->where("idempleado","=",$idEmpleado)->where("fkEstado","<>","2")->update(["fkEstado" => "3"]);
 
         $camposOpcionalesDatPer = array(
-            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia","correo", "celular"],
+            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia","correo", "celular", "barrio"],
             "cambiantes" => []            
         );
         $datosPersonales = DB::table("datospersonales", "dp")->select('dp.*')
@@ -3123,7 +3175,7 @@ class EmpleadoController extends Controller
     public function mostrarPorqueFalla($idEmpleado){
         //Consultar que tenga todos los datos basicos
         $camposOpcionalesDatPer = array(
-            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia","correo", "celular"],
+            "fijos" => ["foto","segundoApellido","segundoNombre", "tallaCamisa", "tallaPantalon", "tallaZapatos", "otros", "tallaOtros", "correo2", "telefonoFijo", "libretaMilitar", "distritoMilitar","fkNivelEstudio","fkEtnia","correo", "celular", "barrio"],
             "cambiantes" => []            
         );
         $datosPersonales = DB::table("datospersonales", "dp")->select('dp.*')
@@ -3364,11 +3416,12 @@ class EmpleadoController extends Controller
     public function cargarFormEmpleadosxNomina(Request $req){
 
         $empleados = DB::table('empleado', 'e')
-        ->select(["e.idempleado", "dp.primerNombre", "dp.segundoNombre", "dp.primerApellido", "dp.segundoApellido", "dp.numeroIdentificacion","t.nombre"])
+        ->select(["est.nombre as estado", "e.idempleado", "dp.primerNombre", "dp.segundoNombre", "dp.primerApellido", "dp.segundoApellido", "dp.numeroIdentificacion","t.nombre"])
         ->join("datospersonales AS dp", "e.fkDatosPersonales", "=" , "dp.idDatosPersonales")
         ->join("tipoidentificacion AS t", "dp.fkTipoIdentificacion", "=" , "t.idtipoIdentificacion")
+        ->join("estado as est", "est.idEstado", "=","e.fkEstado")
         ->where("e.fkNomina","=", $req->idNomina)
-        ->where("e.fkEstado","=", "1");//Estado Activo 
+        ->whereIn("e.fkEstado",["1","2"]);//Estado Activo 
         
         $arrConsulta = ['idNomina' => $req->idNomina];
         if(isset($req->nombre)){
@@ -3431,7 +3484,9 @@ class EmpleadoController extends Controller
         ->join("estado as est", "est.idEstado", "=", "cee.fkEstado", "left")
         ->join("datospersonales as dp","dp.idDatosPersonales", "=", "e.fkDatosPersonales", "left")
         ->join("tipoidentificacion AS ti","ti.idtipoIdentificacion", "=","dp.fkTipoIdentificacion", "left")
-        ->where("fkCargaEmpleado","=",$idCargaEmpleado)->get();
+        ->where("fkCargaEmpleado","=",$idCargaEmpleado)
+        ->orderBy("est.idEstado","desc")
+        ->get();
 
         $usu = UsuarioController::dataAdminLogueado();
 
@@ -3545,7 +3600,7 @@ class EmpleadoController extends Controller
                     if(sizeof($datosEmpleadoConsulta) > 0){
                         $empleado = DB::table("empleado", "e")
                         ->where("e.fkDatosPersonales", "=",$datosEmpleadoConsulta[0]->idDatosPersonales)
-                        ->where("e.fkEstado","=","1")
+                        ->whereIn("e.fkEstado",["1","3"])
                         ->first();
                         if(isset($empleado)){
                             DB::table('carga_empleado_empleado')
@@ -4980,7 +5035,7 @@ class EmpleadoController extends Controller
                 foreach($afiliaciones as $afiliacion){
                     $afiliacionesEnt = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                            ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->get()->toArray();
+                            ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->orderBy("razonSocial")->get()->toArray();
     
                     $entidadesAfiliacion[$afiliacion->idAfiliacion] = $afiliacionesEnt;
                 }
@@ -4992,16 +5047,24 @@ class EmpleadoController extends Controller
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                             ->where("ta.idTipoAfiliacion", "=", '1')
                             ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
-                            ->get()->toArray();
+                            ->get()
+                            ->orderBy("razonSocial")
+                            ->toArray();
                 $afiliacionesEnt2 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                            ->where("ta.idTipoAfiliacion", "=", '2')->get()->toArray();
+                            ->where("ta.idTipoAfiliacion", "=", '2')
+                            ->orderBy("razonSocial")
+                            ->get()->toArray();
                 $afiliacionesEnt3 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                            ->where("ta.idTipoAfiliacion", "=", '3')->get()->toArray();
+                            ->where("ta.idTipoAfiliacion", "=", '3')
+                            ->orderBy("razonSocial")
+                            ->get()->toArray();
                 $afiliacionesEnt4 = DB::table("tercero")
                             ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                            ->where("ta.idTipoAfiliacion", "=", '4')->get()->whereNotIn("tercero.idTercero",["120"])->toArray();
+                            ->where("ta.idTipoAfiliacion", "=", '4')
+                            ->orderBy("razonSocial")
+                            ->get()->whereNotIn("tercero.idTercero",["120"])->toArray();
 
 
                 $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
@@ -5464,7 +5527,7 @@ class EmpleadoController extends Controller
 
         $tipoContratos = DB::table('tipocontrato')->get();
         $cargos = DB::table("cargo")->get();
-        $entidadesFinancieras = DB::table("tercero")->where("fk_actividad_economica", "=", "4")->get();
+        $entidadesFinancieras = DB::table("tercero")->where("fk_actividad_economica", "=", "4")->orderBy("razonSocial")->get();
         
         $periodoActivo = DB::table("periodo")
         ->where("fkEmpleado","=",$idEmpleado)
@@ -5480,11 +5543,11 @@ class EmpleadoController extends Controller
         foreach($afiliaciones as $afiliacion){
             $afiliacionesEnt = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->get();
+                    ->where("ta.idTipoAfiliacion", "=", $afiliacion->fkTipoAfilicacion)->orderBy("razonSocial")->get();
 
             $entidadesAfiliacion[$afiliacion->idAfiliacion] = $afiliacionesEnt;
         }
-
+        
 
         $nivelesArl = DB::table('nivel_arl')->get();
 
@@ -5492,16 +5555,23 @@ class EmpleadoController extends Controller
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
                     ->where("ta.idTipoAfiliacion", "=", '1')
                     ->whereNotIn("tercero.idTercero",["10","109","111","112","113"])
+                    ->orderBy("razonSocial")
                     ->get();
         $afiliacionesEnt2 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '2')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '2')
+                    ->orderBy("razonSocial")
+                    ->get();
         $afiliacionesEnt3 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '3')->get();
+                    ->where("ta.idTipoAfiliacion", "=", '3')
+                    ->orderBy("razonSocial")
+                    ->get();
         $afiliacionesEnt4 = DB::table("tercero")
                     ->join('tipoafilicacion AS ta','ta.fkActividadEconomica', '=', 'tercero.fk_actividad_economica')
-                    ->where("ta.idTipoAfiliacion", "=", '4')->whereNotIn("tercero.idTercero",["120"])->get();
+                    ->where("ta.idTipoAfiliacion", "=", '4')->whereNotIn("tercero.idTercero",["120"])
+                    ->orderBy("razonSocial")
+                    ->get();
 
         $conceptosFijos = DB::table('conceptofijo', 'cf')->select(["cf.*", "c.nombre AS nombreConcepto"])
         ->join("concepto AS c", "c.idConcepto", "=", "cf.fkConcepto")
@@ -5706,10 +5776,11 @@ class EmpleadoController extends Controller
 
     public function verPeriodos($idEmpleado){
         $periodos = DB::table("periodo")
-        ->select("periodo.*","cargo.nombreCargo","tipocontrato.nombre as nombreTipoContrato","n.nombre as nombreNomina")
+        ->select("periodo.*","cargo.nombreCargo","tipocontrato.nombre as nombreTipoContrato","n.nombre as nombreNomina", "emp.razonSocial as nombreEmpresa")
         ->leftJoin("cargo","cargo.idCargo","=","periodo.fkCargo")
         ->leftJoin("tipocontrato","tipocontrato.idtipoContrato","=","periodo.fkTipoContrato")
         ->leftJoin("nomina as n", "n.idNomina","=","periodo.fkNomina")
+        ->leftJoin("empresa as emp", "emp.idempresa","=","n.fkEmpresa")
         ->where("fkEmpleado", "=", $idEmpleado)
         ->where("fkEstado","=","2")
         ->orderBy("idPeriodo","desc")
@@ -5720,9 +5791,10 @@ class EmpleadoController extends Controller
         ->first();*/
 
         $empleado = DB::table("empleado", "e")
-        ->select("e.*","cargo.nombreCargo","n.nombre as nombreNomina")
+        ->select("e.*","cargo.nombreCargo","n.nombre as nombreNomina",  "emp.razonSocial as nombreEmpresa")
         ->leftJoin("cargo","cargo.idCargo","=","e.fkCargo")
         ->leftJoin("nomina as n", "n.idNomina","=","e.fkNomina")
+        ->leftJoin("empresa as emp", "emp.idempresa","=","n.fkEmpresa")
         ->where("e.idempleado","=",$idEmpleado)        
         ->first();
         

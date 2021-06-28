@@ -60,6 +60,7 @@ class DatosPasadosController extends Controller
         ->join("concepto as c","c.idconcepto", "=","dp.fkConcepto", "left")
         ->join("estado as est", "est.idEstado", "=", "dp.fkEstado")
         ->where("dp.fkCargaDatosPasados","=",$idCarga)
+        ->orderBy("est.idEstado","desc")
         ->get();
         $dataUsu = UsuarioController::dataAdminLogueado();
         
@@ -182,9 +183,8 @@ class DatosPasadosController extends Controller
                             "fkEstado" => "14"
                         ]);
                     }
-                    $datosSubidos++;
-                    
-                    if($datosSubidos == 30){
+                    $datosSubidos++;                    
+                    if($datosSubidos == 100){
                         DB::table("carga_datos_pasados")
                         ->where("idCargaDatosPasados","=",$idCarga)
                         ->update(["numActual" => ($i+1)]);
@@ -370,10 +370,12 @@ class DatosPasadosController extends Controller
         ->where("dp.fkCargaDatosPasados","=",$idCarga)
         ->where("dp.fkEstado","=","3")
         ->orderBy("dp.fecha")
-        ->orderBy("dp.fkEmpleado")
         ->orderBy("e.fkNomina")
+        ->orderBy("dp.fkEmpleado")
         ->orderBy("dp.fkConcepto")
         ->get();
+
+
         $dia = 0;
         $mes = 0;
         $anio = 0;
@@ -427,7 +429,7 @@ class DatosPasadosController extends Controller
                         $fechaInicio = date("Y-m-16",strtotime($datoPasado->fecha));
                         $fechaFin = date("Y-m-t",strtotime($datoPasado->fecha));
                         $fechaProximaInicio = date("Y-m-01",strtotime($datoPasado->fecha." +1 month"));
-                        $fechaProximaFin = date("Y-m-16",strtotime($datoPasado->fecha." +1 month"));
+                        $fechaProximaFin = date("Y-m-15",strtotime($datoPasado->fecha." +1 month"));
                     }
                 }   
                 

@@ -13,23 +13,23 @@
     </div>
     @if (in_array("125",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
-        <a class="btn btnAzulGen btnGeneral text-center"href="/concepto/exportar"> <i class="fas fa-download"></i> Exportar lista conceptos</a>
+        <a class="btn btnAzulGen btnGeneral text-center"href="/concepto/exportar"> <i class="fas fa-download"></i> Exportar</a>
     </div>
     @endif
     @if (in_array("123",$dataUsu->permisosUsuario))
     <div class="col-2 text-right">
-        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addConcepto">Agregar concepto</a>
+        <a class="btn btnAzulGen btnGeneral text-center" href="#" id="addConcepto">Agregar</a>
     </div>
     @endif
 </div>
 
 <div class="cajaGeneral">
-    <form autocomplete="off" action="/concepto/" method="GET" id="filtrarEmpleado">
-        @csrf    
+    <form autocomplete="off" action="/concepto/" method="GET" id="filtrarEmpleado"  accept-charset="UTF-8">
+        
         <div class="row">
-            <div class="col-4"><input type="text" name="nombre" placeholder="Nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/></div>
+            <div class="col-4"><input type="text" id="busc_nombre" name="nombre" placeholder="Nombre" @isset($req->nombre) value="{{$req->nombre}}" @endisset/></div>
             <div class="col-4">
-                <select class="form-control" name="naturaleza">
+                <select class="form-control" name="naturaleza" id="busc_naturaleza">
                     <option value="">Seleccione uno</option>
                     @foreach($naturalezas as $naturaleza)
                         <option value="{{$naturaleza->idnaturalezaConcepto}}" @isset($req->naturaleza) @if ($req->naturaleza == $naturaleza->idnaturalezaConcepto) selected @endif @endisset>{{$naturaleza->nombre}}</option>
@@ -63,6 +63,9 @@
                         <td>{{ $concepto->subTipo }}</td>
                         <td><a href="/concepto/condiciones/{{ $concepto->idconcepto }}">Condiciones</a></td>
                         <td>
+                            @if (in_array("145",$dataUsu->permisosUsuario))
+                            <a href="/concepto/getForm/ver/{{ $concepto->idconcepto }}" class="ver"><i class="fas fa-eye"></i></a>
+                            @endif
                             @if (in_array("124",$dataUsu->permisosUsuario))
                             <a href="/concepto/getForm/edit/{{ $concepto->idconcepto }}" class="editar"><i class="fas fa-edit"></i></a>
                             @endif

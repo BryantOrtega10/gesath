@@ -66,32 +66,42 @@
 
     
     <div class="table-responsive">
-        <table class="table table-hover table-striped">
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Fecha Liquida</th>
-                <th scope="col">Empresa</th>
-                <th scope="col">Nómina</th>
-                <th scope="col">Tipo</th>
-                <th scope="col">Estado</th>
-                <th scope="col"></th>
-            </tr>
-            @foreach ($liquidaciones as $liquidacion)
-            <tr>
-                <th scope="row">{{ $liquidacion->idLiquidacionNomina }}</th>
-                <td>{{ $liquidacion->fechaLiquida }}</td>
-                <td>{{ $liquidacion->razonSocial }}</td>
-                <td>{{ $liquidacion->nomNomina }}</td>
-                <td>{{ $liquidacion->tipoLiquidacion }}</td>
-                <td>{{ $liquidacion->estado }}</td>
-                <td><a href="/nomina/verSolicitudLiquidacion/{{$liquidacion->idLiquidacionNomina}}"><i class="fas fa-eye"></i></a></td>
-            </tr>
-            @endforeach
+        <table class="table table-hover table-striped" id="solicitudes_tabla">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Fecha Liquida</th>
+                    <th scope="col">Empresa</th>
+                    <th scope="col">Nómina</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($liquidaciones as $liquidacion)
+                <tr>
+                    <th scope="row">{{ $liquidacion->idLiquidacionNomina }}</th>
+                    <td>{{ $liquidacion->fechaLiquida }}</td>
+                    <td>{{ $liquidacion->razonSocial }}</td>
+                    <td>{{ $liquidacion->nomNomina }}</td>
+                    <td>{{ $liquidacion->tipoLiquidacion }}</td>
+                    <td>{{ $liquidacion->estado }}</td>
+                    <td><a href="/nomina/verSolicitudLiquidacion/{{$liquidacion->idLiquidacionNomina}}"><i class="fas fa-eye"></i></a></td>
+                </tr>
+                @endforeach
+            </tbody>
         </table>
     </div>
 </div>
 <script type="text/javascript">
     $(document).ready(function(e){
+
+        $("#solicitudes_tabla").DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.22/i18n/Spanish.json'
+            }
+        });
         $(".recargar").click(function(){
             window.open("/nomina/solicitudLiquidacion","_self");
         });

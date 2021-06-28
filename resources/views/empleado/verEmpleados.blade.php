@@ -31,19 +31,13 @@
                     @csrf
                     <div class="row">
                         <div class="col-2">
-                            <div class="form-group @isset($req->nombre) hasText @endisset">
-                                <label for="nombre" class="control-label">Nombre:</label>
-                                <input type="text" class="form-control" name="nombre" id="nombre" @isset($req->nombre)
-                                value="{{ $req->nombre }}" @endisset/>
+                            <div class="form-group @isset($req->numDocNombre) hasText @endisset">
+                                <label for="numDocNombre" class="control-label">Número Identificación y Nombre:</label>
+                                <input type="text" class="form-control" id="numDocNombre" name="numDocNombre" @isset($req->numDocNombre)
+                                value="{{ $req->numDocNombre }}" @endisset/>
                             </div>
                         </div>
-                        <div class="col-2">
-                            <div class="form-group @isset($req->numDoc) hasText @endisset">
-                                <label for="numDoc" class="control-label">Número Identificación:</label>
-                                <input type="text" class="form-control" id="numDoc" name="numDoc" @isset($req->numDoc)
-                                value="{{ $req->numDoc }}" @endisset/>
-                            </div>
-                        </div>
+                        
                         <div class="col-2">
                             <div class="form-group @isset($req->empresa) hasText @endisset">
                                 <label for="infoEmpresa" class="control-label">Empresa</label>
@@ -60,6 +54,19 @@
 
 
                                         
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-2">
+                            <div class="form-group @isset($req->nomina) hasText @endisset">
+                                <label for="infoNomina" class="control-label">Nomina</label>
+                                <select class="form-control" id="infoNomina" name="nomina">
+                                    <option value=""></option>
+                                    @foreach ($nominas as $nomina)                                       
+                                        <option value="{{ $nomina->idNomina }}" @isset($req->nomina) @if ($req->nomina == $nomina->idNomina) selected
+                                        @endif @endisset>{{ $nomina->nombre }}</option>                                        
                                     @endforeach
                                 </select>
                             </div>
